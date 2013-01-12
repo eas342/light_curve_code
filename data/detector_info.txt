@@ -1,0 +1,3 @@
+#Detector Info
+Gain		13
+Read_Noise	13
