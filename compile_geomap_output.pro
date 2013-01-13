@@ -1,6 +1,7 @@
 pro compile_geomap_output
   ;; get the number of files
-  readcol,'../IRTF_UT2012Jan04/file_lists/proc100list.txt',origname,format='(A)'
+;  readcol,'../IRTF_UT2012Jan04/file_lists/proc100list.txt',origname,format='(A)'
+  readcol,'../IRTF_UT2012Jan04/file_lists/fullguider_list.txt',origname,format='(A)'
   nfile = n_elements(origname)
 
   ;; Set up data arrays
@@ -19,8 +20,9 @@ pro compile_geomap_output
   datalength = 28
 
   ;; get the reference data
-  geomapNM = '../IRTF_UT2012Jan04/phot_data/geomap_out.dat'
-  outputNM = '../IRTF_UT2012Jan04/phot_data/geomap_list.txt'
+;  geomapNM = '../IRTF_UT2012Jan04/phot_data/geomap_out.dat'
+  geomapNM = '../IRTF_UT2012Jan04/phot_data/geomap_outfull.dat'
+  outputNM = '../IRTF_UT2012Jan04/phot_data/geomap_listfull.txt'
 
   ;; Read in the centroids one file at a time
   for i=0l,nfile-1l do begin

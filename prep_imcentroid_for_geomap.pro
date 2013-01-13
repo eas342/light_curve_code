@@ -1,6 +1,7 @@
 pro prep_imcentroid_for_geomap
   ;; get the number of files
-  readcol,'../IRTF_UT2012Jan04/file_lists/guider100list.txt',origname,format='(A)'
+;  readcol,'../IRTF_UT2012Jan04/file_lists/proc100list.txt',origname,format='(A)'
+  readcol,'../IRTF_UT2012Jan04/file_lists/fullguider_list.txt',origname,format='(A)'
   nfile = n_elements(origname)
 
   ;; get the number of sources
@@ -8,7 +9,8 @@ pro prep_imcentroid_for_geomap
   nstars = n_elements(firstcol)
 
   ;; get the reference data
-  imcentroidNM = '../IRTF_UT2012Jan04/phot_data/centroids100.txt'
+;  imcentroidNM = '../IRTF_UT2012Jan04/phot_data/centroids100.txt'
+  imcentroidNM = '../IRTF_UT2012Jan04/phot_data/centroids_full.txt'
   centroidDIR = '../IRTF_UT2012Jan04/phot_data/file_by_file_cen'
 
   readcol,imcentroidNM,filenfull,xref,xEref,yref,yEref,starnumref,$

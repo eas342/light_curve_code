@@ -1,6 +1,7 @@
 pro plot_tim_ser,fitrad=fitrad,fitpoly=fitpoly,usepoly=usepoly,npoly=npoly,$
                  fullrange=fullrange,smartbin=smartbin,oneprange=oneprange,$
-                 offtranserr=offtranserr,freelimb=freelimb,clarlimb=clarlimb
+                 offtranserr=offtranserr,freelimb=freelimb,clarlimb=clarlimb,$
+                 psplot=psplot
 ;; plots the binned data as a time series and can also fit the Rp/R* changes
 ;; apPlot -- this optional keyword allows one to choose the aperture
 ;;           to plot
@@ -18,11 +19,13 @@ pro plot_tim_ser,fitrad=fitrad,fitpoly=fitpoly,usepoly=usepoly,npoly=npoly,$
 ;; offtranserr -- makes the error equal to the stddev of off-transit points
 ;; freelimb -- frees the limb darkening parameters in the fits
 ;; clarlimb -- uses the limb darkening parameters from A. Claret, averaged into wavelength bins
-
+;; psplot -- makes a postscript plot instead of X windows plot
 
   ;; set the plot
-  set_plot,'ps'
-  !p.font=0
+  if keyword_set(psplot) then begin
+     set_plot,'ps'
+     !p.font=0
+  endif
 
   ;; get the binned data
   restore,'data/specdata.sav'
@@ -30,7 +33,7 @@ pro plot_tim_ser,fitrad=fitrad,fitpoly=fitpoly,usepoly=usepoly,npoly=npoly,$
   bingridmiddle = bingrid + binsizes/2E
 
   nut = n_elements(utgrid)
-  nbin = Nwabins
+  nbin = Nwavbins
 
   ;; get the transit times
   readcol,'transit_info/jan_04_t_time.txt',epoch,tepoch,format='(A,A)',$
@@ -64,36 +67,33 @@ pro plot_tim_ser,fitrad=fitrad,fitpoly=fitpoly,usepoly=usepoly,npoly=npoly,$
 
   offp = where(tplot LT hstart OR tplot GT hend)
 
-  ;; plot the binned data for aperture 2
+  ;; For any binfle that are zero, set to 0.01
+  zerobinp = where(binfle LE 1E-3)
+  binfle[zerobinp] = 0.01E
 
   for k=0l,nbin-1l do begin
      specpt = k
      ;; choose the data from the normalization order
-     if keyword_set(smartbin) then begin
-        y = sbinfl[specpt,Nord,*,apPlot]
-        yerr = sbinfle[specpt,Nord,*,apPlot]
-     endif else begin
-        y = binfl[specpt,Nord,*,apPlot]
-        yerr = binfle[specpt,Nord,*,apPlot]
-     endelse
+     y = double(transpose(binfl[k,*]))
+     yerr = double(transpose(binfle[k,*]))
 
+     meanoff = mean(y[offp],/nan)
+     ;; For any binned flux that are NAN, remove
+     badp = where(finite(y) EQ 0)
+     if badp NE [-1] then begin
+        y[badp] = meanoff
+     endif
+     stdoff = stddev(y[offp])
+
+     ;; Throw away points more than 5-sigma from the main bunch
+     wildp = where(abs(y - meanoff) GT 5D * stdoff)
+     if wildp NE [-1] then begin
+        y[wildp] = meanoff
+     endif
      
-     wavname = string(bingridmiddle[k,Nord],format='(F4.2)')
+     wavname = string(bingridmiddle[k],format='(F4.2)')
 
-     if total(finite(y)) GT 0 and total(yerr) GT 0.0 then begin
-
-        ;; if asked to, use the polynomial to correct the light curve
-        ;; (only do it for valid polynomial fits)
-        if keyword_set(usepoly) then begin
-           if finite(ppolystruct.(0)[1,k]) then begin
-              baseline = fltarr(nut)
-              for i=0l,npoly-1l do begin
-                 baseline = baseline + ppolystruct.(0)[i+1,k+1] * tplot^i
-              endfor
-              y = y - baseline
-           endif
-        endif
-
+     if total(finite(y)) GT 0 and total(finite(yerr)) GT 0.0 then begin
         ;; if keyword set, replace the error w/ the off transit stddev
         if keyword_set(offtranserr) then begin
            stdevOff = stddev(y[offp])
@@ -106,39 +106,38 @@ pro plot_tim_ser,fitrad=fitrad,fitpoly=fitpoly,usepoly=usepoly,npoly=npoly,$
         case 1 of
            keyword_set(fullrange): ydynam = [0,0]
            keyword_set(oneprange): ydynam = [-0.01,0.01]
-           else: ydynam = $
-              y[sorty[[ceil(5E/100E*float(ylength)),floor(95E/100E*float(ylength))]]]
+           else: begin
+              ylowerL = y[sorty[ceil(5E/100E*float(ylength))]] * 0.95
+              yUpperL = y[sorty[ceil(95E/100E*float(ylength))]] * 1.05
+              ydynam = [ylowerL,yUpperL]
+           end
         endcase
-        
-        device,encapsulated=1, /helvetica,$
-               filename='plots/spec_t_series/tser_'+wavname+'.eps'
-        device,xsize=14, ysize=10,decomposed=1,/color
+        if keyword_set(psplot) then begin
+           plotnm = 'plots/spec_t_series/tser_'+wavname+'.eps'
+           device,encapsulated=1, /helvetica,$
+                  filename=plotnm
+           device,xsize=14, ysize=10,decomposed=1,/color
+        endif
         plot,tplot,y,psym=2,$
              xtitle='Orbital Phase',$
-             title=wavname+' um Flux / '+normtext+' um Flux',$
-             ytitle='Flux Ratio - Mean',$
+             title=wavname+' um Flux ',$
+             ytitle='Flux Ratio',$
              yrange=ydynam
-        oploterr,tplot,y,yerr
+;        oploterr,tplot,y,yerr
 
-        ;; print the stdev for y
-        print,'Stdev in F for ',wavname,': ',stddev(y)
+        ;; print the stdev for y for off points
+        print,'Off Transit Stdev in F for ',wavname,': ',stddev(y[offp])
 
         ;; show the transit epochs
-        drawy = [-0.002,0.002]
+        drawy = [!y.crange[0],!y.crange[1]]
         plots,[hstart,hstart],drawy,color=mycol('brown'),linestyle=2
         plots,[hend,hend],drawy,color=mycol('brown'),linestyle=2
 
         if keyword_set(fitrad) then begin
            ;; fit the data curve
-           expr1 = 'quadlc(X,P[0],P[1],P[2],P[3],P[4])'
-           expr2 = ' - quadlc(X,'+strtrim(planetdat.p,1)+$
-                   ','+strtrim(planetdat.b_impact,1)+$
-                   ','+strtrim(u1parm,1)+$
-                   ','+strtrim(u2parm,1)+$
-                   ','+strtrim(planetdat.a_o_rstar,1)+') + P[5]'
-           expr = expr1 + expr2
+           expr = 'quadlc(X,P[0],P[1],P[2],P[3],P[4]) + P[5]'
            pi = replicate({fixed:1, limited:[1,0], limits:[0.0E,0.0E]},6)
-           pi[0].fixed = 0 ;; make sure the Rp/R* parameter is free
+;           pi[0].fixed = 0 ;; make sure the Rp/R* parameter is free
            pi[5].fixed = 0 ;; make sure the flux ratio offset is free
            ;; fix the impact parameter, limb darkening and AoR*
            if keyword_set(freelimb) then begin
@@ -146,49 +145,38 @@ pro plot_tim_ser,fitrad=fitrad,fitpoly=fitpoly,usepoly=usepoly,npoly=npoly,$
               pi[2].fixed = 0
               pi[3].fixed = 0
            endif
-           if keyword_set(clarlimb) then begin
-              start=[planetdat.p,planetdat.b_impact,u1bin[k],u2bin[k],planetdat.a_o_rstar,0.0E]
-           endif else begin
-              start=[planetdat.p,planetdat.b_impact,u1parm,u2parm,planetdat.a_o_rstar,0.0E]
-           endelse
+           pi[0].limited = [1,1]
+           pi[0].limits = [0D,1D] ;; Keep Rp/R* between 0 and 1
+           ;; Let the offset go below zero
+           pi[5].limited = [0,0]
+;           if keyword_set(clarlimb) then begin
+;              start=[planetdat.p,planetdat.b_impact,u1bin[k],u2bin[k],planetdat.a_o_rstar,0.0E]
+;           endif else begin
+           start=double([planetdat.p,planetdat.b_impact,u1parm,u2parm,planetdat.a_o_rstar,0.0D])
+;           endelse
+
            result = mpfitexpr(expr,tplot,y,yerr,start,parinfo=pi,perr=punct)
            
            ;; show the fit
-           showphase = 0.08E
+           showphase = 0.16E
            nshowpts = 1024      ; number of points to show
            phtest = dindgen(nshowpts)/float(nshowpts)*showphase - showphase/2E
-           ytest1 = quadlc(phtest,result[0],result[1],result[2],result[3],result[4],planetdat.a_o_rstar)
-           ytest2 = quadlc(phtest,planetdat.p,planetdat.b_impact,u1parm,u2parm,planetdat.a_o_rstar)
-           ytest = ytest1 - ytest2 + result[5]
+           ytest1 = quadlc(phtest,result[0],result[1],result[2],result[3],result[4])
+           ytest = ytest1 + result[5]
            oplot,phtest,ytest,color=mycol('orange')
 
            ;; save the planet radius
            plrad[k] = result[0]
            plrade[k] = punct[0]
-           
+           stop
 
         endif
-        if keyword_set(fitpoly) then begin
-           ;; fit the data curve to a polynomial
-           result = poly_fit(tplot,y[0l:nut-1l],npoly-1,measure_errors=yerr[0l:nut-1l],yfit=yfit)
-
-           ;; show the fit
-           showphase = 0.08E
-           nshowpts = 1024      ; number of points to show
-           ytest = fltarr(nshowpts)
-           phtest = dindgen(nshowpts)/float(nshowpts)*showphase - showphase/2E
-           for i=0,npoly-1 do begin
-              ytest = ytest + phtest^i * result[i]
-           endfor
-           oplot,phtest,ytest,color=mycol('orange')
-           
-           polyparms[k,*] = result
+        if keyword_set(psplot) then begin
+           device, /close
+           device,decomposed=0
+           cgPS2PDF,plotnm,$
+                    /delete_ps
         endif
-
-        device, /close
-        device,decomposed=0
-        cgPS2PDF,'plots/spec_t_series/tser_'+wavname+'.eps',$
-                  /delete_ps
            
         
      endif
@@ -198,36 +186,13 @@ pro plot_tim_ser,fitrad=fitrad,fitpoly=fitpoly,usepoly=usepoly,npoly=npoly,$
   
   ;; save the radius data
   
-  forprint,bingridmiddle[*,Nord],plrad,plrade,$
-           textout='radius_vs_wavelength/radius_vs_wavl_ord_'+ordernames[Nord]+'.txt',$
-           comment='#Wavelength  Rp/R*   Rp/R* Error'
+  forprint,bingridmiddle[*],plrad,plrade,$
+           textout='radius_vs_wavelength/radius_vs_wavl.txt',$
+           comment='#Wavelength  Rp/R*   Rp/R* Error',/silent
 
-  if keyword_set(fitpoly) then begin
-     ;; save the polynomial fit data
-     openw,1,'radius_vs_wavelength/polynomial_params_ord_'+ordernames[Nord]+'.txt',$
-           width=200
-     printf,1,'#Wavelength ',format='($,A)'
-     for i=0,npoly-1 do begin
-        printf,1,'P[',strtrim(i,1),']   ',format='($,A,A,A)'
-     endfor
-     printf,1,'' ; new line
-     for k=0,nbin-1l do begin
-        printf,1,bingridmiddle[k,Nord],' ',format='($,A,A)'
-        for i=0,npoly-1l do begin
-           printf,1,polyparms[k,i],' ',format='($,A,A)'
-        endfor
-        printf,1,''
-     endfor
-     
-;     forprint,bingrid[*,Nord],polyparms[*,0],polyparms[*,1],polyparms[*,2],$
-;              polyparms[*,3],polyparms[*,4],$
-;              textout='radius_vs_wavelength/polynomial_params_ord_'+ordernames[Nord]+'.txt',$
-;              comment='#Wavelength P[0]      P[1]      P[2]      P[3]    P[4]'
-     close,1
+  if keyword_set(psplot) then begin
+     device,decomposed=0
+     set_plot,'x'
+     !p.font=-1
   endif
-  
-  device,decomposed=0
-  set_plot,'x'
-  !p.font=-1
-
 end
