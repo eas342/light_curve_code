@@ -1,7 +1,8 @@
 pro plot_tim_ser,fitrad=fitrad,fitpoly=fitpoly,usepoly=usepoly,npoly=npoly,$
                  fullrange=fullrange,smartbin=smartbin,oneprange=oneprange,$
                  offtranserr=offtranserr,freelimb=freelimb,clarlimb=clarlimb,$
-                 psplot=psplot
+                 psplot=psplot,noreject=noreject,differential=differential,$
+                 individual=individual
 ;; plots the binned data as a time series and can also fit the Rp/R* changes
 ;; apPlot -- this optional keyword allows one to choose the aperture
 ;;           to plot
@@ -20,6 +21,11 @@ pro plot_tim_ser,fitrad=fitrad,fitpoly=fitpoly,usepoly=usepoly,npoly=npoly,$
 ;; freelimb -- frees the limb darkening parameters in the fits
 ;; clarlimb -- uses the limb darkening parameters from A. Claret, averaged into wavelength bins
 ;; psplot -- makes a postscript plot instead of X windows plot
+;;           noreject -- No sigma rejection when making plots, shows
+;;                       the all the points in the time series
+;; differential -- makes a differential measurment the spectrum by
+;;                 dividing by one of the bins
+;; individual -- plots the individual stars instead of just one at a time
 
   ;; set the plot
   if keyword_set(psplot) then begin
@@ -40,15 +46,15 @@ pro plot_tim_ser,fitrad=fitrad,fitpoly=fitpoly,usepoly=usepoly,npoly=npoly,$
           skipline=1
 
   ;; get the planet info
-  readcol,'transit_info/planet_info.txt',info,data,format='(A,F)',$
+  readcol,'transit_info/planet_info.txt',info,data,format='(A,D)',$
           skipline=1
   planetdat = create_struct('null','')
   for l=0l,n_elements(info)-1l do begin
      planetdat = create_struct(planetdat,info[l],data[l])
   endfor
 
-  u1parm = 0.0774E              ;HD 189733
-  u2parm = 0.3097E
+  u1parm = 0.0E              ;HD 189733
+  u2parm = 0.0E
 
   tstart = date_conv(tepoch[0],'JULIAN')
   tend = date_conv(tepoch[1],'JULIAN')
@@ -65,30 +71,51 @@ pro plot_tim_ser,fitrad=fitrad,fitpoly=fitpoly,usepoly=usepoly,npoly=npoly,$
   hstart = (tstart - tmid)/planetdat.period
   hend = (tend - tmid)/planetdat.period
 
-  offp = where(tplot LT hstart OR tplot GT hend)
 
-  ;; For any binfle that are zero, set to 0.01
+  ;; For any binfl error that are zero, set to 0.01
   zerobinp = where(binfle LE 1E-3)
   binfle[zerobinp] = 0.01E
 
   for k=0l,nbin-1l do begin
-     specpt = k
-     ;; choose the data from the normalization order
-     y = double(transpose(binfl[k,*]))
-     yerr = double(transpose(binfle[k,*]))
+     ;; Reset the x axis (orbital phase, in case it was modified below)
+     tplot = (utgrid - tmid)/planetdat.period     
+     offp = where(tplot LT hstart OR tplot GT hend)
+
+     if keyword_set(individual) then begin
+        y = double(transpose(binind[k,0,*]))
+        yerr = double(transpose(binindE[k,0,*]))
+     endif else begin
+        y = double(transpose(binfl[k,*]))
+        yerr = double(transpose(binfle[k,*]))
+     endelse
+     if keyword_set(differential) then begin
+        y = y / double(transpose(binfl[7,*]))
+        yerr = yerr / double(transpose(binfl[7,*]))
+     endif
+
 
      meanoff = mean(y[offp],/nan)
      ;; For any binned flux that are NAN, remove
-     badp = where(finite(y) EQ 0)
-     if badp NE [-1] then begin
-        y[badp] = meanoff
+     goodp = where(finite(y) EQ 1)
+     if goodp NE [-1] then begin
+        y = y[goodp]
+        tplot = tplot[goodp]
+        offp = where(tplot LT hstart OR tplot GT hend)
      endif
      stdoff = stddev(y[offp])
 
-     ;; Throw away points more than 5-sigma from the main bunch
-     wildp = where(abs(y - meanoff) GT 5D * stdoff)
-     if wildp NE [-1] then begin
-        y[wildp] = meanoff
+     ;; Throw away points more than n-sigma from the main bunch
+     if not keyword_set(noreject) then begin
+        for l=0,3-1 do begin    ; iterate 3 times
+           stdoff = stddev(y[offp])
+           meanoff = mean(y[offp],/nan)
+           goodp = where(abs(y - meanoff) LE 3D * stdoff)
+           if goodp NE [-1] then begin
+              y = y[goodp]
+              tplot = tplot[goodp]
+              offp = where(tplot LT hstart OR tplot GT hend)
+           endif
+        endfor
      endif
      
      wavname = string(bingridmiddle[k],format='(F4.2)')
@@ -103,15 +130,22 @@ pro plot_tim_ser,fitrad=fitrad,fitpoly=fitpoly,usepoly=usepoly,npoly=npoly,$
         ;find the range where 95% or more of the plots are shown
         sorty = sort(y)
         ylength = n_elements(y)
-        case 1 of
-           keyword_set(fullrange): ydynam = [0,0]
-           keyword_set(oneprange): ydynam = [-0.01,0.01]
-           else: begin
-              ylowerL = y[sorty[ceil(5E/100E*float(ylength))]] * 0.95
-              yUpperL = y[sorty[ceil(95E/100E*float(ylength))]] * 1.05
-              ydynam = [ylowerL,yUpperL]
-           end
-        endcase
+        if keywod_set(individual) then begin
+           ylowerL = y[sorty[ceil(5E/100E*float(ylength))]] * 0.95
+           yUpperL = y[sorty[ceil(95E/100E*float(ylength))]] * 1.05
+           ydynam = [ylowerL,yUpperL]
+        endif else begin
+           case 1 of
+              keyword_set(fullrange): ydynam = [0,0]
+              keyword_set(oneprange): ydynam = [0,1]
+              else: begin
+                 ylowerL = y[sorty[ceil(5E/100E*float(ylength))]] * 0.95
+                 yUpperL = y[sorty[ceil(95E/100E*float(ylength))]] * 1.05
+                 ydynam = [ylowerL,yUpperL]
+              end
+           endcase
+        endelse
+
         if keyword_set(psplot) then begin
            plotnm = 'plots/spec_t_series/tser_'+wavname+'.eps'
            device,encapsulated=1, /helvetica,$
@@ -123,10 +157,13 @@ pro plot_tim_ser,fitrad=fitrad,fitpoly=fitpoly,usepoly=usepoly,npoly=npoly,$
              title=wavname+' um Flux ',$
              ytitle='Flux Ratio',$
              yrange=ydynam
+        if keyword_set(individual) then begin
+           oplot,tplot,transpose(binind[k,1,*]),psym=4,color=mycol('blue')
+        endif
 ;        oploterr,tplot,y,yerr
 
         ;; print the stdev for y for off points
-        print,'Off Transit Stdev in F for ',wavname,': ',stddev(y[offp])
+        print,'Fractional off transit Stdev in F for ',wavname,': ',stddev(y[offp])/mean(y[offp])
 
         ;; show the transit epochs
         drawy = [!y.crange[0],!y.crange[1]]
@@ -135,9 +172,9 @@ pro plot_tim_ser,fitrad=fitrad,fitpoly=fitpoly,usepoly=usepoly,npoly=npoly,$
 
         if keyword_set(fitrad) then begin
            ;; fit the data curve
-           expr = 'quadlc(X,P[0],P[1],P[2],P[3],P[4]) + P[5]'
-           pi = replicate({fixed:1, limited:[1,0], limits:[0.0E,0.0E]},6)
-;           pi[0].fixed = 0 ;; make sure the Rp/R* parameter is free
+           expr = 'quadlc(X,P[0],P[1],P[2],P[3],P[4])* (P[5] + X * P[6])'
+           pi = replicate({fixed:1, limited:[1,0], limits:[0.0E,0.0E]},7)
+           pi[0].fixed = 0 ;; make sure the Rp/R* parameter is free
            pi[5].fixed = 0 ;; make sure the flux ratio offset is free
            ;; fix the impact parameter, limb darkening and AoR*
            if keyword_set(freelimb) then begin
@@ -147,12 +184,12 @@ pro plot_tim_ser,fitrad=fitrad,fitpoly=fitpoly,usepoly=usepoly,npoly=npoly,$
            endif
            pi[0].limited = [1,1]
            pi[0].limits = [0D,1D] ;; Keep Rp/R* between 0 and 1
-           ;; Let the offset go below zero
-           pi[5].limited = [0,0]
+           pi[6].limited = [0,0] ;; let the linear coefficient by + or -
+           pi[6].fixed = 0 ;; let the linear coefficient vary
 ;           if keyword_set(clarlimb) then begin
 ;              start=[planetdat.p,planetdat.b_impact,u1bin[k],u2bin[k],planetdat.a_o_rstar,0.0E]
 ;           endif else begin
-           start=double([planetdat.p,planetdat.b_impact,u1parm,u2parm,planetdat.a_o_rstar,0.0D])
+           start=double([planetdat.p,planetdat.b_impact,u1parm,u2parm,planetdat.a_o_rstar,1.0D,0D])
 ;           endelse
 
            result = mpfitexpr(expr,tplot,y,yerr,start,parinfo=pi,perr=punct)
@@ -161,14 +198,14 @@ pro plot_tim_ser,fitrad=fitrad,fitpoly=fitpoly,usepoly=usepoly,npoly=npoly,$
            showphase = 0.16E
            nshowpts = 1024      ; number of points to show
            phtest = dindgen(nshowpts)/float(nshowpts)*showphase - showphase/2E
-           ytest1 = quadlc(phtest,result[0],result[1],result[2],result[3],result[4])
-           ytest = ytest1 + result[5]
-           oplot,phtest,ytest,color=mycol('orange')
+           ytest = quadlc(phtest,result[0],result[1],result[2],result[3],result[4]) $
+                   * (result[5] + phtest * result[6])
+                                                                                       
+           oplot,phtest,ytest,color=mycol('orange'),thick=2
 
            ;; save the planet radius
            plrad[k] = result[0]
            plrade[k] = punct[0]
-           stop
 
         endif
         if keyword_set(psplot) then begin
