@@ -16,7 +16,8 @@ if keyword_set(psplot) then begin
 endif
 
 ;; Get the file names
-readcol,'file_lists/full_speclist.txt',filen,format='(A)'
+;readcol,'file_lists/full_speclist.txt',filen,format='(A)'
+readcol,'file_lists/extraction1_full_list.txt',filen,format='(A)'
 nfile = n_elements(filen)
 
 ;; Get the detector info
@@ -76,11 +77,22 @@ binGrid = (lamgrid[Ngpts-1] - lamgrid[0]) * findgen(Nwavbins)/float(Nwavbins-1) 
           lamgrid[0]
 binsizes = fltarr(Nwavbins) + (lamgrid[Ngpts-1] - lamgrid[0])/float(Nwavbins-1)
 
+binind = fltarr(Nwavbins,Nap,nfile) ;; individual binned fluxes
+binindE = fltarr(Nwavbins,Nap,nfile)
+
 for i=0,nfile-1 do begin
    y = avg_series(lamgrid,Divspec[*,0,i],SNR[*,0,i],binGrid,binsizes,weighted=1,$
                   oreject=sigRejCrit,eArr=yerr,/silent,errIn=divSpecE[*,0,i])
    binfl[*,i] = y
    binflE[*,i] = yerr
+
+   for k=0,Nap-1 do begin
+      y2 = avg_series(lamgrid,flgrid[*,k,i],flgrid[*,k,i]/Errgrid[*,k,i],binGrid,$
+                      binsizes,weighted=1,$
+                      oreject=sigRejCrit,eArr=yerr2,/silent,errIn=Errgrid[*,k,i])
+      binind[*,k,i] = y2
+      binindE[*,k,i] = yerr2
+   endfor
 endfor
 
 
@@ -96,6 +108,6 @@ endif
 ; Save all data
 save,flgrid,lamgrid,utgrid,bingrid,binfl,binflE,$
      ErrGrid,SNR,Divspec,DivspecE,backgrid,SNR,$
-     Nwavbins,binsizes,$
+     Nwavbins,binsizes,binind,binindE,$
      filename='data/specdata.sav'
 end
