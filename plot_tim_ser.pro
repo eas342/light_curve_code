@@ -84,9 +84,13 @@ pro plot_tim_ser,fitrad=fitrad,fitpoly=fitpoly,usepoly=usepoly,npoly=npoly,$
      if keyword_set(individual) then begin
         y = double(transpose(binind[k,0,*]))
         yerr = double(transpose(binindE[k,0,*]))
+        y2 = double(transpose(binind[k,1,*]))
+        y2err = double(transpose(binindE[k,1,*]))
+        yptitle='Flux (DN)'
      endif else begin
         y = double(transpose(binfl[k,*]))
         yerr = double(transpose(binfle[k,*]))
+        yptitle='Flux Ratio'
      endelse
      if keyword_set(differential) then begin
         y = y / double(transpose(binfl[7,*]))
@@ -128,13 +132,16 @@ pro plot_tim_ser,fitrad=fitrad,fitpoly=fitpoly,usepoly=usepoly,npoly=npoly,$
         endif
 
         ;find the range where 95% or more of the plots are shown
-        sorty = sort(y)
-        ylength = n_elements(y)
-        if keywod_set(individual) then begin
-           ylowerL = y[sorty[ceil(5E/100E*float(ylength))]] * 0.95
-           yUpperL = y[sorty[ceil(95E/100E*float(ylength))]] * 1.05
+        if keyword_set(individual) then begin
+           ycomb = [y,y2] ;; combine both stars into one array
+           sorty = sort(ycomb)
+           ylength = n_elements(ycomb)
+           ylowerL = ycomb[sorty[ceil(5E/100E*float(ylength))]] * 0.95
+           yUpperL = ycomb[sorty[ceil(95E/100E*float(ylength))]] * 1.10
            ydynam = [ylowerL,yUpperL]
         endif else begin
+           sorty = sort(y)
+           ylength = n_elements(y)
            case 1 of
               keyword_set(fullrange): ydynam = [0,0]
               keyword_set(oneprange): ydynam = [0,1]
@@ -147,20 +154,22 @@ pro plot_tim_ser,fitrad=fitrad,fitpoly=fitpoly,usepoly=usepoly,npoly=npoly,$
         endelse
 
         if keyword_set(psplot) then begin
-           plotnm = 'plots/spec_t_series/tser_'+wavname+'.eps'
+           plotnmpre = 'plots/spec_t_series/tser_'+wavname
            device,encapsulated=1, /helvetica,$
-                  filename=plotnm
+                  filename=plotnmpre+'.eps'
            device,xsize=14, ysize=10,decomposed=1,/color
         endif
         plot,tplot,y,psym=2,$
              xtitle='Orbital Phase',$
              title=wavname+' um Flux ',$
-             ytitle='Flux Ratio',$
+             ytitle=yptitle,$
              yrange=ydynam
         if keyword_set(individual) then begin
-           oplot,tplot,transpose(binind[k,1,*]),psym=4,color=mycol('blue')
+           oplot,tplot,y2,psym=4,color=mycol('blue')
+           legend,['Planet Host','Reference Star'],$
+                  psym=[2,4],color=mycol(['black','blue']),$
+                  /right,/clear
         endif
-;        oploterr,tplot,y,yerr
 
         ;; print the stdev for y for off points
         print,'Fractional off transit Stdev in F for ',wavname,': ',stddev(y[offp])/mean(y[offp])
@@ -211,8 +220,9 @@ pro plot_tim_ser,fitrad=fitrad,fitpoly=fitpoly,usepoly=usepoly,npoly=npoly,$
         if keyword_set(psplot) then begin
            device, /close
            device,decomposed=0
-           cgPS2PDF,plotnm,$
+           cgPS2PDF,plotnmpre+'.eps',$
                     /delete_ps
+;           spawn,'convert -density 160% '+plotnmpre+'.pdf '+plotnmpre+'.png'
         endif
            
         
