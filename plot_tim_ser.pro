@@ -2,7 +2,7 @@ pro plot_tim_ser,fitrad=fitrad,fitpoly=fitpoly,usepoly=usepoly,npoly=npoly,$
                  fullrange=fullrange,smartbin=smartbin,oneprange=oneprange,$
                  offtranserr=offtranserr,freelimb=freelimb,clarlimb=clarlimb,$
                  psplot=psplot,noreject=noreject,differential=differential,$
-                 individual=individual
+                 individual=individual,pngcopy=pngcopy
 ;; plots the binned data as a time series and can also fit the Rp/R* changes
 ;; apPlot -- this optional keyword allows one to choose the aperture
 ;;           to plot
@@ -26,6 +26,9 @@ pro plot_tim_ser,fitrad=fitrad,fitpoly=fitpoly,usepoly=usepoly,npoly=npoly,$
 ;; differential -- makes a differential measurment the spectrum by
 ;;                 dividing by one of the bins
 ;; individual -- plots the individual stars instead of just one at a time
+;; pngcopy -- saves an exported PNG file for each PDF plot
+
+sigrejcrit = 6D  ;; sigma rejection criterion
 
   ;; set the plot
   if keyword_set(psplot) then begin
@@ -113,7 +116,7 @@ pro plot_tim_ser,fitrad=fitrad,fitpoly=fitpoly,usepoly=usepoly,npoly=npoly,$
         for l=0,3-1 do begin    ; iterate 3 times
            stdoff = stddev(y[offp])
            meanoff = mean(y[offp],/nan)
-           goodp = where(abs(y - meanoff) LE 3D * stdoff)
+           goodp = where(abs(y - meanoff) LE sigrejcrit * stdoff)
            if goodp NE [-1] then begin
               y = y[goodp]
               tplot = tplot[goodp]
@@ -222,7 +225,9 @@ pro plot_tim_ser,fitrad=fitrad,fitpoly=fitpoly,usepoly=usepoly,npoly=npoly,$
            device,decomposed=0
            cgPS2PDF,plotnmpre+'.eps',$
                     /delete_ps
-;           spawn,'convert -density 160% '+plotnmpre+'.pdf '+plotnmpre+'.png'
+           if keyword_set(pngcopy) then begin
+              spawn,'convert -density 160% '+plotnmpre+'.pdf '+plotnmpre+'.png'
+           endif
         endif
            
         

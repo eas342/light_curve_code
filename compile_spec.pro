@@ -1,4 +1,4 @@
-pro compile_spec
+pro compile_spec,extraction1=extraction1
 ;; Compiles the spectra into a few simple arrays to look at the spectrophotometry
 
 Nwavbins = 35 ;; number of wavelength bins
@@ -16,8 +16,11 @@ if keyword_set(psplot) then begin
 endif
 
 ;; Get the file names
-;readcol,'file_lists/full_speclist.txt',filen,format='(A)'
-readcol,'file_lists/extraction1_full_list.txt',filen,format='(A)'
+if keyword_set(extraction1) then begin
+   readcol,'file_lists/extraction1_full_list.txt',filen,format='(A)'
+endif else begin
+   readcol,'file_lists/full_speclist.txt',filen,format='(A)'
+endelse
 nfile = n_elements(filen)
 
 ;; Get the detector info
