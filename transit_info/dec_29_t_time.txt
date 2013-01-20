@@ -1,0 +1,3 @@
+# UT Times from Eastman's Ephemerides routine (part of exofast)
+First_Contact	2011-12-29T08:57:00.00
+Fourth_Cont	2011-12-29T11:27:00.00

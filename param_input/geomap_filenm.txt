@@ -1,0 +1,3 @@
+Geomap_File	../IRTF_UT2012Jan04/phot_data/geomap_listfull.txt
+UT_Time_file	../IRTF_UT2012Jan04/raw/guider_ut_and_expt_list.txt
+TransitTfile	transit_info/jan_04_t_time.txt

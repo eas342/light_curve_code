@@ -3,3 +3,15 @@
 .gitignore
 bx_wavelengths.txt
 *.ps
+*.sav
+data/fl_time_ser.txt
+cals/*
+idlsave.dat
+plots/*
+*.fits
+radius_vs_wavelength/*.txt
+transit_info/bjd2utc.pro
+transit_info/jdutc2jdtdb.pro
+transit_info/print_times.pro
+transit_info/tai_utc.pro
+transit_info/utc2bjd.pro

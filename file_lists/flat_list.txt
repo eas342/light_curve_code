@@ -1,0 +1,7 @@
+../IRTF_UT2011Dec23_corot1_bigdog_guidedog/guidedog/cal/skyflat/guidedog3129.a.fits
+../IRTF_UT2011Dec23_corot1_bigdog_guidedog/guidedog/cal/skyflat/guidedog3130.a.fits
+../IRTF_UT2011Dec23_corot1_bigdog_guidedog/guidedog/cal/skyflat/guidedog3131.a.fits
+../IRTF_UT2011Dec23_corot1_bigdog_guidedog/guidedog/cal/skyflat/guidedog3132.a.fits
+../IRTF_UT2011Dec23_corot1_bigdog_guidedog/guidedog/cal/skyflat/guidedog3133.a.fits
+../IRTF_UT2011Dec23_corot1_bigdog_guidedog/guidedog/cal/skyflat/guidedog3134.a.fits
+../IRTF_UT2011Dec23_corot1_bigdog_guidedog/guidedog/cal/skyflat/guidedog3135.a.fits

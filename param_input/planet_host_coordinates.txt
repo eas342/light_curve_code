@@ -1,0 +1,3 @@
+# Planet Host Coordinates in decimal degrees
+RA	      102.0799
+Dec	      -3.1021
