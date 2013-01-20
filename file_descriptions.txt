@@ -1,0 +1,80 @@
+JDfits.pro
+
+Extracts the JD Time from a FITS image.
+
+avg_series.pro
+
+Bins data that's either a time series or along wavelength.
+
+boxcoor.pro
+
+Finds the coordinates or wavelength of an extraction box of an image.
+
+compile_geomap_output.pro
+
+Formats the output from the geomap IRAF procedure into data columns.
+
+compile_spec.pro
+
+Takes all the spectra from fits files, bins them and saves them as a IDL structure
+
+ellec.pro
+ellk.pro
+
+Both IDL elliptic integral functions for use by occult quad.
+
+ev_flatfield.pro
+
+Makes a flat field for images.
+
+ev_phot.pro
+
+Does photometery on images but didn't get far with this.
+
+nansqrt.pro
+
+Takes the square root of a data array that contains NaNs.
+
+occultquad.pro
+
+Evaluates the Mandel and Agol light curve.
+
+plot_geomap.pro
+
+Plots the output from the photometry.
+
+plot_linearity.pro
+
+Plots the linearity of a detector.
+
+plot_rad_vs_wavl.pro
+
+Plots the radius fits from plot_t_series as a function of wavelength.
+
+plot_resp.pro
+
+Plots a series of fluxes from extraction boxes
+
+plot_tim_ser.pro
+
+Plots a time series of spectral data.
+
+prep_imcentroid_for_geomap.pro
+
+Formats the output from the imcentroid IRAF procedure so that the IRAF geomap procedure can use it.
+
+quadlc.pro
+
+Evaluates the theoretical quadratic light curve.
+
+rc.pro
+rj.pro
+More functions needed by the Mandel and Agol light curves.
+
+symbol_colors.pro
+Makes symbols of colors.
+
+timeser.pro
+Plots spectral and photometry data simultaneously.
+
+
