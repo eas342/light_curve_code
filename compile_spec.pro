@@ -1,7 +1,8 @@
-pro compile_spec,extraction1=extraction1
+pro compile_spec,extraction2=extraction2
 ;; Compiles the spectra into a few simple arrays to look at the spectrophotometry
 
-Nwavbins = 35 ;; number of wavelength bins
+;Nwavbins = 35 ;; number of wavelength bins
+Nwavbins = 9 ;; number of wavelength bins
 SigRejCrit = 3 ;; number of sigma to reject when binning
 
 if keyword_set(psplot) then begin
@@ -16,10 +17,10 @@ if keyword_set(psplot) then begin
 endif
 
 ;; Get the file names
-if keyword_set(extraction1) then begin
-   readcol,'file_lists/extraction1_full_list.txt',filen,format='(A)'
-endif else begin
+if keyword_set(extraction2) then begin
    readcol,'file_lists/full_speclist.txt',filen,format='(A)'
+endif else begin
+   readcol,'file_lists/extraction1_full_list.txt',filen,format='(A)'
 endelse
 nfile = n_elements(filen)
 

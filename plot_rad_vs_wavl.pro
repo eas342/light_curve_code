@@ -17,7 +17,7 @@ pro plot_rad_vs_wavl,psplot=psplot
   plot,wavl,rad,$
        xtitle='Wavelength (um)',$
        ytitle='Rp/R*',$
-       ystyle=16,xstyle=1,$
+       ystyle=16,xstyle=0,$
        yrange=[0.1,0.2]
      oploterror,wavl,rad,rade
      
