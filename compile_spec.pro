@@ -54,6 +54,7 @@ for i=0l,nfile-1l do begin
 
    for j=0,Nap-1 do begin
       flgrid[*,j,i] = a2[*,j,0] * Gain
+;      backgrid[*,j,i] = a2[*,j,2] * Gain ;; multiply by gain
       backgrid[*,j,i] = a2[*,j,1] * Gain ;; multiply by gain
    endfor
    utgrid[i] = double(fxpar(header2,'MJD_OBS'))
@@ -73,7 +74,7 @@ fracE = nansqrt((ErrGrid[*,0,*]/flgrid[*,0,*])^2 + $
              (ErrGrid[*,1,*]/flgrid[*,1,*])^2 )
 DivspecE = fracE * Divspec
 SNR = Divspec / DivspecE
-
+stop
 ;; Do the wavelength binning for the divided spec
 binfl = fltarr(Nwavbins,nfile)
 binflE = fltarr(Nwavbins,nfile)
