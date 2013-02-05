@@ -1,8 +1,12 @@
-pro compile_spec,extraction2=extraction2
+pro compile_spec,extraction2=extraction2,optimal=optimal
 ;; Compiles the spectra into a few simple arrays to look at the spectrophotometry
+;; extraction2 -- uses whatever spectra are in the data directory
+;; optimal -- uses the variance weighted (optimal) extraction
 
-;Nwavbins = 35 ;; number of wavelength bins
-Nwavbins = 9 ;; number of wavelength bins
+Nwavbins = 35 ;; number of wavelength bins
+;Nwavbins = 9 ;; number of wavelength bins
+;Nwavbins = 20 ;; number of wavelength bins
+
 SigRejCrit = 3 ;; number of sigma to reject when binning
 
 if keyword_set(psplot) then begin
@@ -46,6 +50,10 @@ flgrid = fltarr(Ngpts,Nap,nfile)
 backgrid = fltarr(Ngpts,Nap,nfile)
 utgrid = dblarr(nfile)
 
+if keyword_set(optimal) then begin
+   SpecKey = 1
+endif else SpecKey = 0
+
 for i=0l,nfile-1l do begin
    ;; Read all files into the grid
    a2 = mrdfits(filen[i],0,header2,/silent)
@@ -53,9 +61,8 @@ for i=0l,nfile-1l do begin
    sizea2 = size(a2)
 
    for j=0,Nap-1 do begin
-      flgrid[*,j,i] = a2[*,j,0] * Gain
-;      backgrid[*,j,i] = a2[*,j,2] * Gain ;; multiply by gain
-      backgrid[*,j,i] = a2[*,j,1] * Gain ;; multiply by gain
+      flgrid[*,j,i] = a2[*,j,SpecKey] * Gain
+      backgrid[*,j,i] = a2[*,j,2] * Gain ;; multiply by gain
    endfor
    utgrid[i] = double(fxpar(header2,'MJD_OBS'))
 endfor
@@ -74,7 +81,7 @@ fracE = nansqrt((ErrGrid[*,0,*]/flgrid[*,0,*])^2 + $
              (ErrGrid[*,1,*]/flgrid[*,1,*])^2 )
 DivspecE = fracE * Divspec
 SNR = Divspec / DivspecE
-stop
+
 ;; Do the wavelength binning for the divided spec
 binfl = fltarr(Nwavbins,nfile)
 binflE = fltarr(Nwavbins,nfile)
