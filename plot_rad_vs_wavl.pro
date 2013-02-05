@@ -17,12 +17,24 @@ pro plot_rad_vs_wavl,psplot=psplot
   plot,wavl,rad,$
        xtitle='Wavelength (um)',$
        ytitle='Rp/R*',$
+;       ystyle=16,xstyle=1,$
        ystyle=16,xstyle=0,$
        yrange=[0.1,0.2]
-     oploterror,wavl,rad,rade
-     
-     oploterror,wavl,rad,fltarr(n_elements(wavl)),rade;errcolor=mycol('yellow'),$
+  oploterror,wavl,rad,rade
+  
+  oploterror,wavl,rad,fltarr(n_elements(wavl)),rade ;errcolor=mycol('yellow'),$
 ;                color=mycol('yellow') 
+  
+  ;; As in Gibson et al. 2012, show 3 scale heights around the
+  ;; adopted Rp/R* from Jacob Bean et al. 2012
+  scaleH = 0.0023E
+  plots,[!x.crange[0],!x.crange[1]],[0.1433,0.1433],color=mycol(['red'])
+  plots,[!x.crange[0],!x.crange[1]],[0.1433,0.1433]+3E*scaleH,color=mycol(['red']),linestyle=2
+  plots,[!x.crange[0],!x.crange[1]],[0.1433,0.1433]-3E*scaleH,color=mycol(['red']),linestyle=2
+        
+     
+     
+
      if keyword_set(psplot) then begin
         device, /close
         cgPS2PDF,plotprenm+'.eps'
