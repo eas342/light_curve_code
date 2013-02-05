@@ -2,7 +2,7 @@ pro plot_tim_ser,fitrad=fitrad,fitpoly=fitpoly,usepoly=usepoly,npoly=npoly,$
                  fullrange=fullrange,smartbin=smartbin,oneprange=oneprange,$
                  offtranserr=offtranserr,freelimb=freelimb,clarlimb=clarlimb,$
                  psplot=psplot,noreject=noreject,differential=differential,$
-                 individual=individual,pngcopy=pngcopy
+                 individual=individual,pngcopy=pngcopy,freeall=freall,fixall=fixall
 ;; plots the binned data as a time series and can also fit the Rp/R* changes
 ;; apPlot -- this optional keyword allows one to choose the aperture
 ;;           to plot
@@ -27,8 +27,13 @@ pro plot_tim_ser,fitrad=fitrad,fitpoly=fitpoly,usepoly=usepoly,npoly=npoly,$
 ;;                 dividing by one of the bins
 ;; individual -- plots the individual stars instead of just one at a time
 ;; pngcopy -- saves an exported PNG file for each PDF plot
+;; freeall -- frees the limb darkening parameters, a/R*, impact
+;;            parameter as well
+;; fixall -- fix all light curve parameters at the values from the
+;;           literature (except the DC offset and slope)
 
-sigrejcrit = 6D  ;; sigma rejection criterion
+;sigrejcrit = 6D  ;; sigma rejection criterion
+sigrejcrit = 5D  ;; sigma rejection criterion
 
   ;; set the plot
   if keyword_set(psplot) then begin
@@ -67,8 +72,16 @@ sigrejcrit = 6D  ;; sigma rejection criterion
   plrad = fltarr(nbin)*!values.f_nan
   plrade = fltarr(nbin)*!values.f_nan
 
+  ;; Prepare to save all the planet transit data as a function of wavelength
+  paramnames = ['Rp/R*','b_impact','u1','u2','a/R*','linearA','linearB']
+  nparams = n_elements(paramnames)
+  resultarr = fltarr(nparams,nbin)*!values.f_nan
+  resultarrE = resultarr
+
+
   ;; orbital phase
-  tplot = (utgrid - tmid)/planetdat.period
+;  tplot = (utgrid - tmid)/planetdat.period
+  tplot = (utgrid - tmid)/planetdat.period - 0.002
      
   ;; calculate start and end
   hstart = (tstart - tmid)/planetdat.period
@@ -96,8 +109,8 @@ sigrejcrit = 6D  ;; sigma rejection criterion
         yptitle='Flux Ratio'
      endelse
      if keyword_set(differential) then begin
-        y = y / double(transpose(binfl[7,*]))
-        yerr = yerr / double(transpose(binfl[7,*]))
+        y = y / double(transpose(binfl[1,*]))
+        yerr = yerr / double(transpose(binfl[1,*]))
      endif
 
 
@@ -110,6 +123,7 @@ sigrejcrit = 6D  ;; sigma rejection criterion
         offp = where(tplot LT hstart OR tplot GT hend)
      endif
      stdoff = stddev(y[offp])
+
 
      ;; Throw away points more than n-sigma from the main bunch
      if not keyword_set(noreject) then begin
@@ -124,8 +138,16 @@ sigrejcrit = 6D  ;; sigma rejection criterion
            endif
         endfor
      endif
-     
+
      wavname = string(bingridmiddle[k],format='(F4.2)')
+
+     if n_elements(timebin) NE 0 then begin
+        ;; Bin the series in time
+        timeGrid 
+           y = avg_series(lamgrid,Divspec[*,0,i],SNR[*,0,i],binGrid,binsizes,weighted=1,$
+                  oreject=sigRejCrit,eArr=yerr,/silent,errIn=divSpecE[*,0,i])
+
+     endif
 
      if total(finite(y)) GT 0 and total(finite(yerr)) GT 0.0 then begin
         ;; if keyword set, replace the error w/ the off transit stddev
@@ -139,8 +161,8 @@ sigrejcrit = 6D  ;; sigma rejection criterion
            ycomb = [y,y2] ;; combine both stars into one array
            sorty = sort(ycomb)
            ylength = n_elements(ycomb)
-           ylowerL = ycomb[sorty[ceil(5E/100E*float(ylength))]] * 0.95
-           yUpperL = ycomb[sorty[ceil(95E/100E*float(ylength))]] * 1.10
+           ylowerL = ycomb[sorty[ceil(5E/100E*float(ylength))]] * 0.7
+           yUpperL = ycomb[sorty[ceil(95E/100E*float(ylength))]] * 1.3
            ydynam = [ylowerL,yUpperL]
         endif else begin
            sorty = sort(y)
@@ -149,8 +171,8 @@ sigrejcrit = 6D  ;; sigma rejection criterion
               keyword_set(fullrange): ydynam = [0,0]
               keyword_set(oneprange): ydynam = [0,1]
               else: begin
-                 ylowerL = y[sorty[ceil(5E/100E*float(ylength))]] * 0.95
-                 yUpperL = y[sorty[ceil(95E/100E*float(ylength))]] * 1.05
+                 ylowerL = y[sorty[ceil(5E/100E*float(ylength))]] * 0.97
+                 yUpperL = y[sorty[ceil(95E/100E*float(ylength))]] * 1.03
                  ydynam = [ylowerL,yUpperL]
               end
            endcase
@@ -162,11 +184,12 @@ sigrejcrit = 6D  ;; sigma rejection criterion
                   filename=plotnmpre+'.eps'
            device,xsize=14, ysize=10,decomposed=1,/color
         endif
-        plot,tplot,y,psym=2,$
+;        plot,tplot,y,psym=2,$
+        plot,tplot,y,psym=4,$
              xtitle='Orbital Phase',$
              title=wavname+' um Flux ',$
              ytitle=yptitle,$
-             yrange=ydynam
+             yrange=ydynam,ystyle=1
         if keyword_set(individual) then begin
            oplot,tplot,y2,psym=4,color=mycol('blue')
            legend,['Planet Host','Reference Star'],$
@@ -175,7 +198,14 @@ sigrejcrit = 6D  ;; sigma rejection criterion
         endif
 
         ;; print the stdev for y for off points
-        print,'Fractional off transit Stdev in F for ',wavname,': ',stddev(y[offp])/mean(y[offp])
+;        print,'Fractional off transit Stdev in F for ',wavname,': ',stddev(y[offp])/mean(y[offp])
+;        print,'Fractional off transit Robust sigma for ',wavname,': ',robust_sigma(y[offp])/median(y[offp])
+        ;; try fitting the off transit to a line first
+        fitY = linfit(tplot[offp],y[offp])
+        Offresid = y[offp]/(fitY[0] + fitY[1]*tplot[offp])
+        print,'Frac lin corr robust sigma for ',wavname,': ',robust_sigma(Offresid)/median(Offresid)
+        ;; Show the off transit fit
+;        oplot,tplot,fity[0] + fity[1]*tplot,color=mycol('red')
 
         ;; show the transit epochs
         drawy = [!y.crange[0],!y.crange[1]]
@@ -187,16 +217,22 @@ sigrejcrit = 6D  ;; sigma rejection criterion
            expr = 'quadlc(X,P[0],P[1],P[2],P[3],P[4])* (P[5] + X * P[6])'
            pi = replicate({fixed:1, limited:[1,0], limits:[0.0E,0.0E]},7)
            pi[0].fixed = 0 ;; make sure the Rp/R* parameter is free
-           pi[5].fixed = 0 ;; make sure the flux ratio offset is free
            ;; fix the impact parameter, limb darkening and AoR*
            if keyword_set(freelimb) then begin
               ;; if asked to, free the limb darkening parameter
               pi[2].fixed = 0
               pi[3].fixed = 0
            endif
+           if keyword_set(freall) then begin
+              pi[*].fixed = 0
+           endif ;; free all parameters
+           if keyword_set(fixall) then begin
+              pi[*].fixed = 1
+           endif
            pi[0].limited = [1,1]
            pi[0].limits = [0D,1D] ;; Keep Rp/R* between 0 and 1
            pi[6].limited = [0,0] ;; let the linear coefficient by + or -
+           pi[5].fixed = 0 ;; make sure the flux ratio offset is free
            pi[6].fixed = 0 ;; let the linear coefficient vary
 ;           if keyword_set(clarlimb) then begin
 ;              start=[planetdat.p,planetdat.b_impact,u1bin[k],u2bin[k],planetdat.a_o_rstar,0.0E]
@@ -215,9 +251,47 @@ sigrejcrit = 6D  ;; sigma rejection criterion
                                                                                        
            oplot,phtest,ytest,color=mycol('orange'),thick=2
 
-           ;; save the planet radius
+           ;; save the planet radius and all data
            plrad[k] = result[0]
            plrade[k] = punct[0]
+           
+           resultarr[*,k] = result
+           resultarrE[*,k] = punct
+
+           modelY = quadlc(tplot,result[0],result[1],result[2],result[3],result[4]) $
+                   * (result[5] + phtest * result[6])
+
+           if keyword_set(psplot) then begin
+              device,/close
+              device,decomposed=0
+              cgPS2PDF,plotnmpre+'.eps',$
+                       /delete_ps
+              if keyword_set(pngcopy) then begin
+                 spawn,'convert -density 160% '+plotnmpre+'.pdf '+plotnmpre+'.png'                 
+              endif
+              plotnmpre = 'plots/residual_series/residuals_'+wavname
+              device,encapsulated=1, /helvetica,$
+                     filename=plotnmpre+'.eps'
+              device,xsize=14, ysize=10,decomposed=1,/color
+
+           endif
+
+           resid = (y - modelY)/meanoff *100E
+
+           ylowerL = resid[sorty[ceil(5E/100E*float(ylength))]]
+           yUpperL = resid[sorty[ceil(95E/100E*float(ylength))]]
+           ydynam = [-1E,1E] * max(abs([ylowerL,yUpperL])) * 2E
+
+           plot,tplot,resid,yrange=ydynam,$
+                title='Residuals at '+wavname,ystyle=1,$
+                xtitle='Orbital Phase',ytitle='Flux Residual (%)',$
+                psym=2
+;           oploterr,tplot,resid,yerr/meanoff *100E
+           drawy = [!y.crange[0],!y.crange[1]]
+           plots,[hstart,hstart],drawy,color=mycol('blue'),linestyle=2,thick=2.5
+           plots,[hend,hend],drawy,color=mycol('blue'),linestyle=2,thick=2.5
+           print,'RMS Residuals (%) for '+wavname,'um',(stddev(y - modelY))/median(y)*100E
+;           if wavname EQ '1.14' then stop
 
         endif
         if keyword_set(psplot) then begin
@@ -230,7 +304,7 @@ sigrejcrit = 6D  ;; sigma rejection criterion
            endif
         endif
            
-        
+;        stop
      endif
 
 
@@ -241,6 +315,22 @@ sigrejcrit = 6D  ;; sigma rejection criterion
   forprint,bingridmiddle[*],plrad,plrade,$
            textout='radius_vs_wavelength/radius_vs_wavl.txt',$
            comment='#Wavelength  Rp/R*   Rp/R* Error',/silent
+
+  ;; Save the other light curve data
+  openw,1,'radius_vs_wavelength/fit_data.txt'
+  printf,1,'#Wavelength (um) ',format='(A12,$)'
+  for j=0l,nparams-1l do begin
+     printf,1,paramnames[j],' Error',format='(A12,A12,$)'
+  endfor
+  printf,1,''
+  for k=0l,nbin-1l do begin
+     printf,1,bingridmiddle[k],format='(F12.3,$)'
+     for j=0l,nparams-1l do begin
+        printf,1,resultarr[j,k],resultarrE[j,k],format='(F12.3,F12.3,$)'
+     endfor
+     printf,1,''
+  endfor
+  close,1
 
   if keyword_set(psplot) then begin
      device,decomposed=0
