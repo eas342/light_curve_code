@@ -1,11 +1,14 @@
-pro compile_spec,extraction2=extraction2,optimal=optimal
+pro compile_spec,extraction2=extraction2,optimal=optimal,nwavbins=nwavbins
 ;; Compiles the spectra into a few simple arrays to look at the spectrophotometry
 ;; extraction2 -- uses whatever spectra are in the data directory
 ;; optimal -- uses the variance weighted (optimal) extraction
+;; nwavbins -- sets the number of wavelength bins to create
 
-Nwavbins = 35 ;; number of wavelength bins
+;Nwavbins = 35 ;; number of wavelength bins
 ;Nwavbins = 9 ;; number of wavelength bins
 ;Nwavbins = 20 ;; number of wavelength bins
+
+if n_elements(Nwavbins) EQ 0 then Nwavbins = 9
 
 SigRejCrit = 3 ;; number of sigma to reject when binning
 
@@ -21,10 +24,11 @@ if keyword_set(psplot) then begin
 endif
 
 ;; Get the file names
-if keyword_set(extraction2) then begin
-   readcol,'file_lists/full_speclist.txt',filen,format='(A)'
-endif else begin
+if keyword_set(extraction1) then begin
    readcol,'file_lists/extraction1_full_list.txt',filen,format='(A)'
+endif else begin
+   ;; Otherwise use the current extraction
+   readcol,'file_lists/full_speclist.txt',filen,format='(A)'
 endelse
 nfile = n_elements(filen)
 
@@ -119,7 +123,7 @@ endif
 
 ; Save all data
 save,flgrid,lamgrid,utgrid,bingrid,binfl,binflE,$
-     ErrGrid,SNR,Divspec,DivspecE,backgrid,SNR,$
-     Nwavbins,binsizes,binind,binindE,$
+     ErrGrid,SNR,Divspec,DivspecE,backgrid,$
+     Nwavbins,binsizes,binind,binindE,filen,$
      filename='data/specdata.sav'
 end
