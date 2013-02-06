@@ -2,7 +2,8 @@ pro plot_tim_ser,fitrad=fitrad,fitpoly=fitpoly,usepoly=usepoly,npoly=npoly,$
                  fullrange=fullrange,smartbin=smartbin,oneprange=oneprange,$
                  offtranserr=offtranserr,freelimb=freelimb,clarlimb=clarlimb,$
                  psplot=psplot,noreject=noreject,differential=differential,$
-                 individual=individual,pngcopy=pngcopy,freeall=freall,fixall=fixall
+                 individual=individual,pngcopy=pngcopy,freeall=freall,fixall=fixall,$
+                 timebin=timebin
 ;; plots the binned data as a time series and can also fit the Rp/R* changes
 ;; apPlot -- this optional keyword allows one to choose the aperture
 ;;           to plot
@@ -31,9 +32,11 @@ pro plot_tim_ser,fitrad=fitrad,fitpoly=fitpoly,usepoly=usepoly,npoly=npoly,$
 ;;            parameter as well
 ;; fixall -- fix all light curve parameters at the values from the
 ;;           literature (except the DC offset and slope)
+;; timebin -- specifies the number of time bins to put the data in
 
 ;sigrejcrit = 6D  ;; sigma rejection criterion
 sigrejcrit = 5D  ;; sigma rejection criterion
+TsigRejCrit = 3D ;; sigma rejection criterion for time bins
 
   ;; set the plot
   if keyword_set(psplot) then begin
@@ -80,8 +83,7 @@ sigrejcrit = 5D  ;; sigma rejection criterion
 
 
   ;; orbital phase
-;  tplot = (utgrid - tmid)/planetdat.period
-  tplot = (utgrid - tmid)/planetdat.period - 0.002
+  tplot = (utgrid - tmid)/planetdat.period
      
   ;; calculate start and end
   hstart = (tstart - tmid)/planetdat.period
@@ -91,6 +93,15 @@ sigrejcrit = 5D  ;; sigma rejection criterion
   ;; For any binfl error that are zero, set to 0.01
   zerobinp = where(binfle LE 1E-3)
   binfle[zerobinp] = 0.01E
+
+  if n_elements(timebin) NE 0 then begin
+     ntime = n_elements(tplot)
+     ;; set up the time bins
+     timeGrid = (tplot[ntime-1] - tplot[0]) * findgen(timebin)/float(timebin-1l) +$
+                tplot[0]
+     tsizes = fltarr(timebin) + (tplot[ntime-1l] - tplot[0l])/float(timebin-1l)
+     tmiddle = timeGrid + tsizes / 2E
+  endif
 
   for k=0l,nbin-1l do begin
      ;; Reset the x axis (orbital phase, in case it was modified below)
@@ -103,16 +114,22 @@ sigrejcrit = 5D  ;; sigma rejection criterion
         y2 = double(transpose(binind[k,1,*]))
         y2err = double(transpose(binindE[k,1,*]))
         yptitle='Flux (DN)'
+        if n_elements(timebin) NE 0 then begin
+           print,"Binning not set up for individual star fluxes"
+           return
+        endif
+
      endif else begin
         y = double(transpose(binfl[k,*]))
         yerr = double(transpose(binfle[k,*]))
         yptitle='Flux Ratio'
      endelse
-     if keyword_set(differential) then begin
-        y = y / double(transpose(binfl[1,*]))
-        yerr = yerr / double(transpose(binfl[1,*]))
-     endif
 
+     if keyword_set(differential) then begin
+        DiffInd = 1
+        y = y / double(transpose(binfl[DiffInd,*]))
+        yerr = yerr / double(transpose(binfl[DiffInd,*]))
+     endif
 
      meanoff = mean(y[offp],/nan)
      ;; For any binned flux that are NAN, remove
@@ -130,7 +147,7 @@ sigrejcrit = 5D  ;; sigma rejection criterion
         for l=0,3-1 do begin    ; iterate 3 times
            stdoff = stddev(y[offp])
            meanoff = mean(y[offp],/nan)
-           goodp = where(abs(y - meanoff) LE sigrejcrit * stdoff)
+           goodp = where(abs(y - meanoff) LE sigrejcrit * stdoff,complement=throwaframes)
            if goodp NE [-1] then begin
               y = y[goodp]
               tplot = tplot[goodp]
@@ -143,10 +160,22 @@ sigrejcrit = 5D  ;; sigma rejection criterion
 
      if n_elements(timebin) NE 0 then begin
         ;; Bin the series in time
-        timeGrid 
-           y = avg_series(lamgrid,Divspec[*,0,i],SNR[*,0,i],binGrid,binsizes,weighted=1,$
-                  oreject=sigRejCrit,eArr=yerr,/silent,errIn=divSpecE[*,0,i])
+        ybin = avg_series(tplot,y,y/yerr,timeGrid,tsizes,weighted=1,$
+                  oreject=TsigRejCrit,eArr=yerrOut,/silent,errIn=yerr,stdevArr=stdevArr)
+        if n_elements(diffInd) NE 0 then begin
+           if k EQ diffInd and keyword_set(differential) then begin
+              ;; make sure the sigma rejection is off for the
+              ;; normalization bin
+              ybin = avg_series(tplot,y,y/yerr,timeGrid,tsizes,weighted=1,$
+                                eArr=yerrOut,/silent,errIn=yerr,stdevArr=stdevArr)
+           endif
+        endif
 
+        tplot = tmiddle
+        y = ybin
+;        yerr = yerrOut
+        yerr = stdevArr
+        offp = where(tplot LT hstart OR tplot GT hend)
      endif
 
      if total(finite(y)) GT 0 and total(finite(yerr)) GT 0.0 then begin
@@ -212,6 +241,12 @@ sigrejcrit = 5D  ;; sigma rejection criterion
         plots,[hstart,hstart],drawy,color=mycol('brown'),linestyle=2
         plots,[hend,hend],drawy,color=mycol('brown'),linestyle=2
 
+        ;; show the off-transit fit for differential measurements
+        if keyword_set(differential) then begin
+           oplot,tplot,(fitY[0] + fitY[1] *tplot),thick=2,color=mycol('red')
+           oploterr,tplot,y,yerr
+        endif
+
         if keyword_set(fitrad) then begin
            ;; fit the data curve
            expr = 'quadlc(X,P[0],P[1],P[2],P[3],P[4])* (P[5] + X * P[6])'
@@ -223,7 +258,7 @@ sigrejcrit = 5D  ;; sigma rejection criterion
               pi[2].fixed = 0
               pi[3].fixed = 0
            endif
-           if keyword_set(freall) then begin
+           if keyword_set(freeall) then begin
               pi[*].fixed = 0
            endif ;; free all parameters
            if keyword_set(fixall) then begin
@@ -306,7 +341,6 @@ sigrejcrit = 5D  ;; sigma rejection criterion
            
 ;        stop
      endif
-
 
   endfor
   
