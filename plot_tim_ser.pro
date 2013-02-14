@@ -126,12 +126,19 @@ TsigRejCrit = 3D ;; sigma rejection criterion for time bins
      endelse
 
      if keyword_set(differential) then begin
-        DiffInd = 1
-        y = y / double(transpose(binfl[DiffInd,*]))
-        yerr = yerr / double(transpose(binfl[DiffInd,*]))
+;        DiffInd = 9
+;        stop
+;        y = y / double(transpose(binfl[DiffInd,*]))
+        goodwavpts = where((bingridmiddle GT 0.90 and bingridmiddle LT 2.35),ngoodwavpts)
+        
+        masterY = double(total(binfl[goodwavpts,*],1,/nan))/double(ngoodwavpts)
+        y = y/masterY
+;        yerr = yerr / double(transpose(binfl[DiffInd,*]))
+        yerr = y/masterY
      endif
 
      meanoff = mean(y[offp],/nan)
+
      ;; For any binned flux that are NAN, remove
      goodp = where(finite(y) EQ 1)
      if goodp NE [-1] then begin
@@ -140,6 +147,14 @@ TsigRejCrit = 3D ;; sigma rejection criterion for time bins
         offp = where(tplot LT hstart OR tplot GT hend)
      endif
      stdoff = stddev(y[offp])
+
+     rstdoff = robust_sigma(y[offp])
+     medoff = median(y[offp])
+;     divbycurve = y / 
+;     npoly=1
+;     result = poly_fit(tplot,y,npoly-1,measure_errors=yerr,yfit=yfit)
+;     rgoodp = where(abs(y - medoff) LT rstdoff * Tsigrejcrit,complement=badp)
+;     if k EQ 1 then stop
 
 
      ;; Throw away points more than n-sigma from the main bunch
