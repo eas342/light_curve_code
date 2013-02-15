@@ -3,7 +3,8 @@ pro plot_tim_ser,fitrad=fitrad,fitpoly=fitpoly,usepoly=usepoly,npoly=npoly,$
                  offtranserr=offtranserr,freelimb=freelimb,clarlimb=clarlimb,$
                  psplot=psplot,noreject=noreject,differential=differential,$
                  individual=individual,pngcopy=pngcopy,freeall=freall,fixall=fixall,$
-                 timebin=timebin
+                 timebin=timebin,offreject=offreject,showclipping=showclipping,$
+                 errorDistb=errorDistb
 ;; plots the binned data as a time series and can also fit the Rp/R* changes
 ;; apPlot -- this optional keyword allows one to choose the aperture
 ;;           to plot
@@ -33,6 +34,11 @@ pro plot_tim_ser,fitrad=fitrad,fitpoly=fitpoly,usepoly=usepoly,npoly=npoly,$
 ;; fixall -- fix all light curve parameters at the values from the
 ;;           literature (except the DC offset and slope)
 ;; timebin -- specifies the number of time bins to put the data in
+;; offreject -- specifies that the sigma rejection is to be made from
+;;              off-transit flux. Otherwise, it uses a model light
+;;              curve from literature values
+;; showclipping -- shows the clipping of data points to remove outliers
+;; errorDistb -- Plot a histogram of the photometric error distribution
 
 ;sigrejcrit = 6D  ;; sigma rejection criterion
 sigrejcrit = 5D  ;; sigma rejection criterion
@@ -64,8 +70,8 @@ TsigRejCrit = 3D ;; sigma rejection criterion for time bins
      planetdat = create_struct(planetdat,info[l],data[l])
   endfor
 
-  u1parm = 0.0E              ;HD 189733
-  u2parm = 0.0E
+  u1parm = 0.0E         ; one of my best fits for 1.14um
+  u2parm = 0.269E
 
   tstart = date_conv(tepoch[0],'JULIAN')
   tend = date_conv(tepoch[1],'JULIAN')
@@ -143,32 +149,65 @@ TsigRejCrit = 3D ;; sigma rejection criterion for time bins
      goodp = where(finite(y) EQ 1)
      if goodp NE [-1] then begin
         y = y[goodp]
+        yerr = yerr[goodp]
         tplot = tplot[goodp]
         offp = where(tplot LT hstart OR tplot GT hend)
      endif
      stdoff = stddev(y[offp])
 
-     rstdoff = robust_sigma(y[offp])
-     medoff = median(y[offp])
-;     divbycurve = y / 
-;     npoly=1
-;     result = poly_fit(tplot,y,npoly-1,measure_errors=yerr,yfit=yfit)
-;     rgoodp = where(abs(y - medoff) LT rstdoff * Tsigrejcrit,complement=badp)
-;     if k EQ 1 then stop
+     if not keyword_set(noreject) then begin
+        if keyword_set(offreject) then begin
+           for l=0,3-1 do begin ; iterate 3 times
+              stdoff = stddev(y[offp])
+              meanoff = mean(y[offp],/nan)
+              goodp = where(abs(y - meanoff) LE sigrejcrit * stdoff,complement=throwaframes)
+              if goodp NE [-1] then begin
+                 y = y[goodp]
+                 tplot = tplot[goodp]
+                 yerr = yerr[goodp]
+                 offp = where(tplot LT hstart OR tplot GT hend)
+              endif
+           endfor
+        endif else begin
+           if keyword_set(differential) then divbycurve = y else begin
+              ;; before doing the sigma rejection, divide by literature model
+              ;; for 
+              ymodel = quadlc(tplot,planetdat.p,planetdat.b_impact,$
+                              u1parm,u2parm,planetdat.a_o_rstar)
+              divbycurve = y / ymodel
+           endelse
+           tplotdivcurves = tplot ;; if plotting the pre-rejection data, save the independent variable
 
+           ;throw away all n_sigma events before de-trending
+           firstCutSig = 8E
+           rstdoff = robust_sigma(y[offp])
+           medoff = median(y[offp])
+
+           goodp = where(abs(y - medoff) LE firstCutSig * rstdoff,complement=throwaways)
+           if goodp NE [-1] then begin
+              yfull = y
+              y = y[goodp]
+              divbycurveclip1 = divbycurve[goodp]
+              yerr = yerr[goodp]
+              tplot = tplot[goodp]
+           endif
+           ;; fit result to a robust line
+           rlinefit = robust_linefit(tplot,divbycurveclip1,yfit)
+           ;; divide by the line to flatten out
+           yflat = divbycurveclip1 / yfit
+           rsigma = robust_sigma(yflat)
+           maxval = max(yflat,maxp)
+           minval = min(yflat,minp)
+           nombysigma = (yflat - mean(yflat))/rsigma
+;           nombysigma = (yfull - mean(yflat))/rsigma
+
+           ;if k eq 1 then stop
+;           stop
+           ;rgoodp = where(abs(y - medoff) LT rstdoff * Tsigrejcrit,complement=badp)
+
+        endelse
 
      ;; Throw away points more than n-sigma from the main bunch
-     if not keyword_set(noreject) then begin
-        for l=0,3-1 do begin    ; iterate 3 times
-           stdoff = stddev(y[offp])
-           meanoff = mean(y[offp],/nan)
-           goodp = where(abs(y - meanoff) LE sigrejcrit * stdoff,complement=throwaframes)
-           if goodp NE [-1] then begin
-              y = y[goodp]
-              tplot = tplot[goodp]
-              offp = where(tplot LT hstart OR tplot GT hend)
-           endif
-        endfor
      endif
 
      wavname = string(bingridmiddle[k],format='(F4.2)')
@@ -233,7 +272,14 @@ TsigRejCrit = 3D ;; sigma rejection criterion for time bins
              xtitle='Orbital Phase',$
              title=wavname+' um Flux ',$
              ytitle=yptitle,$
-             yrange=ydynam,ystyle=1
+             yrange=ydynam,ystyle=1,/nodata
+        if keyword_set(showclipping) then begin
+           oplot,tplot,y,psym=5,color=mycol('red') ;; original data
+           oplot,tplotdivcurves,divbycurve,psym=4 ;; divided by light curve
+           oplot,tplot,yfit,color=mycol('blue') ;; fitted line to curve
+;           if k EQ 1 then stop
+        endif else oplot,tplot,y,psym=4
+
         if keyword_set(individual) then begin
            oplot,tplot,y2,psym=4,color=mycol('blue')
            legend,['Planet Host','Reference Star'],$
@@ -260,6 +306,32 @@ TsigRejCrit = 3D ;; sigma rejection criterion for time bins
         if keyword_set(differential) then begin
            oplot,tplot,(fitY[0] + fitY[1] *tplot),thick=2,color=mycol('red')
            oploterr,tplot,y,yerr
+        endif
+        if keyword_set(errorDistb) then begin
+           if keyword_set(psplot) then begin
+              device,/close
+              device,decomposed=0
+              cgPS2PDF,plotnmpre+'.eps',$
+                       /delete_ps
+              if keyword_set(pngcopy) then begin
+                 spawn,'convert -density 160% '+plotnmpre+'.pdf '+plotnmpre+'.png'                 
+              endif
+              plotnmpre = 'plots/error_distrib/error_hist_'+wavname
+              device,encapsulated=1, /helvetica,$
+                     filename=plotnmpre+'.eps'
+              device,xsize=14, ysize=10,decomposed=1,/color
+
+           endif
+           binsize=0.25E
+           plothist,nombysigma,xhist,yhist,bin=binsize,$ ;; show error distribution
+                    ytitle='Number of Points',$
+                    xtitle='(Flux - median)/Robust Sigma'
+           xgaussian = findgen(100)/(100E - 1E) * (!x.crange[1] - !x.crange[0])+$
+                       !x.crange[0]
+           totY = total(yhist)*binsize
+           ygaussian = gaussian(xgaussian,[totY/sqrt(2E * !DPI),0,1])
+           oplot,xgaussian,ygaussian,color=mycol('red')
+
         endif
 
         if keyword_set(fitrad) then begin
