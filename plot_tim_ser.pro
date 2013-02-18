@@ -4,7 +4,7 @@ pro plot_tim_ser,fitrad=fitrad,fitpoly=fitpoly,usepoly=usepoly,npoly=npoly,$
                  psplot=psplot,noreject=noreject,differential=differential,$
                  individual=individual,pngcopy=pngcopy,freeall=freall,fixall=fixall,$
                  timebin=timebin,offreject=offreject,showclipping=showclipping,$
-                 errorDistb=errorDistb
+                 errorDistb=errorDistb,colorclip=colorclip,quadfit=quadfit
 ;; plots the binned data as a time series and can also fit the Rp/R* changes
 ;; apPlot -- this optional keyword allows one to choose the aperture
 ;;           to plot
@@ -39,6 +39,8 @@ pro plot_tim_ser,fitrad=fitrad,fitpoly=fitpoly,usepoly=usepoly,npoly=npoly,$
 ;;              curve from literature values
 ;; showclipping -- shows the clipping of data points to remove outliers
 ;; errorDistb -- Plot a histogram of the photometric error distribution
+;; colorclip -- colors the clipped points
+;; quadfit -- fits a quadratic baseline instead of a linear baseline
 
 ;sigrejcrit = 6D  ;; sigma rejection criterion
 sigrejcrit = 5D  ;; sigma rejection criterion
@@ -82,7 +84,7 @@ TsigRejCrit = 3D ;; sigma rejection criterion for time bins
   plrade = fltarr(nbin)*!values.f_nan
 
   ;; Prepare to save all the planet transit data as a function of wavelength
-  paramnames = ['Rp/R*','b_impact','u1','u2','a/R*','linearA','linearB']
+  paramnames = ['Rp/R*','b_impact','u1','u2','a/R*','linearA','linearB','quadC']
   nparams = n_elements(paramnames)
   resultarr = fltarr(nparams,nbin)*!values.f_nan
   resultarrE = resultarr
@@ -179,12 +181,16 @@ TsigRejCrit = 3D ;; sigma rejection criterion for time bins
            tplotdivcurves = tplot ;; if plotting the pre-rejection data, save the independent variable
 
            ;throw away all n_sigma events before de-trending
-           firstCutSig = 8E
+           firstCutSig = 12E
            rstdoff = robust_sigma(y[offp])
            medoff = median(y[offp])
 
            goodp = where(abs(y - medoff) LE firstCutSig * rstdoff,complement=throwaways)
            if goodp NE [-1] then begin
+              if throwaways NE [-1] then begin
+                 tclip1 = tplot[throwaways]
+                 yclip1 = y[throwaways]
+              endif
               yfull = y
               y = y[goodp]
               divbycurveclip1 = divbycurve[goodp]
@@ -199,15 +205,25 @@ TsigRejCrit = 3D ;; sigma rejection criterion for time bins
            maxval = max(yflat,maxp)
            minval = min(yflat,minp)
            nombysigma = (yflat - mean(yflat))/rsigma
-;           nombysigma = (yfull - mean(yflat))/rsigma
+           
+;           secondCutsig = 4.0E
+           secondCutsig = 3.5E
 
-           ;if k eq 1 then stop
-;           stop
-           ;rgoodp = where(abs(y - medoff) LT rstdoff * Tsigrejcrit,complement=badp)
+           goodp = where(abs(nombysigma) LE secondCutsig,complement=throwaways2)
+           if goodp NE [-1] then begin
+              if throwaways2 NE [-1] then begin
+                 yclip2 = y[throwaways2]
+                 tclip2 = tplot[throwaways2]
+              endif
+              y = y[goodp]
+              yerr = fltarr(n_elements(goodp)) + rsigma * rlinefit[0]
+              tplot = tplot[goodp]
+              offp = where(tplot LT hstart OR tplot GT hend)
+           endif
 
         endelse
 
-     ;; Throw away points more than n-sigma from the main bunch
+
      endif
 
      wavname = string(bingridmiddle[k],format='(F4.2)')
@@ -307,6 +323,12 @@ TsigRejCrit = 3D ;; sigma rejection criterion for time bins
            oplot,tplot,(fitY[0] + fitY[1] *tplot),thick=2,color=mycol('red')
            oploterr,tplot,y,yerr
         endif
+        ;;plot the clipped points
+        if keyword_set(colorclip) then begin
+           if throwaways NE [-1] then oplot,tclip1,yclip1,psym=6,color=mycol('blue')
+           if throwaways2 NE [-1] then oplot,tclip2,yclip2,psym=5,color=mycol('blue')
+        endif
+        
         if keyword_set(errorDistb) then begin
            if keyword_set(psplot) then begin
               device,/close
@@ -336,8 +358,13 @@ TsigRejCrit = 3D ;; sigma rejection criterion for time bins
 
         if keyword_set(fitrad) then begin
            ;; fit the data curve
-           expr = 'quadlc(X,P[0],P[1],P[2],P[3],P[4])* (P[5] + X * P[6])'
-           pi = replicate({fixed:1, limited:[1,0], limits:[0.0E,0.0E]},7)
+;           if keyword_set(quadfit) then begin
+              expr = 'quadlc(X,P[0],P[1],P[2],P[3],P[4])* (P[5] + X * P[6] + X^2 * P[7])'
+;              pi = replicate({fixed:1, limited:[1,0], limits:[0.0E,0.0E]},8)
+;           endif else begin
+;              expr = 'quadlc(X,P[0],P[1],P[2],P[3],P[4])* (P[5] + X * P[6])'
+              pi = replicate({fixed:1, limited:[1,0], limits:[0.0E,0.0E]},8)
+;           endelse
            pi[0].fixed = 0 ;; make sure the Rp/R* parameter is free
            ;; fix the impact parameter, limb darkening and AoR*
            if keyword_set(freelimb) then begin
@@ -354,12 +381,19 @@ TsigRejCrit = 3D ;; sigma rejection criterion for time bins
            pi[0].limited = [1,1]
            pi[0].limits = [0D,1D] ;; Keep Rp/R* between 0 and 1
            pi[6].limited = [0,0] ;; let the linear coefficient by + or -
+           pi[7].limited = [0,0] ;; let the quadratic coefficient by + or -
            pi[5].fixed = 0 ;; make sure the flux ratio offset is free
            pi[6].fixed = 0 ;; let the linear coefficient vary
+           if keyword_set(quadfit) then begin
+              pi[7].fixed = 0 ;; let the quadratic coefficient vary
+           endif
+              start=double([planetdat.p,planetdat.b_impact,u1parm,u2parm,planetdat.a_o_rstar,1.0D,0D,0D])
+;              start=double([planetdat.p,planetdat.b_impact,u1parm,u2parm,planetdat.a_o_rstar,1.0D,0D])              
+
 ;           if keyword_set(clarlimb) then begin
 ;              start=[planetdat.p,planetdat.b_impact,u1bin[k],u2bin[k],planetdat.a_o_rstar,0.0E]
 ;           endif else begin
-           start=double([planetdat.p,planetdat.b_impact,u1parm,u2parm,planetdat.a_o_rstar,1.0D,0D])
+
 ;           endelse
 
            result = mpfitexpr(expr,tplot,y,yerr,start,parinfo=pi,perr=punct)
@@ -369,10 +403,10 @@ TsigRejCrit = 3D ;; sigma rejection criterion for time bins
            nshowpts = 1024      ; number of points to show
            phtest = dindgen(nshowpts)/float(nshowpts)*showphase - showphase/2E
            ytest = quadlc(phtest,result[0],result[1],result[2],result[3],result[4]) $
-                   * (result[5] + phtest * result[6])
+                   * (result[5] + phtest * result[6] + phtest^2 * result[7])
                                                                                        
            oplot,phtest,ytest,color=mycol('orange'),thick=2
-
+;           if k GE 1 then stop
            ;; save the planet radius and all data
            plrad[k] = result[0]
            plrade[k] = punct[0]
@@ -381,7 +415,7 @@ TsigRejCrit = 3D ;; sigma rejection criterion for time bins
            resultarrE[*,k] = punct
 
            modelY = quadlc(tplot,result[0],result[1],result[2],result[3],result[4]) $
-                   * (result[5] + phtest * result[6])
+                   * (result[5] + phtest * result[6] + phtest^2 * result[7])
 
            if keyword_set(psplot) then begin
               device,/close
@@ -397,7 +431,7 @@ TsigRejCrit = 3D ;; sigma rejection criterion for time bins
               device,xsize=14, ysize=10,decomposed=1,/color
 
            endif
-
+;           stop
            resid = (y - modelY)/meanoff *100E
 
            ylowerL = resid[sorty[ceil(5E/100E*float(ylength))]]
