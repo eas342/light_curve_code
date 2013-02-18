@@ -336,7 +336,7 @@ TsigRejCrit = 3D ;; sigma rejection criterion for time bins
               cgPS2PDF,plotnmpre+'.eps',$
                        /delete_ps
               if keyword_set(pngcopy) then begin
-                 spawn,'convert -density 160% '+plotnmpre+'.pdf '+plotnmpre+'.png'                 
+                 spawn,'convert -density 160% '+plotnmpre+'.pdf '+plotnmpre+'.png'
               endif
               plotnmpre = 'plots/error_distrib/error_hist_'+wavname
               device,encapsulated=1, /helvetica,$
