@@ -97,6 +97,9 @@ TsigRejCrit = 3D ;; sigma rejection criterion for time bins
   hstart = (tstart - tmid)/planetdat.period
   hend = (tend - tmid)/planetdat.period
 
+  ;; save the phase, time and planet data in array
+  save,tmid,tend,tstart,tplot,hstart,hend,$
+       filename='data/timedata.sav'
 
   ;; For any binfl error that are zero, set to 0.01
   zerobinp = where(binfle LE 1E-3)
