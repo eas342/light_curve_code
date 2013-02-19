@@ -135,7 +135,6 @@ TsigRejCrit = 3D ;; sigma rejection criterion for time bins
 
      if keyword_set(differential) then begin
 ;        DiffInd = 9
-;        stop
 ;        y = y / double(transpose(binfl[DiffInd,*]))
         goodwavpts = where((bingridmiddle GT 0.90 and bingridmiddle LT 2.35),ngoodwavpts)
         
@@ -289,12 +288,13 @@ TsigRejCrit = 3D ;; sigma rejection criterion for time bins
              title=wavname+' um Flux ',$
              ytitle=yptitle,$
              yrange=ydynam,ystyle=1,/nodata
-        if keyword_set(showclipping) then begin
-           oplot,tplot,y,psym=5,color=mycol('red') ;; original data
-           oplot,tplotdivcurves,divbycurve,psym=4 ;; divided by light curve
-           oplot,tplot,yfit,color=mycol('blue') ;; fitted line to curve
-;           if k EQ 1 then stop
-        endif else oplot,tplot,y,psym=4
+        if not keyword_set(differential) then begin
+           if keyword_set(showclipping) then begin
+              oplot,tplot,y,psym=5,color=mycol('red') ;; original data
+              oplot,tplotdivcurves,divbycurve,psym=4  ;; divided by light curve
+              oplot,tplot,yfit,color=mycol('blue')    ;; fitted line to curve
+           endif else oplot,tplot,y,psym=4
+        endif
 
         if keyword_set(individual) then begin
            oplot,tplot,y2,psym=4,color=mycol('blue')
@@ -321,7 +321,7 @@ TsigRejCrit = 3D ;; sigma rejection criterion for time bins
         ;; show the off-transit fit for differential measurements
         if keyword_set(differential) then begin
            oplot,tplot,(fitY[0] + fitY[1] *tplot),thick=2,color=mycol('red')
-           oploterr,tplot,y,yerr
+           oploterror,tplot,y,tsizes/2E,yerr,psym=3,hatlength=0,thick=2
         endif
         ;;plot the clipped points
         if keyword_set(colorclip) then begin
