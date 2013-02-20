@@ -92,13 +92,17 @@ TsigRejCrit = 3D ;; sigma rejection criterion for time bins
 
   ;; orbital phase
   tplot = (utgrid - tmid)/planetdat.period
-     
+
+  ;; if it's 8 periods earlier, then add 8
+  if tplot[0] LT -6E then tplot = tplot + 8E
+
   ;; calculate start and end
   hstart = (tstart - tmid)/planetdat.period
   hend = (tend - tmid)/planetdat.period
 
   ;; save the phase, time and planet data in array
   save,tmid,tend,tstart,tplot,hstart,hend,$
+       planetdat,u1parm,u2parm,$
        filename='data/timedata.sav'
 
   ;; For any binfl error that are zero, set to 0.01
@@ -117,6 +121,8 @@ TsigRejCrit = 3D ;; sigma rejection criterion for time bins
   for k=0l,nbin-1l do begin
      ;; Reset the x axis (orbital phase, in case it was modified below)
      tplot = (utgrid - tmid)/planetdat.period     
+     ;; if it's 8 periods earlier, then add 8
+     if tplot[0] LT -6E then tplot = tplot + 8E
      offp = where(tplot LT hstart OR tplot GT hend)
 
      if keyword_set(individual) then begin
