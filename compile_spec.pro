@@ -59,6 +59,7 @@ Nap = sizea[2] ;; number of apertures
 flgrid = fltarr(Ngpts,Nap,nfile)
 backgrid = fltarr(Ngpts,Nap,nfile)
 utgrid = dblarr(nfile)
+airmass = dblarr(nfile)
 
 if keyword_set(optimal) then begin
    SpecKey = 1
@@ -75,6 +76,7 @@ for i=0l,nfile-1l do begin
       backgrid[*,j,i] = a2[*,j,2] * Gain ;; multiply by gain
    endfor
    utgrid[i] = double(fxpar(header2,'MJD_OBS'))
+   airmass[i] = double(fxpar(header2,'AIRMASS'))
 endfor
 
 ;; Reset all zeros and negative flux values
@@ -131,5 +133,6 @@ endif
 save,flgrid,lamgrid,utgrid,bingrid,binfl,binflE,$
      ErrGrid,SNR,Divspec,DivspecE,backgrid,$
      Nwavbins,binsizes,binind,binindE,filen,$
+     airmass,$
      filename='data/specdata.sav'
 end
