@@ -1,9 +1,10 @@
-pro plot_rms_spec,psplot=psplot,tryclean=tryclean
+pro plot_rms_spec,psplot=psplot,tryclean=tryclean,saveclean=saveclean
 ;; Plots the RMS along the time series for each wavelength in the
 ;; spectrum
 ;; psplot -- makes a postscript plot of the RMS spectrum
 ;; tryclean - tries to clean up the spectrum on a wavelength by
 ;;            wavelength basis
+;; saveclean - saves the white light curve for analysis by plot_tim_ser
 
   ;; set the plot
   if keyword_set(psplot) then begin
@@ -63,13 +64,44 @@ pro plot_rms_spec,psplot=psplot,tryclean=tryclean
   endif
 
   if keyword_set(tryclean) then begin
-     wait,1
+;     wait,1
      
      ;; Make a special broadband light curve
      specialpt = where(sigarray LT 0.01,nspecial)
-     combinedpt = total(cleanedcurve[specialpt,*],1)/float(nspecial)
-     plot,tplot,combinedpt,ystyle=16,psym=4
 
+     ;; Weight the points by the rms
+;     weights=1/sigarray^2
+     weights=1/sigarray^2
+     ;; discount wavelengths and/or pixels that vary wildly
+;     badp = where(sigarray GT 0.01 OR lamgrid LT 0.87 OR lamgrid GT 2.4)
+;     badp = where(sigarray GT 0.20)
+     if badp NE [-1] then weights[badp] = 0.0E
+     weightsCopy = rebin(weights,nwavs,ntime)
+     ;; Set all non-finite values of the cleaned curve to have NANS in the weights
+     nonfinite = where(finite(cleanedcurve) EQ 0)
+     weightsCopy[nonfinite] = !values.f_nan
+     ;; weighted sum normalized by the weights for that spectrum
+     ;; this accounts for missing data (that has NANs)
+     combinedpt = total(cleanedcurve * weightsCopy,1,/nan)/total(weightsCopy,1,/nan)
+     
+     
+
+     combinedpt2 = total(cleanedcurve[specialpt,*],1)/float(nspecial)
+     plot,tplot,combinedpt2,ystyle=16,psym=4
+;     plot,tplot,combinedpt2,ystyle=16,psym=4,yrange=[0.40,0.45]
+;     oplot,tplot,combinedpt+0.01,psym=5,color=mycol('green')
+;     plot,tplot,combinedpt,psym=5,color=mycol('green'),ystyle=16
+
+
+     ;try out straight avg over wavelength range
+     goodrange = where(lamgrid GE 0.9 and lamgrid LT 2.4,ngoodrange)
+     combinedpt2 = total(cleanedcurve[goodrange,*],1)/float(ngoodrange)
+
+;     plot,tplot,combinedpt2,ystyle=16,psym=4
+;
+     if keyword_set(saveclean) then begin
+        
+     endif
   endif
 
 
