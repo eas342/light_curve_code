@@ -316,9 +316,14 @@ TsigRejCrit = 3D ;; sigma rejection criterion for time bins
         ;; print the stdev for y for off points
 ;        print,'Fractional off transit Stdev in F for ',wavname,': ',stddev(y[offp])/mean(y[offp])
 ;        print,'Fractional off transit Robust sigma for ',wavname,': ',robust_sigma(y[offp])/median(y[offp])
-        ;; try fitting the off transit to a line first
-        fitY = linfit(tplot[offp],y[offp])
-        Offresid = y[offp]/(fitY[0] + fitY[1]*tplot[offp])
+        ;; try fitting the off transit to a function first
+        if keyword_set(quadfit) then begin
+           result = poly_fit(tplot[offp],y[offp],2,measure_errors=yerr[offp],yfit=yfit)
+           Offresid = y[offp]/yfit
+        endif else begin
+           fitY = linfit(tplot[offp],y[offp])
+           Offresid = y[offp]/(fitY[0] + fitY[1]*tplot[offp])
+        endelse
         print,'Frac lin corr robust sigma for ',wavname,': ',robust_sigma(Offresid)/median(Offresid)
         ;; Show the off transit fit
 ;        oplot,tplot,fity[0] + fity[1]*tplot,color=mycol('red')
@@ -330,7 +335,12 @@ TsigRejCrit = 3D ;; sigma rejection criterion for time bins
 
         ;; show the off-transit fit for differential measurements
         if keyword_set(differential) then begin
-           oplot,tplot,(fitY[0] + fitY[1] *tplot),thick=2,color=mycol('red')
+           if keyword_set(quadfit) then begin
+              oplot,tplot,(result[0] + result[1] *tplot + result[2] * tplot^2),$
+                    thick=2,color=mycol('red')
+           endif else begin
+              oplot,tplot,(fitY[0] + fitY[1] *tplot),thick=2,color=mycol('red')
+           endelse
            oploterror,tplot,y,tsizes/2E,yerr,psym=3,hatlength=0,thick=2
         endif
         ;;plot the clipped points
