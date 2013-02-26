@@ -1,4 +1,7 @@
-pro plot_rad_vs_wavl,psplot=psplot
+pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec
+;;psplot -- saves a postscript plot
+;;showstarspec -- shows a star spectrum on the same plot
+
   !x.margin = [13,14]
   ;; set the plot
   if keyword_set(psplot) then begin
@@ -18,15 +21,17 @@ pro plot_rad_vs_wavl,psplot=psplot
   ;; might be
   restore,'data/specdata.sav'
 
+  if keyword_set(showstarspec) then ytempstyle=8 else ytempstyle=1
+
   plot,wavl,rad,$
        xtitle='Wavelength (um)',$
        ytitle='Rp/R*',$
 ;       ystyle=16,xstyle=1,$
-       ystyle=8,xstyle=1,xrange=[0.8,2.55],$
+       ystyle=ytempstyle,xstyle=1,xrange=[0.8,2.55],$
        yrange=[0.12,0.16],/nodata
-  oploterror,wavl,rad,rade
-  
-  oploterror,wavl,rad,fltarr(n_elements(wavl)),rade ;errcolor=mycol('yellow'),$
+;  oploterror,wavl,rad,rade
+  wavlwidth = binsizes/2E
+  oploterror,wavl,rad,wavlwidth,rade,psym=3
 ;                color=mycol('yellow') 
   
 
@@ -43,22 +48,24 @@ pro plot_rad_vs_wavl,psplot=psplot
      
      
   prevXrange = !x.crange
-  ;; plot the source spectrum
-  plot,lamgrid,flgrid(*,0,1),/noerase,xrange=prevXrange,ystyle=5,xstyle=1,$
-       yrange=[-6E5,6E5],/nodata
-  oplot,lamgrid,flgrid(*,0,1),color=mycol('blue')
-  axis,yaxis=1,yrange=!y.crange,color=mycol('blue'),/ystyle,$
-       ytitle='Raw Source Flux (DN)'
-
-  !x.margin = [10.0,3.0]
-
-     if keyword_set(psplot) then begin
-        device, /close
-        cgPS2PDF,plotprenm+'.eps'
-        spawn,'convert -density 160% '+plotprenm+'.pdf '+plotprenm+'.png'
-        device,decomposed=0
-        set_plot,'x'
-        !p.font=-1
-     endif
-
+  if keyword_set(showstarspec) then begin
+     ;; plot the source spectrum
+     plot,lamgrid,flgrid(*,0,1),/noerase,xrange=prevXrange,ystyle=5,xstyle=1,$
+          yrange=[-6E5,6E5],/nodata
+     oplot,lamgrid,flgrid(*,0,1),color=mycol('blue')
+     axis,yaxis=1,yrange=!y.crange,color=mycol('blue'),/ystyle,$
+          ytitle='Raw Source Flux (DN)'
+     
+     !x.margin = [10.0,3.0]
+  endif
+  if keyword_set(psplot) then begin
+     device, /close
+     cgPS2PDF,plotprenm+'.eps'
+     spawn,'convert -density 160% '+plotprenm+'.pdf '+plotprenm+'.png'
+     device,decomposed=0
+     set_plot,'x'
+     !p.font=-1
+  endif
+  
 end  
+  

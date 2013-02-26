@@ -113,9 +113,9 @@ TsigRejCrit = 3D ;; sigma rejection criterion for time bins
   if n_elements(timebin) NE 0 then begin
      ntime = n_elements(tplot)
      ;; set up the time bins
-     timeGrid = (tplot[ntime-1] - tplot[0]) * findgen(timebin)/float(timebin-1l) +$
+     timeGrid = (tplot[ntime-1] - tplot[0]) * findgen(timebin)/float(timebin) +$
                 tplot[0]
-     tsizes = fltarr(timebin) + (tplot[ntime-1l] - tplot[0l])/float(timebin-1l)
+     tsizes = fltarr(timebin) + (tplot[ntime-1l] - tplot[0l])/float(timebin)
      tmiddle = timeGrid + tsizes / 2E
   endif
 

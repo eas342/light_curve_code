@@ -97,9 +97,17 @@ SNR = Divspec / DivspecE
 ;; Do the wavelength binning for the divided spec
 binfl = fltarr(Nwavbins,nfile)
 binflE = fltarr(Nwavbins,nfile)
-binGrid = (lamgrid[Ngpts-1] - lamgrid[0]) * findgen(Nwavbins)/float(Nwavbins-1) + $
-          lamgrid[0]
-binsizes = fltarr(Nwavbins) + (lamgrid[Ngpts-1] - lamgrid[0])/float(Nwavbins-1)
+StartWav = 0.82E
+EndWav = 2.40E ;; wavelength range that has useful scientific information
+if keyword_set(extremeRange) then begin
+   binGrid = (lamgrid[Ngpts-1] - lamgrid[0]) * findgen(Nwavbins)/float(Nwavbins-1) + $
+             lamgrid[0]
+   binsizes = fltarr(Nwavbins) + (lamgrid[Ngpts-1] - lamgrid[0])/float(Nwavbins-1)
+endif else begin
+   binGrid = (EndWav - StartWav) * findgen(Nwavbins)/float(Nwavbins) + $
+             StartWav
+   binsizes = fltarr(Nwavbins) + (EndWav - StartWav)/float(Nwavbins)
+endelse
 
 binind = fltarr(Nwavbins,Nap,nfile) ;; individual binned fluxes
 binindE = fltarr(Nwavbins,Nap,nfile)
