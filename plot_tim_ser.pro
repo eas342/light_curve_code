@@ -259,10 +259,6 @@ TsigRejCrit = 3D ;; sigma rejection criterion for time bins
 
      if total(finite(y)) GT 0 and total(finite(yerr)) GT 0.0 then begin
         ;; if keyword set, replace the error w/ the off transit stddev
-        if keyword_set(offtranserr) then begin
-           stdevOff = stddev(y[offp])
-           yerr = fltarr(nut) + stdevOff
-        endif
 
         ;find the range where 95% or more of the plots are shown
         if keyword_set(individual) then begin
@@ -327,7 +323,11 @@ TsigRejCrit = 3D ;; sigma rejection criterion for time bins
         print,'Frac lin corr robust sigma for ',wavname,': ',robust_sigma(Offresid)/median(Offresid)
         ;; Show the off transit fit
 ;        oplot,tplot,fity[0] + fity[1]*tplot,color=mycol('red')
-
+        if keyword_set(offtranserr) then begin
+           rstdevOff = robust_sigma(Offresid)
+           yerr = fltarr(nut) + rstdevOff
+        endif
+;        stop
         ;; show the transit epochs
         drawy = [!y.crange[0],!y.crange[1]]
         plots,[hstart,hstart],drawy,color=mycol('brown'),linestyle=2
@@ -420,19 +420,9 @@ TsigRejCrit = 3D ;; sigma rejection criterion for time bins
 ;           endelse
 
            result = mpfitexpr(expr,tplot,y,yerr,start,parinfo=pi,perr=punct)
+           modelY = expression_eval(expr,tplot,result)
+           oplot,tplot,modelY,color=mycol('orange'),thick=2
            
-           ;; show the fit
-           showphase = 0.16E
-           nshowpts = 1024      ; number of points to show
-           phtest = dindgen(nshowpts)/float(nshowpts)*showphase - showphase/2E
-           ytest = quadlc(phtest,result[0],result[1],result[2],result[3],result[4]) $
-                   * (result[5] + phtest * result[6] + phtest^2 * result[7] + phtest^3 * result[8])
-
-;           oplot,phtest,ytest,color=mycol('black'),thick=5
-           oplot,phtest,ytest,color=mycol('orange'),thick=2
-;           oplot,phtest,ytest,color=mycol('white'),thick=1
-           
-;           if k GE 1 then stop
            ;; save the planet radius and all data
            plrad[k] = result[0]
            plrade[k] = punct[0]
@@ -440,8 +430,8 @@ TsigRejCrit = 3D ;; sigma rejection criterion for time bins
            resultarr[*,k] = result
            resultarrE[*,k] = punct
 
-           modelY = quadlc(tplot,result[0],result[1],result[2],result[3],result[4]) $
-                   * (result[5] + phtest * result[6] + phtest^2 * result[7] + phtest^3 * result[8])
+;           modelY = quadlc(tplot,result[0],result[1],result[2],result[3],result[4]) $
+;                   * (result[5] + phtest * result[6] + phtest^2 * result[7] + phtest^3 * result[8])
 
            if keyword_set(psplot) then begin
               device,/close
@@ -492,8 +482,7 @@ TsigRejCrit = 3D ;; sigma rejection criterion for time bins
               spawn,'convert -density 160% '+plotnmpre+'.pdf '+plotnmpre+'.png'
            endif
         endif
-           
-;        stop
+
      endif
 
   endfor
