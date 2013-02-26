@@ -4,7 +4,7 @@ pro plot_tim_ser,fitrad=fitrad,fitpoly=fitpoly,usepoly=usepoly,npoly=npoly,$
                  psplot=psplot,noreject=noreject,differential=differential,$
                  individual=individual,pngcopy=pngcopy,freeall=freall,fixall=fixall,$
                  timebin=timebin,offreject=offreject,showclipping=showclipping,$
-                 errorDistb=errorDistb,colorclip=colorclip,quadfit=quadfit
+                 errorDistb=errorDistb,colorclip=colorclip,quadfit=quadfit,cubfit=cubfit
 ;; plots the binned data as a time series and can also fit the Rp/R* changes
 ;; apPlot -- this optional keyword allows one to choose the aperture
 ;;           to plot
@@ -41,6 +41,7 @@ pro plot_tim_ser,fitrad=fitrad,fitpoly=fitpoly,usepoly=usepoly,npoly=npoly,$
 ;; errorDistb -- Plot a histogram of the photometric error distribution
 ;; colorclip -- colors the clipped points
 ;; quadfit -- fits a quadratic baseline instead of a linear baseline
+;; quadfit -- fits a cubic baseline instead of a linear baseline
 
 ;sigrejcrit = 6D  ;; sigma rejection criterion
 sigrejcrit = 5D  ;; sigma rejection criterion
@@ -84,7 +85,7 @@ TsigRejCrit = 3D ;; sigma rejection criterion for time bins
   plrade = fltarr(nbin)*!values.f_nan
 
   ;; Prepare to save all the planet transit data as a function of wavelength
-  paramnames = ['Rp/R*','b_impact','u1','u2','a/R*','linearA','linearB','quadC']
+  paramnames = ['Rp/R*','b_impact','u1','u2','a/R*','linearA','linearB','quadC','cubicD']
   nparams = n_elements(paramnames)
   resultarr = fltarr(nparams,nbin)*!values.f_nan
   resultarrE = resultarr
@@ -368,11 +369,11 @@ TsigRejCrit = 3D ;; sigma rejection criterion for time bins
         if keyword_set(fitrad) then begin
            ;; fit the data curve
 ;           if keyword_set(quadfit) then begin
-              expr = 'quadlc(X,P[0],P[1],P[2],P[3],P[4])* (P[5] + X * P[6] + X^2 * P[7])'
+              expr = 'quadlc(X,P[0],P[1],P[2],P[3],P[4])* (P[5] + X * P[6] + X^2 * P[7]) + X^3 * P[8]'
 ;              pi = replicate({fixed:1, limited:[1,0], limits:[0.0E,0.0E]},8)
 ;           endif else begin
 ;              expr = 'quadlc(X,P[0],P[1],P[2],P[3],P[4])* (P[5] + X * P[6])'
-              pi = replicate({fixed:1, limited:[1,0], limits:[0.0E,0.0E]},8)
+              pi = replicate({fixed:1, limited:[1,0], limits:[0.0E,0.0E]},9)
 ;           endelse
            pi[0].fixed = 0 ;; make sure the Rp/R* parameter is free
            ;; fix the impact parameter, limb darkening and AoR*
@@ -396,8 +397,11 @@ TsigRejCrit = 3D ;; sigma rejection criterion for time bins
            if keyword_set(quadfit) then begin
               pi[7].fixed = 0 ;; let the quadratic coefficient vary
            endif
-              start=double([planetdat.p,planetdat.b_impact,u1parm,u2parm,planetdat.a_o_rstar,1.0D,0D,0D])
-;              start=double([planetdat.p,planetdat.b_impact,u1parm,u2parm,planetdat.a_o_rstar,1.0D,0D])              
+           if keyword_set(cubfit) then begin
+              pi[8].fixed = 0 ;; tet the cubic coefficient vary
+           endif
+              start=double([planetdat.p,planetdat.b_impact,u1parm,u2parm,$
+                            planetdat.a_o_rstar,1.0D,0D,0D,0D])
 
 ;           if keyword_set(clarlimb) then begin
 ;              start=[planetdat.p,planetdat.b_impact,u1bin[k],u2bin[k],planetdat.a_o_rstar,0.0E]
@@ -412,9 +416,12 @@ TsigRejCrit = 3D ;; sigma rejection criterion for time bins
            nshowpts = 1024      ; number of points to show
            phtest = dindgen(nshowpts)/float(nshowpts)*showphase - showphase/2E
            ytest = quadlc(phtest,result[0],result[1],result[2],result[3],result[4]) $
-                   * (result[5] + phtest * result[6] + phtest^2 * result[7])
-                                                                                       
+                   * (result[5] + phtest * result[6] + phtest^2 * result[7] + phtest^3 * result[8])
+
+;           oplot,phtest,ytest,color=mycol('black'),thick=5
            oplot,phtest,ytest,color=mycol('orange'),thick=2
+;           oplot,phtest,ytest,color=mycol('white'),thick=1
+           
 ;           if k GE 1 then stop
            ;; save the planet radius and all data
            plrad[k] = result[0]
@@ -424,7 +431,7 @@ TsigRejCrit = 3D ;; sigma rejection criterion for time bins
            resultarrE[*,k] = punct
 
            modelY = quadlc(tplot,result[0],result[1],result[2],result[3],result[4]) $
-                   * (result[5] + phtest * result[6] + phtest^2 * result[7])
+                   * (result[5] + phtest * result[6] + phtest^2 * result[7] + phtest^3 * result[8])
 
            if keyword_set(psplot) then begin
               device,/close
@@ -445,19 +452,26 @@ TsigRejCrit = 3D ;; sigma rejection criterion for time bins
 
            ylowerL = resid[sorty[ceil(5E/100E*float(ylength))]]
            yUpperL = resid[sorty[ceil(95E/100E*float(ylength))]]
-           ydynam = [-1E,1E] * max(abs([ylowerL,yUpperL])) * 2E
+           ydynam = [-1E,1E] * max(abs([ylowerL,yUpperL])) * 4E
 
+           overplotMarg = [13,14]
            plot,tplot,resid,yrange=ydynam,$
-                title='Residuals at '+wavname,ystyle=1,$
+                title='Residuals at '+wavname,$
                 xtitle='Orbital Phase',ytitle='Flux Residual (%)',$
-                psym=2
+                psym=2,ystyle=8+1,xmargin=overplotMarg
+           prevXrange=!x.crange
+           plot,tplot,airmass,xstyle=1+4,xrange=prevXrange,$
+                /noerase,ystyle=4,/nodata,xmargin=overplotMarg
+           oplot,tplot,airmass,color=mycol('blue')
+           axis,yaxis=1,yrange=!y.crange,ystyle=1,color=mycol('blue'),$
+                ytitle='Airmass'
 ;           oploterr,tplot,resid,yerr/meanoff *100E
            drawy = [!y.crange[0],!y.crange[1]]
            plots,[hstart,hstart],drawy,color=mycol('blue'),linestyle=2,thick=2.5
            plots,[hend,hend],drawy,color=mycol('blue'),linestyle=2,thick=2.5
            print,'RMS Residuals (%) for '+wavname,'um',(stddev(y - modelY))/median(y)*100E
 ;           if wavname EQ '1.14' then stop
-
+;           stop
         endif
         if keyword_set(psplot) then begin
            device, /close

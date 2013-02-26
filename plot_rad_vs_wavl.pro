@@ -23,7 +23,7 @@ pro plot_rad_vs_wavl,psplot=psplot
        ytitle='Rp/R*',$
 ;       ystyle=16,xstyle=1,$
        ystyle=8,xstyle=1,xrange=[0.8,2.55],$
-       yrange=[0.1,0.2],/nodata
+       yrange=[0.12,0.16],/nodata
   oploterror,wavl,rad,rade
   
   oploterror,wavl,rad,fltarr(n_elements(wavl)),rade ;errcolor=mycol('yellow'),$
@@ -34,7 +34,8 @@ pro plot_rad_vs_wavl,psplot=psplot
 
   ;; As in Gibson et al. 2012, show 3 scale heights around the
   ;; adopted Rp/R* from Jacob Bean et al. 2012
-  scaleH = 0.0023E
+  scaleH = 0.00115E
+;  scaleH = 0.00115E * 2E
   plots,[!x.crange[0],!x.crange[1]],[0.1433,0.1433],color=mycol(['red'])
   plots,[!x.crange[0],!x.crange[1]],[0.1433,0.1433]+3E*scaleH,color=mycol(['red']),linestyle=2
   plots,[!x.crange[0],!x.crange[1]],[0.1433,0.1433]-3E*scaleH,color=mycol(['red']),linestyle=2
