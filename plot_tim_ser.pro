@@ -315,10 +315,10 @@ TsigRejCrit = 3D ;; sigma rejection criterion for time bins
         ;; try fitting the off transit to a function first
         if keyword_set(quadfit) then begin
            result = poly_fit(tplot[offp],y[offp],2,measure_errors=yerr[offp],yfit=yfit)
-           Offresid = y[offp]/yfit
+           Offresid = y[offp] - yfit
         endif else begin
            fitY = linfit(tplot[offp],y[offp])
-           Offresid = y[offp]/(fitY[0] + fitY[1]*tplot[offp])
+           Offresid = y[offp] - (fitY[0] + fitY[1]*tplot[offp])
         endelse
         print,'Frac lin corr robust sigma for ',wavname,': ',robust_sigma(Offresid)/median(Offresid)
         ;; Show the off transit fit
@@ -408,7 +408,7 @@ TsigRejCrit = 3D ;; sigma rejection criterion for time bins
               pi[7].fixed = 0 ;; let the quadratic coefficient vary
            endif
            if keyword_set(cubfit) then begin
-              pi[8].fixed = 0 ;; tet the cubic coefficient vary
+              pi[8].fixed = 0 ;; let the cubic coefficient vary
            endif
               start=double([planetdat.p,planetdat.b_impact,u1parm,u2parm,$
                             planetdat.a_o_rstar,1.0D,0D,0D,0D])
@@ -422,7 +422,7 @@ TsigRejCrit = 3D ;; sigma rejection criterion for time bins
            result = mpfitexpr(expr,tplot,y,yerr,start,parinfo=pi,perr=punct)
            modelY = expression_eval(expr,tplot,result)
            oplot,tplot,modelY,color=mycol('orange'),thick=2
-           
+
            ;; save the planet radius and all data
            plrad[k] = result[0]
            plrade[k] = punct[0]
