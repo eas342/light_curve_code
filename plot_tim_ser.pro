@@ -289,11 +289,12 @@ TsigRejCrit = 3D ;; sigma rejection criterion for time bins
            device,xsize=14, ysize=10,decomposed=1,/color
         endif
 ;        plot,tplot,y,psym=2,$
+        custXrange=[-0.1,0.1]
         plot,tplot,y,psym=4,$
              xtitle='Orbital Phase',$
              title=wavname+' um Flux ',$
              ytitle=yptitle,$
-             yrange=ydynam,ystyle=1,/nodata
+             yrange=ydynam,ystyle=1,/nodata,xrange=custXrange
         if not keyword_set(differential) then begin
            if keyword_set(showclipping) then begin
               oplot,tplot,y,psym=5,color=mycol('red') ;; original data
@@ -320,7 +321,7 @@ TsigRejCrit = 3D ;; sigma rejection criterion for time bins
            fitY = linfit(tplot[offp],y[offp])
            Offresid = y[offp] - (fitY[0] + fitY[1]*tplot[offp])
         endelse
-        print,'Frac lin corr robust sigma for ',wavname,': ',robust_sigma(Offresid)/median(Offresid)
+        print,'Frac lin corr robust sigma for ',wavname,': ',robust_sigma(Offresid)/median(y[offp])
         ;; Show the off transit fit
 ;        oplot,tplot,fity[0] + fity[1]*tplot,color=mycol('red')
         if keyword_set(offtranserr) then begin
