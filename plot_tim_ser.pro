@@ -380,7 +380,11 @@ TsigRejCrit = 3D ;; sigma rejection criterion for time bins
         if keyword_set(fitrad) then begin
            ;; fit the data curve
 ;           if keyword_set(quadfit) then begin
-              expr = 'quadlc(X,P[0],P[1],P[2],P[3],P[4])* (P[5] + X * P[6] + X^2 * P[7]) + X^3 * P[8]'
+           if keyword_set(differential) then begin
+              expr = 'quadlc(X,P[0],P[1],P[2],P[3],P[4])* (P[5] + X * P[6] + X^2 * P[7] + X^3 * P[8])'
+           endif else begin
+              expr = 'quadlc(X,P[0],P[1],P[2],P[3],P[4])* (P[5] + X * P[6] + X^2 * P[7] + X^3 * P[8])'
+           endelse
 ;              pi = replicate({fixed:1, limited:[1,0], limits:[0.0E,0.0E]},8)
 ;           endif else begin
 ;              expr = 'quadlc(X,P[0],P[1],P[2],P[3],P[4])* (P[5] + X * P[6])'
