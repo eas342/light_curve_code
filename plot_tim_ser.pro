@@ -334,14 +334,18 @@ TsigRejCrit = 3D ;; sigma rejection criterion for time bins
         plots,[hstart,hstart],drawy,color=mycol('brown'),linestyle=2
         plots,[hend,hend],drawy,color=mycol('brown'),linestyle=2
 
-        ;; show the off-transit fit for differential measurements
+        ;; show the off-transit fit for differential measurements (as
         if keyword_set(differential) then begin
-           if keyword_set(quadfit) then begin
-              oplot,tplot,(result[0] + result[1] *tplot + result[2] * tplot^2),$
-                    thick=2,color=mycol('red')
-           endif else begin
-              oplot,tplot,(fitY[0] + fitY[1] *tplot),thick=2,color=mycol('red')
-           endelse
+           if not keyword_set(fitrad) then begin
+                 ;; long as fits aren't being performed)
+                 
+              if keyword_set(quadfit) then begin
+                 oplot,tplot,(result[0] + result[1] *tplot + result[2] * tplot^2),$
+                       thick=2,color=mycol('red')
+              endif else begin
+                 oplot,tplot,(fitY[0] + fitY[1] *tplot),thick=2,color=mycol('red')
+              endelse
+           endif
            oploterror,tplot,y,tsizes/2E,yerr,psym=3,hatlength=0,thick=2
         endif
         ;;plot the clipped points
@@ -379,9 +383,20 @@ TsigRejCrit = 3D ;; sigma rejection criterion for time bins
 
         if keyword_set(fitrad) then begin
            ;; fit the data curve
+
+           start=double([planetdat.p,planetdat.b_impact,u1parm,u2parm,$
+                         planetdat.a_o_rstar,1.0D,0D,0D,0D])
+
+
 ;           if keyword_set(quadfit) then begin
            if keyword_set(differential) then begin
-              expr = 'quadlc(X,P[0],P[1],P[2],P[3],P[4])* (P[5] + X * P[6] + X^2 * P[7] + X^3 * P[8])'
+              quadlcArg ='X'
+              for m=0l,4 do begin
+                 quadlcArg=quadlcArg+','+strtrim(start[m],1)
+              endfor
+              expr = 'quadlc(X,P[0],P[1],P[2],P[3],P[4])* (P[5] + X * P[6] + X^2 * P[7] + X^3'+$
+                     ' * P[8])/quadlc('+quadlcArg+')'
+;              stop
            endif else begin
               expr = 'quadlc(X,P[0],P[1],P[2],P[3],P[4])* (P[5] + X * P[6] + X^2 * P[7] + X^3 * P[8])'
            endelse
@@ -415,8 +430,6 @@ TsigRejCrit = 3D ;; sigma rejection criterion for time bins
            if keyword_set(cubfit) then begin
               pi[8].fixed = 0 ;; let the cubic coefficient vary
            endif
-              start=double([planetdat.p,planetdat.b_impact,u1parm,u2parm,$
-                            planetdat.a_o_rstar,1.0D,0D,0D,0D])
 
 ;           if keyword_set(clarlimb) then begin
 ;              start=[planetdat.p,planetdat.b_impact,u1bin[k],u2bin[k],planetdat.a_o_rstar,0.0E]

@@ -1,7 +1,7 @@
 pro run_multiple_bins
   night=['dec23','jan04']
   for i=0,n_elements(night)-1 do begin
-     for j=5,5 do begin ;; cycle through # of wavelength bins
+     for j=4,4 do begin ;; cycle through # of wavelength bins
         case night[i] of
            'dec23': compile_spec,/optimal,nwavbins=j,/dec23
            'jan04': compile_spec,/optimal,nwavbins=j
