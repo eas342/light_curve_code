@@ -1,14 +1,15 @@
-pro plot_tim_ser,fitrad=fitrad,fitpoly=fitpoly,usepoly=usepoly,npoly=npoly,$
+pro plot_tim_ser,fitcurve=fitcurve,fitpoly=fitpoly,usepoly=usepoly,npoly=npoly,$
                  fullrange=fullrange,smartbin=smartbin,oneprange=oneprange,$
                  offtranserr=offtranserr,freelimb=freelimb,clarlimb=clarlimb,$
                  psplot=psplot,noreject=noreject,differential=differential,$
                  individual=individual,pngcopy=pngcopy,freeall=freall,fixall=fixall,$
                  timebin=timebin,offreject=offreject,showclipping=showclipping,$
-                 errorDistb=errorDistb,colorclip=colorclip,quadfit=quadfit,cubfit=cubfit
+                 errorDistb=errorDistb,colorclip=colorclip,quadfit=quadfit,cubfit=cubfit,$
+                 fixrad=fixrad
 ;; plots the binned data as a time series and can also fit the Rp/R* changes
 ;; apPlot -- this optional keyword allows one to choose the aperture
 ;;           to plot
-;; fitrad -- this fitting procedure ueses
+;; fitcurve -- this fitting procedure ueses
 ;;            planet transit information to fit Rp/R* as a
 ;;            function of wavelength
 ;; fitpoly -- this fits a polynomial to the data to take out long term
@@ -42,6 +43,8 @@ pro plot_tim_ser,fitrad=fitrad,fitpoly=fitpoly,usepoly=usepoly,npoly=npoly,$
 ;; colorclip -- colors the clipped points
 ;; quadfit -- fits a quadratic baseline instead of a linear baseline
 ;; quadfit -- fits a cubic baseline instead of a linear baseline
+;; fixrad -- fixes the planet radius to see if limb darkening can do
+;;           it all
 
 ;sigrejcrit = 6D  ;; sigma rejection criterion
 sigrejcrit = 5D  ;; sigma rejection criterion
@@ -336,7 +339,7 @@ TsigRejCrit = 3D ;; sigma rejection criterion for time bins
 
         ;; show the off-transit fit for differential measurements (as
         if keyword_set(differential) then begin
-           if not keyword_set(fitrad) then begin
+           if not keyword_set(fitcurve) then begin
                  ;; long as fits aren't being performed)
                  
               if keyword_set(quadfit) then begin
@@ -381,7 +384,7 @@ TsigRejCrit = 3D ;; sigma rejection criterion for time bins
 
         endif
 
-        if keyword_set(fitrad) then begin
+        if keyword_set(fitcurve) then begin
            ;; fit the data curve
 
            start=double([planetdat.p,planetdat.b_impact,u1parm,u2parm,$
@@ -405,7 +408,8 @@ TsigRejCrit = 3D ;; sigma rejection criterion for time bins
 ;              expr = 'quadlc(X,P[0],P[1],P[2],P[3],P[4])* (P[5] + X * P[6])'
               pi = replicate({fixed:1, limited:[1,0], limits:[0.0E,0.0E]},9)
 ;           endelse
-           pi[0].fixed = 0 ;; make sure the Rp/R* parameter is free
+              ;; make sure the Rp/R* parameter is free
+              if not keyword_set(fixrad) then pi[0].fixed = 0 
            ;; fix the impact parameter, limb darkening and AoR*
            if keyword_set(freelimb) then begin
               ;; if asked to, free the limb darkening parameter
