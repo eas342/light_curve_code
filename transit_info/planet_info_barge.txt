@@ -1,0 +1,5 @@
+# Corot-1b Data from Barge et al. 2008 & exoplanets.org for b_impact
+p		0.138
+a_o_Rstar	4.92
+b_impact	0.42
+Period	   	1.5089557
