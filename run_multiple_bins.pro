@@ -1,10 +1,10 @@
-pro run_multiple_bins,differential=differential
+pro run_multiple_bins,differential=differential,quadfit=quadfit
 ;;differential - shows the differential time series
   night=['dec23','jan04']
   suffix=['png','pdf']
 
   for i=0,n_elements(night)-1 do begin
-     for j=2,2 do begin ;; cycle through # of wavelength bins
+     for j=2,13 do begin ;; cycle through # of wavelength bins
         case night[i] of
            'dec23': compile_spec,/optimal,nwavbins=j,/dec23
            'jan04': compile_spec,/optimal,nwavbins=j
@@ -12,7 +12,7 @@ pro run_multiple_bins,differential=differential
         plot_tim_ser,/fitcurve,/freelimb,/quadfit,/offtranserr
         if keyword_set(differential) then begin
            for k=0,1 do begin
-              plot_tim_ser,/fitcurve,/freelimb,/quadfit,/offtranserr,$
+              plot_tim_ser,/fitcurve,/freelimb,quadfit=quadfit,/offtranserr,$
                            timebin=25,/differential,fixrad=k,/pngcopy,/psplot
               for l=0,n_elements(suffix)-1 do begin
                  if k EQ 1 then comment='_fixrad' else comment=''
