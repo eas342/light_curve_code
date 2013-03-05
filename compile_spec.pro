@@ -1,5 +1,5 @@
 pro compile_spec,extraction2=extraction2,optimal=optimal,nwavbins=nwavbins,$
-                 dec23=dec23
+                 dec23=dec23,dec29=dec29
 ;; Compiles the spectra into a few simple arrays to look at the spectrophotometry
 ;; extraction2 -- uses whatever spectra are in the data directory
 ;; optimal -- uses the variance weighted (optimal) extraction
@@ -30,11 +30,15 @@ if keyword_set(extraction1) then begin
    readcol,'file_lists/extraction1_full_list.txt',filen,format='(A)'
 endif else begin
    ;; Otherwise use the current extraction
-   if keyword_set(dec23) then begin
-      readcol,'file_lists/corot1_dec23fullspec.txt',filen,format='(A)'
-   endif else begin
-      readcol,'file_lists/full_speclist.txt',filen,format='(A)'
-   endelse
+   case 1 of
+      keyword_set(dec23):begin
+         readcol,'file_lists/corot1_dec23fullspec.txt',filen,format='(A)'
+      end
+      keyword_set(dec29): begin
+         readcol,'file_lists/corot1_dec29fullspec.txt',filen,format='(A)'
+      end
+      else: readcol,'file_lists/full_speclist.txt',filen,format='(A)'
+   endcase
 endelse
 nfile = n_elements(filen)
 
