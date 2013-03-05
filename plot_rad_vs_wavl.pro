@@ -28,7 +28,8 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec
        ytitle='Rp/R*',$
 ;       ystyle=16,xstyle=1,$
        ystyle=ytempstyle,xstyle=1,xrange=[0.8,2.55],$
-       yrange=[0.12,0.16],/nodata
+       yrange=[0.10,0.20],/nodata
+;       yrange=[0.12,0.16],/nodata
 ;  oploterror,wavl,rad,rade
   wavlwidth = binsizes/2E
   oploterror,wavl,rad,wavlwidth,rade,psym=3
