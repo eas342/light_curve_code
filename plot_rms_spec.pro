@@ -1,10 +1,12 @@
-pro plot_rms_spec,psplot=psplot,tryclean=tryclean,saveclean=saveclean
+pro plot_rms_spec,psplot=psplot,tryclean=tryclean,saveclean=saveclean,$
+                  removelinear=removelinear
 ;; Plots the RMS along the time series for each wavelength in the
 ;; spectrum
 ;; psplot -- makes a postscript plot of the RMS spectrum
 ;; tryclean - tries to clean up the spectrum on a wavelength by
 ;;            wavelength basis
 ;; saveclean - saves the white light curve for analysis by plot_tim_ser
+;; removelinear -- fit each curve to a line first before finding the RMS
 
   ;; set the plot
   if keyword_set(psplot) then begin
@@ -41,18 +43,39 @@ pro plot_rms_spec,psplot=psplot,tryclean=tryclean,saveclean=saveclean
      sigarray[i] = robust_sigma(divbycurve[i,0,*])/median(divbycurve[i,0,*])
   endfor
 
-  if keyword_set(tryclean) then begin
+  if keyword_set(tryclean) or keyword_set(removelinear) then begin
      for i=0l,nwavs-1l do begin
-        cleanedcurve[i,*] = DivSpec[i,0,*]
-        badp = where(abs(divbycurve[i,0,*] - median(divbycurve[i,0,*])) GT sigarray[i] * divbycurve[i,0,*] * 4E)
+        if keyword_set(removelinear) then cleanedcurve[i,*] = divbycurve[i,0,*] else begin
+           cleanedcurve[i,*] = DivSpec[i,0,*]
+        endelse
+        badp = where(abs(divbycurve[i,0,*] - median(divbycurve[i,0,*])) GT sigarray[i] * divbycurve[i,0,*] * 6E)
         if badp NE [-1] then cleanedcurve[i,badp] = !values.f_nan
      endfor
   endif
 
+  if keyword_set(removelinear) then begin
+     for i=0l,nwavs-1l do begin
+        ;; divide by the line to flatten out
+        goodp = where(finite(cleanedcurve[i,*]) EQ 1,ngoodp)
+        if ngoodp GT 10 then begin
+           rlinefit = robust_linefit(tplot[goodp],cleanedcurve[i,goodp],yfit)
+           yflat = cleanedcurve[i,goodp] / yfit
+           ;; You don't have to divide by the median because
+           ;; the division by the line fit already does that
+           sigarray[i] = robust_sigma(yflat)
+        endif else sigarray[i] = !values.f_nan
+        
+     endfor
+  endif
 
   plot,lamgrid,sigarray*100E,$
        xtitle='Wavelength (um)',$
-       ytitle='Robust Sigma (%)',yrange=[0,10]
+       ytitle='Fractional Error (%)',yrange=[0,10]
+  oplot,lamgrid,divspecE[*,0,0]/divspec[*,0,0]*100E,color=mycol('blue'),$
+        linestyle=2
+
+  legend,['Robust Sigma','Photon Error'],color=mycol(['black','blue']),$
+         linestyle=[0,2]
 
   if keyword_set(psplot) then begin
      device, /close
