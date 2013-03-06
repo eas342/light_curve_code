@@ -1,4 +1,4 @@
-pro plot_tim_ser,fitcurve=fitcurve,fitpoly=fitpoly,usepoly=usepoly,npoly=npoly,$
+pro plot_tim_ser,fitcurve=fitcurve,fitpoly=fitpoly,usepoly=usepoly,makestops=makestops,$
                  fullrange=fullrange,smartbin=smartbin,oneprange=oneprange,$
                  offtranserr=offtranserr,freelimb=freelimb,clarlimb=clarlimb,$
                  psplot=psplot,noreject=noreject,differential=differential,$
@@ -331,7 +331,7 @@ TsigRejCrit = 3D ;; sigma rejection criterion for time bins
 ;        oplot,tplot,fity[0] + fity[1]*tplot,color=mycol('red')
         if keyword_set(offtranserr) then begin
            rstdevOff = robust_sigma(Offresid)
-           yerr = fltarr(nut) + rstdevOff
+           yerr = fltarr(n_elements(goodp)) + rstdevOff
         endif
 ;        stop
         ;; show the transit epochs
@@ -358,6 +358,7 @@ TsigRejCrit = 3D ;; sigma rejection criterion for time bins
            if throwaways NE [-1] then oplot,tclip1,yclip1,psym=6,color=mycol('blue')
            if throwaways2 NE [-1] then oplot,tclip2,yclip2,psym=5,color=mycol('blue')
         endif
+        if keyword_set(makestops) then stop
         
         if keyword_set(errorDistb) then begin
            if keyword_set(psplot) then begin
