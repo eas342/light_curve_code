@@ -281,7 +281,7 @@ TsigRejCrit = 3D ;; sigma rejection criterion for time bins
               keyword_set(oneprange): ydynam = [0,1]
               else: begin
                  ylowerL = y[sorty[ceil(5E/100E*float(ylength))]] * 0.97
-                 yUpperL = y[sorty[ceil(95E/100E*float(ylength))]] * 1.03
+                 yUpperL = y[sorty[floor(95E/100E*float(ylength))]] * 1.03
                  ydynam = [ylowerL,yUpperL]
               end
            endcase
@@ -476,7 +476,7 @@ TsigRejCrit = 3D ;; sigma rejection criterion for time bins
            resid = (y - modelY)/meanoff *100E
 
            ylowerL = resid[sorty[ceil(5E/100E*float(ylength))]]
-           yUpperL = resid[sorty[ceil(95E/100E*float(ylength))]]
+           yUpperL = resid[sorty[floor(95E/100E*float(ylength))]]
            ydynam = [-1E,1E] * max(abs([ylowerL,yUpperL])) * 4E
 
            overplotMarg = [13,14]
