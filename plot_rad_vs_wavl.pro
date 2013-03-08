@@ -1,7 +1,9 @@
 pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
-                     nbins=nbins
+                     nbins=nbins,custfile=custfile
 ;;psplot -- saves a postscript plot
 ;;showstarspec -- shows a star spectrum on the same plot
+;;nbins -- number of points bo bin in Rp/R*
+;;custfile -- chooses a custom radius vs wavelength file
 
   !x.margin = [13,14]
   ;; set the plot
@@ -14,21 +16,27 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
            device,xsize=14, ysize=10,decomposed=1,/color
   endif
 
-
-  ;; read in the radius versus wavelength file
-  readcol,'radius_vs_wavelength/radius_vs_wavl.txt',wavl,rad,rade,skipline=1,format='(F,F,F)'
-
   ;; restore the star spectrum to show where telluric & star features
   ;; might be
   restore,'data/specdata.sav'
 
+  ;; read in the radius versus wavelength file
+  if keyword_set(custfile) then begin
+     radfile=custfile
+  endif else radfile='radius_vs_wavelength/radius_vs_wavl.txt'
+  readcol,radfile,wavl,rad,rade,skipline=1,format='(F,F,F)'
+
   if keyword_set(showstarspec) then ytempstyle=8 else ytempstyle=1
+
+  binsizes = fltarr(n_elements(wavl)) + wavl[1]-wavl[0]
+
 
   if n_elements(nbins) NE 0 then begin
      ;; if asked to, bin the Rp/R*
      nnewwavl = ceil(float(n_elements(wavl))/float(nbins))
      newwavl = fltarr(nnewwavl)
      newrad = fltarr(nnewwavl)
+     newbinsizes = fltarr(nnewwavl)
      for i=0l,nnewwavl-1l do begin
         subInd = lindgen(nbins)+i*nbins
         ;; check that you haven't gone over the number of points
@@ -37,11 +45,13 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
         newwavl[i] = mean(wavl[allowedpts])
         weights = 1E/rade[allowedpts]^2
         newrad[i] = total(weights *rad[allowedpts])/total(weights)
-        binsizes[i] = binsizes[i] * float(n_elements(allowedpts))
+        newbinsizes[i] = binsizes[i] * float(n_elements(allowedpts))
      endfor
      wavl = newwavl
      rad = newrad
-  endif
+     binsizes = newbinsizes
+  endif else begin
+  endelse
 
   plot,wavl,rad,$
        xtitle='Wavelength (um)',$
@@ -56,7 +66,6 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
 ;                color=mycol('yellow') 
   
 
-  
 
   ;; As in Gibson et al. 2012, show 3 scale heights around the
   ;; adopted Rp/R* from Jacob Bean et al. 2012
