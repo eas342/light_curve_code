@@ -1,4 +1,5 @@
-pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec
+pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
+                     nbins=nbins
 ;;psplot -- saves a postscript plot
 ;;showstarspec -- shows a star spectrum on the same plot
 
@@ -22,6 +23,25 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec
   restore,'data/specdata.sav'
 
   if keyword_set(showstarspec) then ytempstyle=8 else ytempstyle=1
+
+  if n_elements(nbins) NE 0 then begin
+     ;; if asked to, bin the Rp/R*
+     nnewwavl = ceil(float(n_elements(wavl))/float(nbins))
+     newwavl = fltarr(nnewwavl)
+     newrad = fltarr(nnewwavl)
+     for i=0l,nnewwavl-1l do begin
+        subInd = lindgen(nbins)+i*nbins
+        ;; check that you haven't gone over the number of points
+        allowedsubpts = where(subInd LE n_elements(wavl) -1l)
+        allowedpts = subInd[allowedsubpts]
+        newwavl[i] = mean(wavl[allowedpts])
+        weights = 1E/rade[allowedpts]^2
+        newrad[i] = total(weights *rad[allowedpts])/total(weights)
+        binsizes[i] = binsizes[i] * float(n_elements(allowedpts))
+     endfor
+     wavl = newwavl
+     rad = newrad
+  endif
 
   plot,wavl,rad,$
        xtitle='Wavelength (um)',$
