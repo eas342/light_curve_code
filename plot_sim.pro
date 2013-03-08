@@ -123,7 +123,7 @@ assert,nrows,'=',n_elements(explist),$
 restore,'data/specdata.sav'
 bingridmiddle = bingrid + binsizes/2E
 
-wavindex = 25
+wavindex = 4
 wavname = string(bingridmiddle[wavindex],format='(F4.2)')
 if n_elements(comptype) GT 0 then begin
    case comptype of
