@@ -48,7 +48,8 @@ pro plot_tim_ser,fitcurve=fitcurve,fitpoly=fitpoly,usepoly=usepoly,makestops=mak
 
 ;sigrejcrit = 6D  ;; sigma rejection criterion
 sigrejcrit = 5D  ;; sigma rejection criterion
-TsigRejCrit = 3D ;; sigma rejection criterion for time bins
+;TsigRejCrit = 3D ;; sigma rejection criterion for time bins
+TsigRejCrit = 2.5D ;; sigma rejection criterion for time bins
 
   ;; set the plot
   if keyword_set(psplot) then begin
@@ -96,7 +97,8 @@ TsigRejCrit = 3D ;; sigma rejection criterion for time bins
 
   ;; orbital phase
   tplot = (utgrid - tmid)/planetdat.period
-  
+  airmassOrig = airmass
+
   ;; add or subtract integers to phase so that's it's sort of centered
   ;; at 0
   tplot = fold_phase(tplot)
@@ -128,14 +130,17 @@ TsigRejCrit = 3D ;; sigma rejection criterion for time bins
      tplot = (utgrid - tmid)/planetdat.period     
      ;; fold back to 0
      tplot = fold_phase(tplot)
+     airmass = airmassOrig
 
      offp = where(tplot LT hstart OR tplot GT hend)
+
+     reffactor=0.45E ;; factor to multiply the reference star by
 
      if keyword_set(individual) then begin
         y = double(transpose(binind[k,0,*]))
         yerr = double(transpose(binindE[k,0,*]))
-        y2 = double(transpose(binind[k,1,*]))
-        y2err = double(transpose(binindE[k,1,*]))
+        y2 = double(transpose(binind[k,1,*])) * reffactor
+        y2err = double(transpose(binindE[k,1,*])) * reffactor
         yptitle='Flux (DN)'
         if n_elements(timebin) NE 0 then begin
            print,"Binning not set up for individual star fluxes"
@@ -167,6 +172,7 @@ TsigRejCrit = 3D ;; sigma rejection criterion for time bins
         y = y[goodp]
         yerr = yerr[goodp]
         tplot = tplot[goodp]
+        airmass = airmass[goodp]
         offp = where(tplot LT hstart OR tplot GT hend)
      endif
      stdoff = stddev(y[offp])
@@ -181,6 +187,7 @@ TsigRejCrit = 3D ;; sigma rejection criterion for time bins
                  y = y[goodp]
                  tplot = tplot[goodp]
                  yerr = yerr[goodp]
+                 airmass = airmass[goodp]
                  offp = where(tplot LT hstart OR tplot GT hend)
               endif
            endfor
@@ -210,6 +217,7 @@ TsigRejCrit = 3D ;; sigma rejection criterion for time bins
               divbycurveclip1 = divbycurve[goodp]
               yerr = yerr[goodp]
               tplot = tplot[goodp]
+              airmass = airmass[goodp]
            endif
            ;; fit result to a robust line
            rlinefit = robust_linefit(tplot,divbycurveclip1,yfit)
@@ -232,6 +240,7 @@ TsigRejCrit = 3D ;; sigma rejection criterion for time bins
               y = y[goodp]
               yerr = fltarr(n_elements(goodp)) + rsigma * rlinefit[0]
               tplot = tplot[goodp]
+              airmass = airmass[goodp]
               offp = where(tplot LT hstart OR tplot GT hend)
            endif
 
@@ -255,11 +264,16 @@ TsigRejCrit = 3D ;; sigma rejection criterion for time bins
            endif
         endif
 
+        airbin = avg_series(tplot,airmass,fltarr(n_elements(airmass)),timeGrid,tsizes,$
+                            weighted=0,/silent)
         tplot = tmiddle
         y = ybin
 ;        yerr = yerrOut
         yerr = stdevArr
         offp = where(tplot LT hstart OR tplot GT hend)
+
+
+        
      endif
 
      if total(finite(y)) GT 0 and total(finite(yerr)) GT 0.0 then begin
@@ -310,7 +324,7 @@ TsigRejCrit = 3D ;; sigma rejection criterion for time bins
 
         if keyword_set(individual) then begin
            oplot,tplot,y2,psym=4,color=mycol('blue')
-           legend,['Planet Host','Reference Star'],$
+           legend,['Planet Host','Reference Star X '+strtrim(reffactor,1)],$
                   psym=[2,4],color=mycol(['black','blue']),$
                   /right,/clear
         endif
@@ -419,6 +433,7 @@ TsigRejCrit = 3D ;; sigma rejection criterion for time bins
               pi[2].fixed = 0
               pi[3].fixed = 0
            endif
+           pi[6].fixed = 0 ;; let the linear coefficient vary
            if keyword_set(freeall) then begin
               pi[*].fixed = 0
            endif ;; free all parameters
@@ -430,7 +445,6 @@ TsigRejCrit = 3D ;; sigma rejection criterion for time bins
            pi[6].limited = [0,0] ;; let the linear coefficient by + or -
            pi[7].limited = [0,0] ;; let the quadratic coefficient by + or -
            pi[5].fixed = 0 ;; make sure the flux ratio offset is free
-           pi[6].fixed = 0 ;; let the linear coefficient vary
            if keyword_set(quadfit) then begin
               pi[7].fixed = 0 ;; let the quadratic coefficient vary
            endif
