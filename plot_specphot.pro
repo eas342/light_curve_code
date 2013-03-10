@@ -42,7 +42,9 @@ pro plot_specphot,divbymodel=divbymodel,usebin=usebin
      xypic = xypic / rebinmodel
   endif
 
-  ColorRange = [0.95E,1.01E]
+  if keyword_set(divbymodel) then begin
+     ColorRange = [0.995E,1.005E]
+  endif else ColorRange = [0.95E,1.01E]
 
   loadct,1
   window,0
