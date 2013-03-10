@@ -270,6 +270,7 @@ TsigRejCrit = 2.5D ;; sigma rejection criterion for time bins
         y = ybin
 ;        yerr = yerrOut
         yerr = stdevArr
+        airmass = airbin
         offp = where(tplot LT hstart OR tplot GT hend)
 
 
