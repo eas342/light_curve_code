@@ -28,7 +28,11 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
 
   if keyword_set(showstarspec) then ytempstyle=8 else ytempstyle=1
 
-  binsizes = fltarr(n_elements(wavl)) + wavl[1]-wavl[0]
+  if n_elements(wavl) EQ 1 then begin
+     binsizes = binsizes
+  endif else begin
+     binsizes = fltarr(n_elements(wavl)) + wavl[1]-wavl[0]
+  endelse
 
 
   if n_elements(nbins) NE 0 then begin
@@ -36,6 +40,7 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
      nnewwavl = ceil(float(n_elements(wavl))/float(nbins))
      newwavl = fltarr(nnewwavl)
      newrad = fltarr(nnewwavl)
+     newrade = fltarr(nnewwavl)
      newbinsizes = fltarr(nnewwavl)
      for i=0l,nnewwavl-1l do begin
         subInd = lindgen(nbins)+i*nbins
@@ -46,9 +51,11 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
         weights = 1E/rade[allowedpts]^2
         newrad[i] = total(weights *rad[allowedpts])/total(weights)
         newbinsizes[i] = binsizes[i] * float(n_elements(allowedpts))
+        newrade[i] = sqrt(1E /total(weights))
      endfor
      wavl = newwavl
      rad = newrad
+     rade = newrade
      binsizes = newbinsizes
   endif else begin
   endelse
@@ -96,6 +103,6 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
      set_plot,'x'
      !p.font=-1
   endif
-  
+
 end  
   
