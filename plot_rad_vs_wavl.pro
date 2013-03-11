@@ -1,9 +1,11 @@
 pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
-                     nbins=nbins,custfile=custfile
+                     nbins=nbins,custfile=custfile,$
+                     showtheospec=showtheospec
 ;;psplot -- saves a postscript plot
 ;;showstarspec -- shows a star spectrum on the same plot
 ;;nbins -- number of points bo bin in Rp/R*
 ;;custfile -- chooses a custom radius vs wavelength file
+;;showtheospec -- shows a theoretical transmission spectrum
 
   !x.margin = [13,14]
   ;; set the plot
@@ -65,7 +67,7 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
        ytitle='Rp/R*',$
 ;       ystyle=16,xstyle=1,$
        ystyle=ytempstyle,xstyle=1,xrange=[0.8,2.55],$
-       yrange=[0.10,0.20],/nodata
+       yrange=[0.12,0.17],/nodata
 ;       yrange=[0.12,0.16],/nodata
 ;  oploterror,wavl,rad,rade
   wavlwidth = binsizes/2E
@@ -85,6 +87,13 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
      
      
   prevXrange = !x.crange
+  if keyword_set(showtheospec) then begin ;; show the theoretical transmission spectrum
+     readcol,'../models/fortney_g10mps_2500K_isothermal.csv',theowav,theorad,$
+             skipline=6,format='(F,F)'
+     radToPlanet = 0.1037E ;; found by eye to get the approximate Corot bandpass correctly
+     oplot,theowav,theorad *radToPlanet,color=mycol('orange')
+  endif
+
   if keyword_set(showstarspec) then begin
      ;; plot the source spectrum
      plot,lamgrid,flgrid(*,0,1),/noerase,xrange=prevXrange,ystyle=5,xstyle=1,$
@@ -95,6 +104,7 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
      
      !x.margin = [10.0,3.0]
   endif
+
   if keyword_set(psplot) then begin
      device, /close
      cgPS2PDF,plotprenm+'.eps'
