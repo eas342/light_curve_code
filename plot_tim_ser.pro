@@ -1,11 +1,11 @@
 pro plot_tim_ser,fitcurve=fitcurve,fitpoly=fitpoly,usepoly=usepoly,makestops=makestops,$
                  fullrange=fullrange,smartbin=smartbin,oneprange=oneprange,$
-                 offtranserr=offtranserr,freelimb=freelimb,clarlimb=clarlimb,$
+                 offtranserr=offtranserr,freelimbquad=freelimbquad,clarlimb=clarlimb,$
                  psplot=psplot,noreject=noreject,differential=differential,$
                  individual=individual,pngcopy=pngcopy,freeall=freall,fixall=fixall,$
                  timebin=timebin,offreject=offreject,showclipping=showclipping,$
                  errorDistb=errorDistb,colorclip=colorclip,quadfit=quadfit,cubfit=cubfit,$
-                 fixrad=fixrad
+                 fixrad=fixrad,freelimblin=freelimblin
 ;; plots the binned data as a time series and can also fit the Rp/R* changes
 ;; apPlot -- this optional keyword allows one to choose the aperture
 ;;           to plot
@@ -21,7 +21,7 @@ pro plot_tim_ser,fitcurve=fitcurve,fitpoly=fitpoly,usepoly=usepoly,makestops=mak
 ;; smartbin -- use the smart-binned data instead of the binned data
 ;; oneprange -- sets all the y ranges to be 1%
 ;; offtranserr -- makes the error equal to the stddev of off-transit points
-;; freelimb -- frees the limb darkening parameters in the fits
+;; freelimbquad -- frees the quadratic limb darkening parameters in the fits
 ;; clarlimb -- uses the limb darkening parameters from A. Claret, averaged into wavelength bins
 ;; psplot -- makes a postscript plot instead of X windows plot
 ;;           noreject -- No sigma rejection when making plots, shows
@@ -45,6 +45,7 @@ pro plot_tim_ser,fitcurve=fitcurve,fitpoly=fitpoly,usepoly=usepoly,makestops=mak
 ;; quadfit -- fits a cubic baseline instead of a linear baseline
 ;; fixrad -- fixes the planet radius to see if limb darkening can do
 ;;           it all
+;; freelimblin -- frees only the linear limb darkening coefficient
 
 ;sigrejcrit = 6D  ;; sigma rejection criterion
 sigrejcrit = 5D  ;; sigma rejection criterion
@@ -78,7 +79,7 @@ TsigRejCrit = 2.5D ;; sigma rejection criterion for time bins
   endfor
 
   u1parm = 0.0E         ; one of my best fits for 1.14um
-  u2parm = 0.269E
+  u2parm = 0.0E
 
   tstart = date_conv(tepoch[0],'JULIAN')
   tend = date_conv(tepoch[1],'JULIAN')
@@ -424,16 +425,20 @@ TsigRejCrit = 2.5D ;; sigma rejection criterion for time bins
 ;              pi = replicate({fixed:1, limited:[1,0], limits:[0.0E,0.0E]},8)
 ;           endif else begin
 ;              expr = 'quadlc(X,P[0],P[1],P[2],P[3],P[4])* (P[5] + X * P[6])'
-              pi = replicate({fixed:1, limited:[1,0], limits:[0.0E,0.0E]},9)
+           pi = replicate({fixed:1, limited:[1,0], limits:[0.0E,0.0E]},9)
 ;           endelse
-              ;; make sure the Rp/R* parameter is free
-              if not keyword_set(fixrad) then pi[0].fixed = 0 
+           ;; make sure the Rp/R* parameter is free
+           if not keyword_set(fixrad) then pi[0].fixed = 0 
            ;; fix the impact parameter, limb darkening and AoR*
-           if keyword_set(freelimb) then begin
-              ;; if asked to, free the limb darkening parameter
-              pi[2].fixed = 0
-              pi[3].fixed = 0
-           endif
+           case 1 of
+              keyword_set(freelimbquad): begin
+                 ;; if asked to, free the quadratic limb darkening parameter
+                 pi[2].fixed = 0
+                 pi[3].fixed = 0
+              end
+              keyword_set(freelimblin): pi[2].fixed = 0
+              else: junk=junk
+           endcase
            pi[6].fixed = 0 ;; let the linear coefficient vary
            if keyword_set(freeall) then begin
               pi[*].fixed = 0
