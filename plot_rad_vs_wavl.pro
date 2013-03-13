@@ -1,11 +1,12 @@
 pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
                      nbins=nbins,custfile=custfile,$
-                     showtheospec=showtheospec
+                     showtheospec=showtheospec,choosefile=choosefile
 ;;psplot -- saves a postscript plot
 ;;showstarspec -- shows a star spectrum on the same plot
 ;;nbins -- number of points bo bin in Rp/R*
 ;;custfile -- chooses a custom radius vs wavelength file
 ;;showtheospec -- shows a theoretical transmission spectrum
+;;choosefile -- choose a file from the radius_vs_wavelength directory
 
   !x.margin = [13,14]
   ;; set the plot
@@ -23,9 +24,24 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
   restore,'data/specdata.sav'
 
   ;; read in the radius versus wavelength file
-  if keyword_set(custfile) then begin
-     radfile=custfile
-  endif else radfile='radius_vs_wavelength/radius_vs_wavl.txt'
+  case 1 of
+     keyword_set(custfile): radfile=custfile
+     keyword_set(choosefile): begin
+        ;; get the current directory
+        cd,c=currentd
+        ;; Search the radius_vs_wavlength directory
+        fileopt = file_search(currentd+'/radius_vs_wavelength/*.txt')
+        print,'Available Files. Choose one of the numbers:'
+        for i=0l,n_elements(fileopt)-1l do begin
+           trimst = strsplit(fileopt[i],'/',/extract)
+           print,string(i,Format='(I5)'),' ',trimst(n_elements(trimst)-1l)
+        endfor
+        read,'File Choice: ',filechoice
+        radfile = fileopt[filechoice]
+     end
+     else: radfile='radius_vs_wavelength/radius_vs_wavl.txt'
+  endcase
+
   readcol,radfile,wavl,rad,rade,skipline=1,format='(F,F,F)'
 
   if keyword_set(showstarspec) then ytempstyle=8 else ytempstyle=1
