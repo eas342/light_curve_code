@@ -1,6 +1,7 @@
 pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
                      nbins=nbins,custfile=custfile,$
-                     showtheospec=showtheospec,choosefile=choosefile
+                     showtheospec=showtheospec,choosefile=choosefile,$
+                     additionalfile=additionalfile
 ;;psplot -- saves a postscript plot
 ;;showstarspec -- shows a star spectrum on the same plot
 ;;nbins -- number of points bo bin in Rp/R*
@@ -27,17 +28,9 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
   case 1 of
      keyword_set(custfile): radfile=custfile
      keyword_set(choosefile): begin
-        ;; get the current directory
-        cd,c=currentd
-        ;; Search the radius_vs_wavlength directory
-        fileopt = file_search(currentd+'/radius_vs_wavelength/*.txt')
-        print,'Available Files. Choose one of the numbers:'
-        for i=0l,n_elements(fileopt)-1l do begin
-           trimst = strsplit(fileopt[i],'/',/extract)
-           print,string(i,Format='(I5)'),' ',trimst(n_elements(trimst)-1l)
-        endfor
-        read,'File Choice: ',filechoice
-        radfile = fileopt[filechoice]
+        radfile = choose_file(searchDir='radius_vs_wavelength',$
+                              filetype='.txt')
+        ;; Search the radius_vs_wavlength directory for .txt files
      end
      else: radfile='radius_vs_wavelength/radius_vs_wavl.txt'
   endcase
@@ -109,6 +102,7 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
      radToPlanet = 0.1037E ;; found by eye to get the approximate Corot bandpass correctly
      oplot,theowav,theorad *radToPlanet,color=mycol('orange')
   endif
+
 
   if keyword_set(showstarspec) then begin
      ;; plot the source spectrum
