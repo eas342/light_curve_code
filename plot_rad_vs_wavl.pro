@@ -1,13 +1,15 @@
 pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
                      nbins=nbins,custfile=custfile,$
                      showtheospec=showtheospec,choosefile=choosefile,$
-                     additionalfile=additionalfile
+                     totsets=totsets
 ;;psplot -- saves a postscript plot
 ;;showstarspec -- shows a star spectrum on the same plot
 ;;nbins -- number of points bo bin in Rp/R*
 ;;custfile -- chooses a custom radius vs wavelength file
 ;;showtheospec -- shows a theoretical transmission spectrum
 ;;choosefile -- choose a file from the radius_vs_wavelength directory
+;;totsets -- optional keyword to specify the number of total sets of
+;;           data to over-plot (eliminates the old additionalfile keyword)
 
   !x.margin = [13,14]
   ;; set the plot
@@ -68,6 +70,10 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
      rad = newrad
      rade = newrade
      binsizes = newbinsizes
+     ;; Save the binned wavelength file
+     forprint,wavl,rad,rade,$
+              textout='radius_vs_wavelength/binned_rp_rs.txt',$
+              comment='# Wavelength(um)    Rp/R*    Rp/R* Error'
   endif else begin
   endelse
 
@@ -102,25 +108,40 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
      oplot,theowav,theorad *radToPlanet,color=mycol('orange')
   endif
 
-  if keyword_set(additionalfile) then begin
+  ;; if undefined, only show one set of data
+  if n_elements(totsets) EQ 0 then totsets=1
+
+
+  if totsets GT 1l then begin
+     legnamearr = strarr(totsets)
+     print,'Name for file '+radfile+' ?'
+     tempnm=''
+     read,tempnm,format='(A)'
+     legnamearr[0l] = tempnm
+     colorchoices = mycol(['black','orange','blue','purple'])
+     ncolchoices = n_elements(colorchoices)
+     colorarr = colorchoices[lindgen(totsets) mod ncolchoices]
+  endif
+     
+  for i=2l,totsets do begin
      ;; If asked to, overplot another Rad/vs wavlength file
+     print,'Choose Additional file ',strtrim(i-1l,1)
      file2 = choose_file(searchDir='radius_vs_wavelength',filetype='.txt')
      readcol,file2,wavl2,rad2,rade2,skipline=1,format='(F,F,F)'
      ;; find the bin width
      binsizes2 = fltarr(n_elements(wavl2)) + wavl2[1]-wavl2[0]
      wavlwidth2 = binsizes2/2E
      oploterror,wavl2,rad2,wavlwidth2,rade2,psym=3,$
-                color=mycol('orange')
-
-     print,'Name for file '+radfile+' ?'
-     name1=''
-     read,name1,format='(A)'
-     print,'Name for file '+file2+' ?'
-     name2=''
-     read,name2,format='(A)'
-     legend,[name1,name2],psym=[1,1],color=mycol(['black','orange'])
-
+                color=colorchoices[i-1l]
+     print,'Legend Name for data from file '+file2+' ?'
+     tempnm = ''
+     read,tempnm,format='(A)'
+     legnamearr[i-1l] = tempnm
+  endfor
+  if totsets GT 1l then begin
+     legend,legnamearr,psym=1l+lonarr(totsets),color=colorarr
   endif
+
   if keyword_set(showstarspec) then begin
      ;; plot the source spectrum
      plot,lamgrid,flgrid(*,0,1),/noerase,xrange=prevXrange,ystyle=5,xstyle=1,$
