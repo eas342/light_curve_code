@@ -84,7 +84,6 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
 ;                color=mycol('yellow') 
   
 
-
   ;; As in Gibson et al. 2012, show 3 scale heights around the
   ;; adopted Rp/R* from Jacob Bean et al. 2012
   scaleH = 0.00115E
@@ -103,7 +102,25 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
      oplot,theowav,theorad *radToPlanet,color=mycol('orange')
   endif
 
+  if keyword_set(additionalfile) then begin
+     ;; If asked to, overplot another Rad/vs wavlength file
+     file2 = choose_file(searchDir='radius_vs_wavelength',filetype='.txt')
+     readcol,file2,wavl2,rad2,rade2,skipline=1,format='(F,F,F)'
+     ;; find the bin width
+     binsizes2 = fltarr(n_elements(wavl2)) + wavl2[1]-wavl2[0]
+     wavlwidth2 = binsizes2/2E
+     oploterror,wavl2,rad2,wavlwidth2,rade2,psym=3,$
+                color=mycol('orange')
 
+     print,'Name for file '+radfile+' ?'
+     name1=''
+     read,name1,format='(A)'
+     print,'Name for file '+file2+' ?'
+     name2=''
+     read,name2,format='(A)'
+     legend,[name1,name2],psym=[1,1],color=mycol(['black','orange'])
+
+  endif
   if keyword_set(showstarspec) then begin
      ;; plot the source spectrum
      plot,lamgrid,flgrid(*,0,1),/noerase,xrange=prevXrange,ystyle=5,xstyle=1,$
