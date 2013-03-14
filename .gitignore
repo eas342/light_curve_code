@@ -10,6 +10,7 @@ idlsave.dat
 plots/*
 *.fits
 radius_vs_wavelength/*.txt
+radius_vs_wavelength/older_rad_vs_wavl_files/*.txt
 transit_info/bjd2utc.pro
 transit_info/jdutc2jdtdb.pro
 transit_info/print_times.pro
