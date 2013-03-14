@@ -105,7 +105,7 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
      readcol,'../models/fortney_g10mps_2500K_isothermal.csv',theowav,theorad,$
              skipline=6,format='(F,F)'
      radToPlanet = 0.1037E ;; found by eye to get the approximate Corot bandpass correctly
-     oplot,theowav,theorad *radToPlanet,color=mycol('orange')
+     oplot,theowav,theorad *radToPlanet,color=mycol('blue')
   endif
 
   ;; if undefined, only show one set of data
@@ -118,7 +118,7 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
      tempnm=''
      read,tempnm,format='(A)'
      legnamearr[0l] = tempnm
-     colorchoices = mycol(['black','orange','blue','purple'])
+     colorchoices = mycol(['black','orange','purple','blue'])
      ncolchoices = n_elements(colorchoices)
      colorarr = colorchoices[lindgen(totsets) mod ncolchoices]
   endif
