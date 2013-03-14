@@ -321,9 +321,12 @@ TsigRejCrit = 2.5D ;; sigma rejection criterion for time bins
               oplot,tplot,y,psym=5,color=mycol('red') ;; original data
               oplot,tplotdivcurves,divbycurve,psym=4  ;; divided by light curve
               oplot,tplot,yfit,color=mycol('blue')    ;; fitted line to curve
-           endif else oplot,tplot,y,psym=4
+           endif else begin
+              if n_elements(timebin) EQ 0 then oplot,tplot,y,psym=4 else begin
+                 oploterror,tplot,y,tsizes/2E,yerr,psym=3,hatlength=0,thick=2
+              endelse
+           endelse 
         endif
-
         if keyword_set(individual) then begin
            oplot,tplot,y2,psym=4,color=mycol('blue')
            legend,['Planet Host','Reference Star X '+strtrim(reffactor,1)],$
@@ -503,7 +506,11 @@ TsigRejCrit = 2.5D ;; sigma rejection criterion for time bins
            plot,tplot,resid,yrange=ydynam,$
                 title='Residuals at '+wavname,$
                 xtitle='Orbital Phase',ytitle='Flux Residual (%)',$
-                psym=2,ystyle=8+1,xmargin=overplotMarg
+                psym=2,ystyle=8+1,xmargin=overplotMarg,/nodata
+           if n_elements(timebin) EQ 0 then oplot,tplot,resid,psym=4 else begin
+              oploterror,tplot,resid,tsizes/2E,yerr/meanoff * 100E,psym=3,hatlength=0,thick=2
+           endelse
+           
            prevXrange=!x.crange
            plot,tplot,airmass,xstyle=1+4,xrange=prevXrange,$
                 /noerase,ystyle=4,/nodata,xmargin=overplotMarg
