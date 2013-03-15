@@ -48,6 +48,15 @@ readcol,'data/detector_info.txt',skipline=1,$
 Gain = detectdata[0]
 ReadN = detectdata[1]
 
+;;Get the coordinate info for the stars on the slit
+readcol,'data/object_coordinates.txt',skipline=1,$
+        objname,raHr,decDeg,format='(A,D,D)'
+raDeg = raHr / 24D * 360D
+
+;;Get the observatory
+readcol,'data/observatory_info.txt',obscode,obsnm,$
+        format='(A,A)',skipline=1
+
 ;; Get the length of 
 a = mrdfits(filen[0],0,header)
 sizea = size(a)
@@ -64,6 +73,7 @@ flgrid = fltarr(Ngpts,Nap,nfile)
 backgrid = fltarr(Ngpts,Nap,nfile)
 utgrid = dblarr(nfile)
 airmass = dblarr(nfile)
+Altitude = dblarr(nfile,Nap) ;; Altitude of each star
 
 if keyword_set(optimal) then begin
    SpecKey = 1
@@ -81,6 +91,12 @@ for i=0l,nfile-1l do begin
    endfor
    utgrid[i] = double(fxpar(header2,'MJD_OBS'))
    airmass[i] = double(fxpar(header2,'AIRMASS'))
+   ;; find the differential airmass between the two stars
+   utarray = dblarr(Nap) + utgrid[i]
+   eq2hor,raDeg,decDeg,utarray,alt,az,obsname=obscode[0]
+   for j=0,Nap-1 do begin
+      altitude[i,j] = alt[j]
+   endfor
 endfor
 
 ;; Reset all zeros and negative flux values
@@ -145,6 +161,6 @@ endif
 save,flgrid,lamgrid,utgrid,bingrid,binfl,binflE,$
      ErrGrid,SNR,Divspec,DivspecE,backgrid,$
      Nwavbins,binsizes,binind,binindE,filen,$
-     airmass,$
+     airmass,altitude,backgrid,$
      filename='data/specdata.sav'
 end
