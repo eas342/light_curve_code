@@ -5,7 +5,7 @@ pro plot_tim_ser,fitcurve=fitcurve,fitpoly=fitpoly,usepoly=usepoly,makestops=mak
                  individual=individual,pngcopy=pngcopy,freeall=freall,fixall=fixall,$
                  timebin=timebin,offreject=offreject,showclipping=showclipping,$
                  errorDistb=errorDistb,colorclip=colorclip,quadfit=quadfit,cubfit=cubfit,$
-                 fixrad=fixrad,freelimblin=freelimblin
+                 fixrad=fixrad,freelimblin=freelimblin,showDiffAirmass=showDiffairmass
 ;; plots the binned data as a time series and can also fit the Rp/R* changes
 ;; apPlot -- this optional keyword allows one to choose the aperture
 ;;           to plot
@@ -98,7 +98,9 @@ TsigRejCrit = 2.5D ;; sigma rejection criterion for time bins
 
   ;; orbital phase
   tplot = (utgrid - tmid)/planetdat.period
-  airmassOrig = airmass
+  if keyword_set(showDiffairmass) then begin
+     airmassOrig = (1D / sin(!DPI / 180D * altitude[*,0]) - 1D / sin(!DPI / 180D * altitude[*,1]))
+  endif else airmassOrig = airmass
 
   ;; add or subtract integers to phase so that's it's sort of centered
   ;; at 0
@@ -513,10 +515,13 @@ TsigRejCrit = 2.5D ;; sigma rejection criterion for time bins
            
            prevXrange=!x.crange
            plot,tplot,airmass,xstyle=1+4,xrange=prevXrange,$
-                /noerase,ystyle=4,/nodata,xmargin=overplotMarg
+                /noerase,ystyle=4+16,/nodata,xmargin=overplotMarg
            oplot,tplot,airmass,color=mycol('blue')
+           if keyword_set(showDiffairmass) then begin
+              airmassname = 'Differential Airmass'
+           endif else airmassname = 'Airmass'
            axis,yaxis=1,yrange=!y.crange,ystyle=1,color=mycol('blue'),$
-                ytitle='Airmass'
+                ytitle=airmassname
 ;           oploterr,tplot,resid,yerr/meanoff *100E
            drawy = [!y.crange[0],!y.crange[1]]
            plots,[hstart,hstart],drawy,color=mycol('blue'),linestyle=2,thick=2.5
