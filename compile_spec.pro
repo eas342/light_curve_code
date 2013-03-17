@@ -1,10 +1,11 @@
 pro compile_spec,extraction2=extraction2,optimal=optimal,nwavbins=nwavbins,$
-                 dec23=dec23,dec29=dec29
+                 dec23=dec23,dec29=dec29,nyquist=nyquist
 ;; Compiles the spectra into a few simple arrays to look at the spectrophotometry
 ;; extraction2 -- uses whatever spectra are in the data directory
 ;; optimal -- uses the variance weighted (optimal) extraction
 ;; nwavbins -- sets the number of wavelength bins to create
 ;; dec23 -- look at the dec23 data set (default is jan04)
+;; nyquist -- sample the wavelength bands at 2X bandwidth for Nyquist sampling
 
 ;Nwavbins = 35 ;; number of wavelength bins
 ;Nwavbins = 9 ;; number of wavelength bins
@@ -115,20 +116,32 @@ DivspecE = fracE * Divspec
 SNR = Divspec / DivspecE
 
 ;; Do the wavelength binning for the divided spec
-binfl = fltarr(Nwavbins,nfile)
-binflE = fltarr(Nwavbins,nfile)
-StartWav = 0.82E
-EndWav = 2.40E ;; wavelength range that has useful scientific information
 if keyword_set(extremeRange) then begin
-   binGrid = (lamgrid[Ngpts-1] - lamgrid[0]) * findgen(Nwavbins)/float(Nwavbins-1) + $
-             lamgrid[0]
-   binsizes = fltarr(Nwavbins) + (lamgrid[Ngpts-1] - lamgrid[0])/float(Nwavbins-1)
+   StartWav = lamgrid[0]
+   EndWav = lamgrid[Ngpts-1]
 endif else begin
-   binGrid = (EndWav - StartWav) * findgen(Nwavbins)/float(Nwavbins) + $
-             StartWav
-   binsizes = fltarr(Nwavbins) + (EndWav - StartWav)/float(Nwavbins)
+   StartWav = 0.82E
+   EndWav = 2.40E ;; wavelength range that has useful scientific information
 endelse
+;; These are the starts of the bins (not the middles)
+binGrid = (EndWav - StartWav) * findgen(Nwavbins)/float(Nwavbins) + $
+          StartWav
+binsizes = fltarr(Nwavbins) + (EndWav - StartWav)/float(Nwavbins)
 
+if keyword_set(nyquist) then begin
+   assert,Nwavbins,'>',1,"Warning, must be more than 1 bin for Nyquist sample"
+   ;; find the bins in between with same bin width
+   InbetweenBins = BinGrid[lindgen(Nwavbins-1l)] + binsizes[lindgen(Nwavbins-1l)]/2E
+   InbetweenSizes = binsizes[lindgen(Nwavbins-1l)]
+   ;; increase the number of bins
+   Nwavbins = Nwavbins * 2l - 1l
+   binsizes = [binsizes,InbetweenSizes]
+   combinedGrid = [binGrid,InbetweenBins]
+   binGrid = combinedGrid[sort(combinedGrid)]
+endif
+
+binfl = fltarr(Nwavbins,nfile) ;; binned flux ratio
+binflE = fltarr(Nwavbins,nfile)
 binind = fltarr(Nwavbins,Nap,nfile) ;; individual binned fluxes
 binindE = fltarr(Nwavbins,Nap,nfile)
 
