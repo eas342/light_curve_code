@@ -1,0 +1,2 @@
+# First Observatory listed will be used (the rest are ignored) (code		name)
+irtf		    IRTF
