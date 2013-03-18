@@ -546,9 +546,9 @@ TsigRejCrit = 2.5D ;; sigma rejection criterion for time bins
   
   ;; save the radius data
   
-  forprint,bingridmiddle[*],plrad,plrade,$
+  forprint,bingridmiddle[*],binsizes,plrad,plrade,$
            textout='radius_vs_wavelength/radius_vs_wavl.txt',$
-           comment='#Wavelength  Rp/R*   Rp/R* Error',/silent
+           comment='#Wavelength(um) Binsize (um)  Rp/R*   Rp/R* Error',/silent
 
   ;; Save the other light curve data
   openw,1,'radius_vs_wavelength/fit_data.txt'

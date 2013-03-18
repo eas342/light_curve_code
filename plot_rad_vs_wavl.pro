@@ -37,16 +37,11 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
      else: radfile='radius_vs_wavelength/radius_vs_wavl.txt'
   endcase
 
-  readcol,radfile,wavl,rad,rade,skipline=1,format='(F,F,F)'
+  readcol,radfile,wavl,wavlsize,rad,rade,skipline=1,format='(F,F,F)'
 
   if keyword_set(showstarspec) then ytempstyle=8 else ytempstyle=1
 
-  if n_elements(wavl) EQ 1 then begin
-     binsizes = binsizes
-  endif else begin
-     binsizes = fltarr(n_elements(wavl)) + wavl[1]-wavl[0]
-  endelse
-
+  binsizes = wavlsize
 
   if n_elements(nbins) NE 0 then begin
      ;; if asked to, bin the Rp/R*
@@ -127,10 +122,9 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
      ;; If asked to, overplot another Rad/vs wavlength file
      print,'Choose Additional file ',strtrim(i-1l,1)
      file2 = choose_file(searchDir='radius_vs_wavelength',filetype='.txt')
-     readcol,file2,wavl2,rad2,rade2,skipline=1,format='(F,F,F)'
+     readcol,file2,wavl2,wavl2size,rad2,rade2,skipline=1,format='(F,F,F)'
      ;; find the bin width
-     binsizes2 = fltarr(n_elements(wavl2)) + wavl2[1]-wavl2[0]
-     wavlwidth2 = binsizes2/2E
+     wavlwidth2 = wavl2size/2E
      oploterror,wavl2,rad2,wavlwidth2,rade2,psym=3,$
                 color=colorchoices[i-1l]
      print,'Legend Name for data from file '+file2+' ?'
