@@ -66,9 +66,9 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
      rade = newrade
      binsizes = newbinsizes
      ;; Save the binned wavelength file
-     forprint,wavl,rad,rade,$
+     forprint,wavl,binsizes,rad,rade,$
               textout='radius_vs_wavelength/binned_rp_rs.txt',$
-              comment='# Wavelength(um)    Rp/R*    Rp/R* Error'
+              comment='# Wavelength(um)  Bin size   Rp/R*    Rp/R* Error'
   endif else begin
   endelse
 
