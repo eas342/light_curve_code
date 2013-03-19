@@ -372,6 +372,7 @@ TsigRejCrit = 2.5D ;; sigma rejection criterion for time bins
                  oplot,tplot,(fitY[0] + fitY[1] *tplot),thick=2,color=mycol('red')
               endelse
            endif
+           if n_elements(timebin) EQ 0 then tsizes = fltarr(n_elements(tplot)) + tplot[1]-tplot[0]
            oploterror,tplot,y,tsizes/2E,yerr,psym=3,hatlength=0,thick=2
         endif
         ;;plot the clipped points
