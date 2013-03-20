@@ -1,8 +1,9 @@
-pro plot_specphot,divbymodel=divbymodel,usebin=usebin
+pro plot_specphot,divbymodel=divbymodel,usebin=usebin,removelin=removelin
 ;; Makes an image of the spectrophotometry to get a visual sense of
 ;; the transit
 ;; divbymodel -- divide the image by the nominal transit model
 ;; usebin -- use the wavelength bins
+;; removelin -- remove the linear trend in each time series
 
   ;; get the compiled spectroscopic data
   restore,'data/specdata.sav'
@@ -32,6 +33,40 @@ pro plot_specphot,divbymodel=divbymodel,usebin=usebin
   replicatedspec = rebin(meddivspec,nwavs,ntime)
   xypic = xydivspec / replicatedspec
 ;  xypic = xydivspec
+
+  if keyword_set(removelin) then begin
+     ;;throw away all n_sigma events before de-trending
+     firstCutSig = 12E
+
+     offp = where(tplot LT hstart OR tplot GT hend)
+     for i=0l,nwavs-1l do begin
+
+        if total(finite(xypic[i,offp])) EQ 0 then goodp = [-1] else begin
+           rstdoff = robust_sigma(xypic[i,offp])
+           medoff = median(xypic[i,offp])
+           
+           goodp = where(abs(xypic[i,*] - medoff) LE firstCutSig * rstdoff and $
+                         (tplot LT hstart OR tplot GT hend),complement=throwaways)
+        endelse
+        if goodp NE [-1] then begin
+;           if throwaways NE [-1] then begin
+;              tclip1 = tplot[throwaways]
+;              yclip1 = y[throwaways]
+;           endif
+;           yfull = y
+           ytemp = xypic[i,goodp]
+;           divbycurveclip1 = divbycurve[goodp]
+           yerr = xypic[i,goodp]
+           tplottemp = tplot[goodp]
+;           airmass = airmass[goodp]
+           ;; fit result to a robust line
+           rlinefit = robust_linefit(tplottemp,ytemp)
+           xypic[i,*] = xypic[i,*] / (rlinefit[0] + tplot * rlinefit[1])
+        endif
+;           ;; divide by the line to flatten out
+;           yflat = divbycurveclip1 / yfit
+     endfor
+  endif
 
   if keyword_set(divbymodel) then begin
      ;; divide all time series by the transit model
