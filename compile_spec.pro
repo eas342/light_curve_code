@@ -1,11 +1,12 @@
 pro compile_spec,extraction2=extraction2,optimal=optimal,nwavbins=nwavbins,$
-                 dec23=dec23,dec29=dec29,nyquist=nyquist
+                 dec23=dec23,dec29=dec29,nyquist=nyquist,extremeRange=extremeRange
 ;; Compiles the spectra into a few simple arrays to look at the spectrophotometry
 ;; extraction2 -- uses whatever spectra are in the data directory
 ;; optimal -- uses the variance weighted (optimal) extraction
 ;; nwavbins -- sets the number of wavelength bins to create
 ;; dec23 -- look at the dec23 data set (default is jan04)
 ;; nyquist -- sample the wavelength bands at 2X bandwidth for Nyquist sampling
+;; extremeRange -- chooses the minimum to maximum wavelength bins
 
 ;Nwavbins = 35 ;; number of wavelength bins
 ;Nwavbins = 9 ;; number of wavelength bins
