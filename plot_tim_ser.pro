@@ -5,7 +5,8 @@ pro plot_tim_ser,fitcurve=fitcurve,fitpoly=fitpoly,usepoly=usepoly,makestops=mak
                  individual=individual,pngcopy=pngcopy,freeall=freall,fixall=fixall,$
                  timebin=timebin,offreject=offreject,showclipping=showclipping,$
                  errorDistb=errorDistb,colorclip=colorclip,quadfit=quadfit,cubfit=cubfit,$
-                 fixrad=fixrad,freelimblin=freelimblin,showDiffAirmass=showDiffairmass
+                 fixrad=fixrad,freelimblin=freelimblin,showDiffAirmass=showDiffairmass,$
+                 normalize=normalize
 ;; plots the binned data as a time series and can also fit the Rp/R* changes
 ;; apPlot -- this optional keyword allows one to choose the aperture
 ;;           to plot
@@ -46,6 +47,7 @@ pro plot_tim_ser,fitcurve=fitcurve,fitpoly=fitpoly,usepoly=usepoly,makestops=mak
 ;; fixrad -- fixes the planet radius to see if limb darkening can do
 ;;           it all
 ;; freelimblin -- frees only the linear limb darkening coefficient
+;; normalize -- normalizes the flux by the off transits points
 
 ;sigrejcrit = 6D  ;; sigma rejection criterion
 sigrejcrit = 5D  ;; sigma rejection criterion
@@ -179,6 +181,11 @@ TsigRejCrit = 2.5D ;; sigma rejection criterion for time bins
         offp = where(tplot LT hstart OR tplot GT hend)
      endif
      stdoff = stddev(y[offp])
+
+     if keyword_set(normalize) then begin
+        y = y / median(y[offp])
+        yerr = y / median(y[offp])
+     endif
 
      if not keyword_set(noreject) then begin
         if keyword_set(offreject) then begin
