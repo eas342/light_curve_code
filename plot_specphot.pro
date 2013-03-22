@@ -89,6 +89,9 @@ pro plot_specphot,divbymodel=divbymodel,usebin=usebin,removelin=removelin
             xtitle='Wavelength (um)',$
             ytitle='Orbital Phase',$
             charsize=2,font=1
+  axis,xaxis=1,xrange=!x.crange,color=mycol('black'),xstyle=1,font=1,charsize=2.5,xthick=4
+  axis,xaxis=1,xrange=!x.crange,color=mycol('orange'),xstyle=1,font=1,charsize=2
+
   loadct,0
   ;; Show ingress and egress
   plots,[wavrange[0],wavrange[1]],[hstart,hstart],color=mycol('brown'),linestyle=2,thick=2
