@@ -1,5 +1,6 @@
 pro compile_spec,extraction2=extraction2,optimal=optimal,nwavbins=nwavbins,$
-                 dec23=dec23,dec29=dec29,nyquist=nyquist,extremeRange=extremeRange
+                 dec23=dec23,dec29=dec29,nyquist=nyquist,extremeRange=extremeRange,$
+                 maskwater=maskwater,custRange=custRange
 ;; Compiles the spectra into a few simple arrays to look at the spectrophotometry
 ;; extraction2 -- uses whatever spectra are in the data directory
 ;; optimal -- uses the variance weighted (optimal) extraction
@@ -7,6 +8,7 @@ pro compile_spec,extraction2=extraction2,optimal=optimal,nwavbins=nwavbins,$
 ;; dec23 -- look at the dec23 data set (default is jan04)
 ;; nyquist -- sample the wavelength bands at 2X bandwidth for Nyquist sampling
 ;; extremeRange -- chooses the minimum to maximum wavelength bins
+;; custRange -- allows for a custom wavelength range
 
 ;Nwavbins = 35 ;; number of wavelength bins
 ;Nwavbins = 9 ;; number of wavelength bins
@@ -105,6 +107,17 @@ endfor
 badp = where(flgrid LE 0)
 flgrid[badp] = !values.f_nan
 
+;; Mask water if asked to
+if keyword_set(maskwater) then begin
+   waterFirst=[1.34,1.37]
+   watermask = where(lamgrid GT waterFirst[0] and lamgrid LE waterFirst[1])
+   for i=0l,nfile-1l do begin
+      for j=0,Nap-1 do begin
+         flgrid[watermask,j,i] = !values.f_nan
+      endfor
+   endfor
+endif
+
 ;; Find the photon erros
 ReadNarr = replicate(ReadN,Ngpts,Nap,Nfile)
 ErrGrid = nansqrt( flgrid + backgrid + readnarr^2 )
@@ -121,8 +134,13 @@ if keyword_set(extremeRange) then begin
    StartWav = lamgrid[0]
    EndWav = lamgrid[Ngpts-1]
 endif else begin
-   StartWav = 0.82E
-   EndWav = 2.40E ;; wavelength range that has useful scientific information
+   if n_elements(custRange) EQ 0 then begin
+      StartWav = 0.82E
+      EndWav = 2.40E ;; wavelength range that has useful scientific information
+   endif else begin
+      StartWav = custRange[0]
+      EndWav = custRange[1]
+   endelse
 endelse
 ;; These are the starts of the bins (not the middles)
 binGrid = (EndWav - StartWav) * findgen(Nwavbins)/float(Nwavbins) + $
