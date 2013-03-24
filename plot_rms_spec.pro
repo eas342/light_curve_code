@@ -1,5 +1,5 @@
 pro plot_rms_spec,psplot=psplot,tryclean=tryclean,saveclean=saveclean,$
-                  removelinear=removelinear
+                  removelinear=removelinear,scalephoton=scalephoton
 ;; Plots the RMS along the time series for each wavelength in the
 ;; spectrum
 ;; psplot -- makes a postscript plot of the RMS spectrum
@@ -7,6 +7,7 @@ pro plot_rms_spec,psplot=psplot,tryclean=tryclean,saveclean=saveclean,$
 ;;            wavelength basis
 ;; saveclean - saves the white light curve for analysis by plot_tim_ser
 ;; removelinear -- fit each curve to a line first before finding the RMS
+;; scalephoton=scalephoton
 
   ;; set the plot
   if keyword_set(psplot) then begin
@@ -68,13 +69,20 @@ pro plot_rms_spec,psplot=psplot,tryclean=tryclean,saveclean=saveclean,$
      endfor
   endif
 
+  if keyword_set(scalephoton) then begin
+     scalefact = 4.2E
+     divspecE[*,0,0] = divspecE[*,0,0] * scalefact
+     photname = 'Photon Error x '+string(scalefact,format='(F8.2)')
+  endif else photname = 'Photon Error'
+
   plot,lamgrid,sigarray*100E,$
        xtitle='Wavelength (um)',$
        ytitle='Fractional Error (%)',yrange=[0,10]
   oplot,lamgrid,divspecE[*,0,0]/divspec[*,0,0]*100E,color=mycol('blue'),$
         linestyle=2
 
-  legend,['Robust Sigma','Photon Error'],color=mycol(['black','blue']),$
+  
+  legend,['Robust Sigma',photname],color=mycol(['black','blue']),$
          linestyle=[0,2]
 
   if keyword_set(psplot) then begin
