@@ -7,7 +7,7 @@ bintarr = [200,150,100,80,60,50,40,35,30,25,20,15,13,10,8]
 ;bintarr = [200,6]
 ntbin = n_elements(bintarr)
 
-selectwav = [2.27,1.22] ;; microns
+selectwav = [2.27,1.48,1.22] ;; microns
 nselectwav = n_elements(selectwav)
 rmstbinfun = fltarr(ntbin,nselectwav)
 bintsizeArr = fltarr(ntbin)
@@ -46,9 +46,10 @@ wavbinnames = string(bingrid[wavInd],format='(F10.3)') + 'um to'+$
               string(bingrid[wavInd]+ binsizes[wavInd],format='(F10.3)')+'um'
 
 oplot,bintmin,rmstbinfun[*,1]*100E,color=mycol('red')
+oplot,bintmin,rmstbinfun[*,2]*100E,color=mycol('blue')
 
 
-legend,wavbinnames,color=mycol(['black','red']),linestyle=[0,0]
+legend,wavbinnames,color=mycol(['black','red','blue']),linestyle=[0,0,0]
 
 if keyword_set(psplot) then begin
    device, /close
