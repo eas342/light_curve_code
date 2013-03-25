@@ -97,6 +97,8 @@ TsigRejCrit = 2.5D ;; sigma rejection criterion for time bins
   resultarr = fltarr(nparams,nbin)*!values.f_nan
   resultarrE = resultarr
 
+  ;; Prepare to save the off transit RMS
+  fracRMSarr = fltarr(nbin)
 
   ;; orbital phase
   tplot = (utgrid - tmid)/planetdat.period
@@ -354,7 +356,8 @@ TsigRejCrit = 2.5D ;; sigma rejection criterion for time bins
            fitY = linfit(tplot[offp],y[offp])
            Offresid = y[offp] - (fitY[0] + fitY[1]*tplot[offp])
         endelse
-        print,'Frac lin corr robust sigma for ',wavname,': ',robust_sigma(Offresid)/median(y[offp])
+        fracRMSarr[k] = robust_sigma(Offresid)/median(y[offp])
+        print,'Frac lin corr robust sigma for ',wavname,': ',fracRMSarr[k]
         ;; Show the off transit fit
 ;        oplot,tplot,fity[0] + fity[1]*tplot,color=mycol('red')
         if keyword_set(offtranserr) then begin
@@ -557,6 +560,11 @@ TsigRejCrit = 2.5D ;; sigma rejection criterion for time bins
   forprint,bingridmiddle[*],binsizes,plrad,plrade,$
            textout='radius_vs_wavelength/radius_vs_wavl.txt',$
            comment='#Wavelength(um) Binsize (um)  Rp/R*   Rp/R* Error',/silent
+
+  ;; save the RMS of off transit fluxu
+  save,bingrid,fracRMSarr,tsizes,bingridmiddle,binsizes,$
+       planetdat,$
+       filename='data/rmsdata.sav'
 
   ;; Save the other light curve data
   openw,1,'radius_vs_wavelength/fit_data.txt'
