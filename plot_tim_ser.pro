@@ -99,6 +99,7 @@ TsigRejCrit = 2.5D ;; sigma rejection criterion for time bins
 
   ;; Prepare to save the off transit RMS
   fracRMSarr = fltarr(nbin)
+  fracPhotonarr = fltarr(nbin)
 
   ;; orbital phase
   tplot = (utgrid - tmid)/planetdat.period
@@ -120,7 +121,7 @@ TsigRejCrit = 2.5D ;; sigma rejection criterion for time bins
        filename='data/timedata.sav'
 
   ;; For any binfl error that are zero, set to 0.01
-  zerobinp = where(binfle LE 1E-3)
+  zerobinp = where(binfle LE 1E-7)
   binfle[zerobinp] = 0.01E
 
   if n_elements(timebin) NE 0 then begin
@@ -250,7 +251,8 @@ TsigRejCrit = 2.5D ;; sigma rejection criterion for time bins
                  tclip2 = tplot[throwaways2]
               endif
               y = y[goodp]
-              yerr = fltarr(n_elements(goodp)) + rsigma * rlinefit[0]
+;              yerr = fltarr(n_elements(goodp)) + rsigma * rlinefit[0]
+              yerr = yerr[goodp]
               tplot = tplot[goodp]
               airmass = airmass[goodp]
               offp = where(tplot LT hstart OR tplot GT hend)
@@ -279,7 +281,9 @@ TsigRejCrit = 2.5D ;; sigma rejection criterion for time bins
         airbin = avg_series(tplot,airmass,fltarr(n_elements(airmass)),timeGrid,tsizes,$
                             weighted=0,/silent)
         tplot = tmiddle
+
         y = ybin
+        fracPhotonarr[k] = yerrOut[0] / ybin[0]
 ;        yerr = yerrOut
         yerr = stdevArr
         airmass = airbin
@@ -563,7 +567,7 @@ TsigRejCrit = 2.5D ;; sigma rejection criterion for time bins
 
   ;; save the RMS of off transit fluxu
   save,bingrid,fracRMSarr,tsizes,bingridmiddle,binsizes,$
-       planetdat,$
+       planetdat,fracPhotonarr,$
        filename='data/rmsdata.sav'
 
   ;; Save the other light curve data

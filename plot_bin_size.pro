@@ -1,6 +1,7 @@
-pro plot_bin_size,psplot=psplot
+pro plot_bin_size,psplot=psplot,scalephoton=scalephoton
 ;; plots the rms as a function of bin size
 ;; psplot -- makes eps, pdf and png plots
+;; scalephoton -- scales the photon errors up to the measured RMS
 
 
 bintarr = [200,150,100,80,60,50,40,35,30,25,20,15,13,10,8]
@@ -11,6 +12,7 @@ selectwav = [2.27,1.48,1.22] ;; microns
 nselectwav = n_elements(selectwav)
 rmstbinfun = fltarr(ntbin,nselectwav)
 bintsizeArr = fltarr(ntbin)
+photonfun = fltarr(ntbin,nselectwav)
 for i=0l,ntbin-1l do begin
    plot_tim_ser,timebin=bintarr[i]
    restore,'data/rmsdata.sav'
@@ -19,8 +21,10 @@ for i=0l,ntbin-1l do begin
    ;; get the wavelength bin sizes binsizes
    ;; the rms of off transit flux fracRMSarr
    ;; the time bin sizes tsizes
+   ;; the photon noise fracPhotonarr
    tabinv,bingridmiddle,selectwav,wavInd
    rmstbinfun[i,*] = fracRMSarr[round(wavInd)]
+   photonfun[i,*] = fracPhotonarr[round(wavInd)]
    bintsizeArr[i] = tsizes[0]
 endfor
 
@@ -36,20 +40,32 @@ if keyword_set(psplot) then begin
    device,xsize=14, ysize=10,decomposed=1,/color
 endif
 
-
+if keyword_set(scalephoton) then begin
+   scaleFact = 10E
+   photonfun = photonfun * scaleFact
+   photonName = 'Photon Noise x '+string(scaleFact,format='(F8.3)')
+endif else begin
+   photonName = 'Photon Noise'
+endelse
 
 plot,bintmin,rmstbinfun[*,0]*100E,$
      xtitle='Time bin size (min)',$
-     ytitle='Off Transit, Linearly-Detrended RMS (%)'
+     ytitle='Off Transit, Linearly-Detrended RMS (%)',$;/xlog,$
+     yrang=[-0.2,0.4],ystyle=1
+oplot,bintmin,photonfun[*,0]*100E,linestyle=2
 
-wavbinnames = string(bingrid[wavInd],format='(F10.3)') + 'um to'+$
-              string(bingrid[wavInd]+ binsizes[wavInd],format='(F10.3)')+'um'
+wavbinnames = string(bingrid[wavInd],format='(F7.3)') + 'um to'+$
+              string(bingrid[wavInd]+ binsizes[wavInd],format='(F7.3)')+$
+              'um RMS'
 
 oplot,bintmin,rmstbinfun[*,1]*100E,color=mycol('red')
+oplot,bintmin,photonfun[*,1]*100E,color=mycol('red'),linestyle=2
 oplot,bintmin,rmstbinfun[*,2]*100E,color=mycol('blue')
-
+oplot,bintmin,photonfun[*,2]*100E,color=mycol('blue'),linestyle=2
 
 legend,wavbinnames,color=mycol(['black','red','blue']),linestyle=[0,0,0]
+legend,color=mycol(['black','red','blue']),replicate(photonName,3),$
+       linestyle=replicate(2,3),/bottom,/left
 
 if keyword_set(psplot) then begin
    device, /close
