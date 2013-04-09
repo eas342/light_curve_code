@@ -310,6 +310,11 @@ TsigRejCrit = 2.5D ;; sigma rejection criterion for time bins
            case 1 of
               keyword_set(fullrange): ydynam = [0,0]
               keyword_set(oneprange): ydynam = [0,1]
+              keyword_set(differential): begin
+                 ylowerL = y[sorty[ceil(5E/100E*float(ylength))]] * 0.99
+                 yUpperL = y[sorty[floor(95E/100E*float(ylength))]] * 1.01
+                 ydynam = [ylowerL,yUpperL]
+              end
               else: begin
                  ylowerL = y[sorty[ceil(5E/100E*float(ylength))]] * 0.97
                  yUpperL = y[sorty[floor(95E/100E*float(ylength))]] * 1.03
@@ -368,7 +373,7 @@ TsigRejCrit = 2.5D ;; sigma rejection criterion for time bins
            rstdevOff = robust_sigma(Offresid)
            yerr = fltarr(n_elements(goodp)) + rstdevOff
         endif
-;        stop
+
         ;; show the transit epochs
         drawy = [!y.crange[0],!y.crange[1]]
         plots,[hstart,hstart],drawy,color=mycol('brown'),linestyle=2
@@ -438,7 +443,7 @@ TsigRejCrit = 2.5D ;; sigma rejection criterion for time bins
               endfor
               expr = 'quadlc(X,P[0],P[1],P[2],P[3],P[4])* (P[5] + X * P[6] + X^2 * P[7] + X^3'+$
                      ' * P[8])/quadlc('+quadlcArg+')'
-;              stop
+
            endif else begin
               expr = 'quadlc(X,P[0],P[1],P[2],P[3],P[4])* (P[5] + X * P[6] + X^2 * P[7] + X^3 * P[8])'
            endelse
@@ -512,7 +517,6 @@ TsigRejCrit = 2.5D ;; sigma rejection criterion for time bins
               device,xsize=14, ysize=10,decomposed=1,/color
 
            endif
-;           stop
            resid = (y - modelY)/meanoff *100E
 
            ylowerL = resid[sorty[ceil(5E/100E*float(ylength))]]
@@ -542,9 +546,17 @@ TsigRejCrit = 2.5D ;; sigma rejection criterion for time bins
            plots,[hstart,hstart],drawy,color=mycol('blue'),linestyle=2,thick=2.5
            plots,[hend,hend],drawy,color=mycol('blue'),linestyle=2,thick=2.5
            print,'RMS Residuals (%) for '+wavname,'um',(stddev(y - modelY))/median(y)*100E
-;           if wavname EQ '1.14' then stop
-;           stop
         endif
+        if not keyword_set(fitcurve) then begin
+           ntplot = n_elements(tplot)
+           modelY = fltarr(ntplot)
+           resid = fltarr(ntplot)
+        endif
+        forprint,tplot,y,yerr,modelY,resid,$
+                 textout='data/cleaned_tim_ser/timeser_'+wavname+'um_.txt',$
+                 comment='#Phase  Flux  Fl_err  Model_fl   Residual for '+wavname+'um',$
+                 /silent
+
         if keyword_set(psplot) then begin
            device, /close
            device,decomposed=0
