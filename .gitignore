@@ -11,8 +11,10 @@ plots/*
 *.fits
 radius_vs_wavelength/*.txt
 radius_vs_wavelength/older_rad_vs_wavl_files/*.txt
+radius_vs_wavelength/old_rad_vs_wavl/*.txt
 transit_info/bjd2utc.pro
 transit_info/jdutc2jdtdb.pro
 transit_info/print_times.pro
 transit_info/tai_utc.pro
 transit_info/utc2bjd.pro
+data/cleaned_tim_ser/*.txt
