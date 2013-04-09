@@ -1,6 +1,6 @@
 pro compile_spec,extraction2=extraction2,optimal=optimal,nwavbins=nwavbins,$
                  dec23=dec23,dec29=dec29,nyquist=nyquist,extremeRange=extremeRange,$
-                 maskwater=maskwater,custRange=custRange
+                 maskwater=maskwater,custRange=custRange,widewatermask=widewatermask
 ;; Compiles the spectra into a few simple arrays to look at the spectrophotometry
 ;; extraction2 -- uses whatever spectra are in the data directory
 ;; optimal -- uses the variance weighted (optimal) extraction
@@ -9,6 +9,9 @@ pro compile_spec,extraction2=extraction2,optimal=optimal,nwavbins=nwavbins,$
 ;; nyquist -- sample the wavelength bands at 2X bandwidth for Nyquist sampling
 ;; extremeRange -- chooses the minimum to maximum wavelength bins
 ;; custRange -- allows for a custom wavelength range
+;; watermask - make a mask over the variable water
+;; feature to take out some of the suspiciuos variability
+;; widewatermask -- increases the size of the water mask
 
 ;Nwavbins = 35 ;; number of wavelength bins
 ;Nwavbins = 9 ;; number of wavelength bins
@@ -106,6 +109,23 @@ endfor
 ;; Reset all zeros and negative flux values
 badp = where(flgrid LE 0)
 flgrid[badp] = !values.f_nan
+
+;; Mask water if asked to
+if keyword_set(maskwater) or keyword_set(widewatermask) then begin
+   if keyword_set(maskwater) then begin
+      waterFirst=[1.34,1.37]
+   endif else begin
+;      waterFirst=[1.33,1.42]
+;      waterFirst=[1.30,1.48]
+      waterFirst=[1.30,1.50]
+   endelse
+   watermask = where(lamgrid GT waterFirst[0] and lamgrid LE waterFirst[1])
+   for i=0l,nfile-1l do begin
+      for j=0,Nap-1 do begin
+         flgrid[watermask,j,i] = !values.f_nan
+      endfor
+   endfor
+endif
 
 ;; Mask water if asked to
 if keyword_set(maskwater) then begin
