@@ -31,13 +31,16 @@ pro try_mcmc,psplot=psplot
   start=double([planetdat.p,planetdat.b_impact,u1parm,u2parm,$
                 planetdat.a_o_rstar,1.0D,0D,0D,0D])
   pi = replicate({fixed:1, limited:[1,0], limits:[0.0E,0.0E]},9)
-
-  ;; All fixed for now
-  ;; Let's only vary the offset
-  pi[5].fixed = 0
+  ;; start with parameters fixed and then modify
+  pi[0].fixed = 0 ;; free the planet radius
+  pi[2].fixed = 0 ;; free the linear limb darkening
+  pi[5].fixed = 0 ;; free the offset
+  pi[6].fixed = 0 ;; free the linear coefficient
+  pi[7].fixed = 0 ;; free the quadratic coefficient
+  
 
   expr = 'quadlc(X,P[0],P[1],P[2],P[3],P[4])* (P[5] + X * P[6] + X^2 * P[7] + X^3 * P[8])'
-  result = ev_mcmc(expr,phase,fl,flerr,start,parinfo=pi)
+  result = ev_mcmc(expr,phase,fl,flerr,start,parinfo=pi,chainL = 2000l)
 
   if keyword_set(psplot) then begin
      device, /close

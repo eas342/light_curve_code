@@ -76,7 +76,10 @@ function ev_mcmc,expr,X,Y,Yerr,start,chainL=chainL,parinfo=pi
   ;; Show the Covariance values from mpfit
   oplot,result[5] - [1E,1E] * punct[5],!y.crange,linestyle=2
   oplot,result[5] + [1E,1E] * punct[5],!y.crange,linestyle=2
-  save,chainparams,filename='data/mcmc/mcmc_chains.sav'
+  lmfit = result
+  lmunct = punct
+  save,chainparams,lmfit,lmunct,filename='data/mcmc/mcmc_chains.sav'
+  ;; save the chains, the 
 ;  stop
 
   return,fitparams
