@@ -13,9 +13,7 @@ pro try_mcmc,psplot=psplot
 
 
 ;  readcol,'data/cleaned_tim_ser/timeser_1.43um_.txt',$
-  readcol,'data/cleaned_tim_ser/timeser_0.91um_.txt',$
-          phase,fl,flerr,modelfl,resid,$
-          format='(F,F,F,F,F)',skipline=1
+;  readcol,'data/cleaned_tim_ser/timeser_0.91um_.txt',$
 
   ;; get the planet info
   readcol,'transit_info/planet_info.txt',info,data,format='(A,D)',$
@@ -36,11 +34,47 @@ pro try_mcmc,psplot=psplot
   pi[2].fixed = 0 ;; free the linear limb darkening
   pi[5].fixed = 0 ;; free the offset
   pi[6].fixed = 0 ;; free the linear coefficient
-  pi[7].fixed = 0 ;; free the quadratic coefficient
+;  pi[7].fixed = 0 ;; free the quadratic coefficient
+
+  ;; Let the lim darkening and quadratic coefficient be negative
+  pi[2].limited=[0,0]
+  pi[7].limited=[0,0]
+
+  ;; Model expression
+  expr = 'quadlc(X,P[0],P[1],P[2],P[3],P[4])* (P[5] + X * P[6] + X^2 * P[7] + X^3 * P[8])'
+
+  ;; Go through the cleaned time series
+  cd,c=currentd
+  fileopt = file_search(currentd+'/data/cleaned_tim_ser/*.txt')
+  totfiles = n_elements(fileopt)
+  for i=0l,n_elements(fileopt)-1l do begin
+     trimst = strsplit(fileopt[i],'/',/extract)
+     trimname = trimst(n_elements(trimst)-1l)
+     namespl = strsplit(trimname,'_',/extract)
+     wavname = namespl[n_elements(namespl)-2l]
+
+     readcol,fileopt[i],$
+             phase,fl,flerr,modelfl,resid,$
+             format='(F,F,F,F,F)',skipline=1
+     result = ev_mcmc(expr,phase,fl,flerr,start,parinfo=pi,chainL = 3000l,maxp=99000l)
+;     result = ev_mcmc(expr,phase,fl,flerr,start,parinfo=pi,chainL = 3000l,maxp=90l)
+     analyze_mcmc,/psplot
+     ;; Save the chains
+     spawn,'cp data/mcmc/mcmc_chains.sav data/mcmc/mcmc_chains_'+wavname+'.sav'
+     ;; Save the histogram plot
+     spawn,'cp plots/mcmc/basic_mcmc.pdf plots/mcmc/individual_wavs/histos_'+wavname+'.pdf'
+     spawn,'cp plots/mcmc/basic_mcmc.png plots/mcmc/individual_wavs/histos_'+wavname+'.png'
+     ;; Save the parameter uncertainties
+     spawn,'cp data/mcmc/param_unc/param_unc.txt data/mcmc/param_unc/param_unc_'+wavname+'.txt'
+  endfor
+
+
+
+;  result = ev_mcmc(expr,phase,fl,flerr,start,parinfo=pi,chainl=600l)
+;
+  
   
 
-  expr = 'quadlc(X,P[0],P[1],P[2],P[3],P[4])* (P[5] + X * P[6] + X^2 * P[7] + X^3 * P[8])'
-  result = ev_mcmc(expr,phase,fl,flerr,start,parinfo=pi,chainL = 2000l)
 
   if keyword_set(psplot) then begin
      device, /close
