@@ -122,7 +122,7 @@ TsigRejCrit = 2.5D ;; sigma rejection criterion for time bins
 
   ;; For any binfl error that are zero, set to 0.01
   zerobinp = where(binfle LE 1E-7)
-  binfle[zerobinp] = 0.01E
+  if zerobinp NE [-1] then binfle[zerobinp] = 0.01E
 
   if n_elements(timebin) NE 0 then begin
      ntime = n_elements(tplot)

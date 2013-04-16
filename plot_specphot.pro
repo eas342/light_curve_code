@@ -101,6 +101,15 @@ pro plot_specphot,divbymodel=divbymodel,usebin=usebin,removelin=removelin
   fileNpre = 'plots/specphot_images/specphot_image'
   write_png,fileNpre+'.png',tvrd(true=1)
   window,1,ysize=300
+
+  ;; Save as a FITS image
+  fitsNamePre = 'data/specphot'
+  if keyword_set(divbymodel) then fitsNamePre = fitsNamePre+'_divided'
+  if keyword_set(usebin)     then fitsNamePre = fitsNamePre+'_bin'
+  if keyword_set(removelin)  then fitsNamePre = fitsNamePre+'_lin_detrend'
+  
+  writefits,fitsNamePre+'.fits',xypic
+
   ;; make an image for the legend
   legrow = findgen(256)*(ColorRange[1]-ColorRange[0])/float(256)+ColorRange[0]
   legimg = rebin(legrow,256,3)

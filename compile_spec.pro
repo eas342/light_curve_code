@@ -1,6 +1,7 @@
 pro compile_spec,extraction2=extraction2,optimal=optimal,nwavbins=nwavbins,$
                  dec23=dec23,dec29=dec29,nyquist=nyquist,extremeRange=extremeRange,$
-                 maskwater=maskwater,custRange=custRange,widewatermask=widewatermask
+                 maskwater=maskwater,custRange=custRange,widewatermask=widewatermask,$
+                 cleanbyeye=cleanbyeye
 ;; Compiles the spectra into a few simple arrays to look at the spectrophotometry
 ;; extraction2 -- uses whatever spectra are in the data directory
 ;; optimal -- uses the variance weighted (optimal) extraction
@@ -12,6 +13,8 @@ pro compile_spec,extraction2=extraction2,optimal=optimal,nwavbins=nwavbins,$
 ;; watermask - make a mask over the variable water
 ;; feature to take out some of the suspiciuos variability
 ;; widewatermask -- increases the size of the water mask
+;; cleanbyeye -- a shortened file list where I've removed the
+;;               bad spectra by eye
 
 ;Nwavbins = 35 ;; number of wavelength bins
 ;Nwavbins = 9 ;; number of wavelength bins
@@ -39,7 +42,11 @@ endif else begin
    ;; Otherwise use the current extraction
    case 1 of
       keyword_set(dec23):begin
-         readcol,'file_lists/corot1_dec23fullspec.txt',filen,format='(A)'
+         if keyword_set(cleanbyeye) then begin
+            readcol,'file_lists/corot1_dec23cleaned_by_eye.txt',filen,format='(A)',$
+                    stringskip='#'
+         endif else readcol,'file_lists/corot1_dec23fullspec.txt',filen,format='(A)'
+
       end
       keyword_set(dec29): begin
          readcol,'file_lists/corot1_dec29fullspec.txt',filen,format='(A)'
