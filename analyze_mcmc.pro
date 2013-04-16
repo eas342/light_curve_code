@@ -8,12 +8,14 @@ pro analyze_mcmc,psplot=psplot,$
      plotprenm = 'plots/mcmc/basic_mcmc'
      device,encapsulated=1, /helvetica,$
             filename=plotprenm+'.eps'
-           device,xsize=12, ysize=8,decomposed=1,/color
+           device,xsize=14, ysize=10,decomposed=1,/color
   endif
 
 
   ;; get the mcmc data
   restore,'data/mcmc/mcmc_chains.sav'
+;  restore,'data/mcmc/mcmc_chains_0.91um.sav'
+;  restore,'data/mcmc/mcmc_chains_1.43um.sav'
   ;;chainparams,lmfit,lmunct
 
 
@@ -30,6 +32,7 @@ pro analyze_mcmc,psplot=psplot,$
   paramLower = fltarr(nparams)
 
   !p.multi = [0,3,2]
+  !X.Omargin = [4,2]
 
   for i=0l,nfree-1l do begin
      pInd = freeInd[i];; parameter index
@@ -50,9 +53,9 @@ pro analyze_mcmc,psplot=psplot,$
      endif
      plot,xhist,yhist,$
           xtitle=parnames[pInd],psym=10,$
-          charsize=2,xmargin=[4.5,2.5],xticks=1,yticks=1,$
+          charsize=2,xmargin=[5,3],xticks=1,yticks=1,$
           yrange=[0,max(yhist)],ystyle=1,xrange=[min(xhist),max(xhist)],$
-          xstyle=1,ymargin=[3.5,1.5],$
+          xstyle=1,ymargin=[4,1.5],$
           xminor=5,xticklen=0.05,ytitle='Counts',ytickname=''
 ;          ymargin=[2,2]
      ;; Show the error bars from the Levenberg-Marquardt method
@@ -88,6 +91,7 @@ pro analyze_mcmc,psplot=psplot,$
 
   endif
   !p.multi = 0
+  !X.omargin = [0,0]
 
   textcomment=string('Parameter','LM Fit','LM +/-','MCMC Fit','MCMC+','MCMC-',$
                     format='(A8,5(1x,A16))')

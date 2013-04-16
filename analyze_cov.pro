@@ -12,7 +12,7 @@ pro analyze_cov,psplot=psplot
 
   ;; get the mcmc data
   restore,'data/mcmc/mcmc_chains.sav'
-;  restore,'data/mcmc/mcmc_chains_0.91um.sav'
+;  restore,'data/mcmc/mcmc_chains_1.43um.sav'
   ;;chainparams,lmfit,lmunct
 
   parnames = ['R!Dp!N/R!D*','b/R!D*!N','u!D1!N','u!D2!N','a/R!D*!N','A!D0!N','A!D1!N','A!D2!N','A!D3!N']
