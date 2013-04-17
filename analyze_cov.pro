@@ -138,10 +138,5 @@ pro analyze_cov,psplot=psplot
   endif
   !p.multi = 0
 
-  textcomment=string('Parameter','LM Fit','LM +/-','MCMC Fit','MCMC+','MCMC-',$
-                    format='(A8,5(1x,A16))')
-  forprint,parnames,lmfit,lmunct,medparams,paramUpper,paramLower,$
-           format='(A8,5(1x,F16.5))',textout='data/mcmc/param_unc/param_unc.txt',$
-           comment=textcomment
 
 end
