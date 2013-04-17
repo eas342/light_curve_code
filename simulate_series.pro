@@ -7,10 +7,13 @@ pro simulate_series
   Y = fltarr(Npoints) ;; blank array to start
   Y[0] = RandomSer[0]
   Y[1] = RandomSer[1]
-  Mixing1 = 0.8
-  Mixing2 = 0.1
-  for i=2l,Npoints-1l do begin
-     Y[i] = RandomSer[i]*(1E - Mixing1 - Mixing2) + Y[i-1] * Mixing1 + Y[i-2] * Mixing2
+  Y[2] = RandomSer[2]
+  Mixing1 = 0.3
+  Mixing2 = 0.0
+  Mixing3 = 0.0
+  for i=3l,Npoints-1l do begin
+     Y[i] = RandomSer[i]*(1E - Mixing1 - Mixing2 - Mixing3) + Y[i-1] * Mixing1 + $
+            Y[i-2] * Mixing2 + Y[i-3] * Mixing3
   endfor
 
 ;  plot,x,y
