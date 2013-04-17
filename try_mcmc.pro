@@ -34,20 +34,27 @@ pro try_mcmc,psplot=psplot
   pi[2].fixed = 0 ;; free the linear limb darkening
   pi[5].fixed = 0 ;; free the offset
   pi[6].fixed = 0 ;; free the linear coefficient
-;  pi[7].fixed = 0 ;; free the quadratic coefficient
+  pi[7].fixed = 0 ;; free the quadratic (second Legendre) coefficient
+  pi[8].fixed = 0 ;; free the third Legendre coefficient
 
-  ;; Let the lim darkening and quadratic coefficient be negative
+  ;; Let the lim darkening, quadratic and cubic coefficient be negative
   pi[2].limited=[0,0]
   pi[7].limited=[0,0]
+  pi[8].limited=[0,0]
 
   ;; Model expression
-  expr = 'quadlc(X,P[0],P[1],P[2],P[3],P[4])* (P[5] + X * P[6] + X^2 * P[7] + X^3 * P[8])'
+;  expr = 'quadlc(X,P[0],P[1],P[2],P[3],P[4])* (P[5] + X * P[6] + X^2  * P[7] + X^3 * P[8])'
+  expr = 'quadlc(X,P[0],P[1],P[2],P[3],P[4])* ( P[5] + '+$
+         'Legendre((2E * X - Max(X) - Min(X))/(Max(X) - Min(X)),1) * P[6] + '+$
+         'Legendre((2E * X - Max(X) - Min(X))/(Max(X) - Min(X)),2) * P[7] + '+$
+         'Legendre((2E * X - Max(X) - Min(X))/(Max(X) - Min(X)),3) * P[8])'
 
   ;; Go through the cleaned time series
   cd,c=currentd
   fileopt = file_search(currentd+'/data/cleaned_tim_ser/*.txt')
   totfiles = n_elements(fileopt)
-  for i=0l,n_elements(fileopt)-1l do begin
+;  for i=0l,n_elements(fileopt)-1l do begin
+  for i=3l,3l do begin
      trimst = strsplit(fileopt[i],'/',/extract)
      trimname = trimst(n_elements(trimst)-1l)
      namespl = strsplit(trimname,'_',/extract)
@@ -56,6 +63,7 @@ pro try_mcmc,psplot=psplot
      readcol,fileopt[i],$
              phase,fl,flerr,modelfl,resid,$
              format='(F,F,F,F,F)',skipline=1
+
      result = ev_mcmc(expr,phase,fl,flerr,start,parinfo=pi,chainL = 3000l,maxp=99000l)
 ;     result = ev_mcmc(expr,phase,fl,flerr,start,parinfo=pi,chainL = 3000l,maxp=90l)
      analyze_mcmc,/psplot
