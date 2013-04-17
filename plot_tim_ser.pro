@@ -92,7 +92,10 @@ TsigRejCrit = 2.5D ;; sigma rejection criterion for time bins
   plrade = fltarr(nbin)*!values.f_nan
 
   ;; Prepare to save all the planet transit data as a function of wavelength
-  paramnames = ['Rp/R*','b_impact','u1','u2','a/R*','linearA','linearB','quadC','cubicD']
+;  paramnames = ['Rp/R*','b_impact','u1','u2','a/R*','linearA','linearB','quadC','cubicD']
+;  paramnames = ['Rp/R*','b_impact','u1','u2','a/R*','linearA','linearB','quadC','cubicD','quarticE']
+  paramnames = ['Rp/R*','b_impact','u1','u2','a/R*','linearA','linearB','quadC','cubicD',$
+                'quarticE','quinticD']
   nparams = n_elements(paramnames)
   resultarr = fltarr(nparams,nbin)*!values.f_nan
   resultarrE = resultarr
@@ -431,8 +434,10 @@ TsigRejCrit = 2.5D ;; sigma rejection criterion for time bins
         if keyword_set(fitcurve) then begin
            ;; fit the data curve
 
+;           start=double([planetdat.p,planetdat.b_impact,u1parm,u2parm,$
+;                         planetdat.a_o_rstar,1.0D,0D,0D,0D])
            start=double([planetdat.p,planetdat.b_impact,u1parm,u2parm,$
-                         planetdat.a_o_rstar,1.0D,0D,0D,0D])
+                         planetdat.a_o_rstar,1.0D,0D,0D,0D,0D,0D])
 
 
 ;           if keyword_set(quadfit) then begin
@@ -445,12 +450,20 @@ TsigRejCrit = 2.5D ;; sigma rejection criterion for time bins
                      ' * P[8])/quadlc('+quadlcArg+')'
 
            endif else begin
-              expr = 'quadlc(X,P[0],P[1],P[2],P[3],P[4])* (P[5] + X * P[6] + X^2 * P[7] + X^3 * P[8])'
+              expr = 'quadlc(X,P[0],P[1],P[2],P[3],P[4])* ( P[5] + '+$
+                     'Legendre((2E * X - Max(X) - Min(X))/(Max(X) - Min(X)),1) * P[6] + '+$
+                     'Legendre((2E * X - Max(X) - Min(X))/(Max(X) - Min(X)),2) * P[7] + '+$
+                     'Legendre((2E * X - Max(X) - Min(X))/(Max(X) - Min(X)),3) * P[8] + '+$
+                     'Legendre((2E * X - Max(X) - Min(X))/(Max(X) - Min(X)),4) * P[9] + '+$
+                     'Legendre((2E * X - Max(X) - Min(X))/(Max(X) - Min(X)),5) * P[10])'
+              
+              ;expr = 'quadlc(X,P[0],P[1],P[2],P[3],P[4])* (P[5] + X * P[6] + X^2 * P[7] + X^3 * P[8])'
            endelse
 ;              pi = replicate({fixed:1, limited:[1,0], limits:[0.0E,0.0E]},8)
 ;           endif else begin
 ;              expr = 'quadlc(X,P[0],P[1],P[2],P[3],P[4])* (P[5] + X * P[6])'
-           pi = replicate({fixed:1, limited:[1,0], limits:[0.0E,0.0E]},9)
+;           pi = replicate({fixed:1, limited:[1,0],limits:[0.0E,0.0E]},9)
+           pi = replicate({fixed:1, limited:[1,0], limits:[0.0E,0.0E]},nparams)
 ;           endelse
            ;; make sure the Rp/R* parameter is free
            if not keyword_set(fixrad) then pi[0].fixed = 0 
@@ -473,14 +486,20 @@ TsigRejCrit = 2.5D ;; sigma rejection criterion for time bins
            endif
            pi[0].limited = [1,1]
            pi[0].limits = [0D,1D] ;; Keep Rp/R* between 0 and 1
+           pi[5].fixed = 0 ;; make sure the flux ratio offset is free
            pi[6].limited = [0,0] ;; let the linear coefficient by + or -
            pi[7].limited = [0,0] ;; let the quadratic coefficient by + or -
-           pi[5].fixed = 0 ;; make sure the flux ratio offset is free
+           pi[8].limited = [0,0] ;; let the cubic coefficient by + or -
+           pi[9].limited = [0,0] ;; let the quartic coefficient by + or -
+           pi[10].limited= [0,0] ;; let the quintic coefficient by + or -
            if keyword_set(quadfit) then begin
               pi[7].fixed = 0 ;; let the quadratic coefficient vary
            endif
            if keyword_set(cubfit) then begin
+              pi[10].fixed = 0 ;; let the fifth Leg coefficient vary
+              pi[9].fixed = 0 ;; let the fifth Leg coefficient vary
               pi[8].fixed = 0 ;; let the cubic coefficient vary
+              pi[7].fixed = 0 ;; let the cubic coefficient vary
            endif
 
 ;           if keyword_set(clarlimb) then begin
@@ -488,7 +507,7 @@ TsigRejCrit = 2.5D ;; sigma rejection criterion for time bins
 ;           endif else begin
 
 ;           endelse
-
+;           stop
            result = mpfitexpr(expr,tplot,y,yerr,start,parinfo=pi,perr=punct)
            modelY = expression_eval(expr,tplot,result)
            oplot,tplot,modelY,color=mycol('orange'),thick=2
