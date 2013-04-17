@@ -40,7 +40,7 @@ function ev_mcmc,expr,X,Y,Yerr,start,chainL=chainL,parinfo=pi,maxp=maxp
 
   ;; use the rough covariance matrix to choose random bump sizes
 ;  jumps = rebin(punct,nparams,maxP) * randParray * 3E
-  jumps = rebin(punct,nparams,maxP) * randParray * 0.1E
+  jumps = rebin(punct,nparams,maxP) * randParray * 0.8E
 ;  jumps = rebin(punct,nparams,maxP) * randParray * 1.5E
 
   for i=0l,maxP-1l do begin
