@@ -32,13 +32,15 @@ pro try_mcmc,psplot=psplot
   ;; start with parameters fixed and then modify
   pi[0].fixed = 0 ;; free the planet radius
   pi[2].fixed = 0 ;; free the linear limb darkening
+  pi[3].fixed = 0 ;; free the quadratic limb darkening
   pi[5].fixed = 0 ;; free the offset
   pi[6].fixed = 0 ;; free the linear coefficient
-  pi[7].fixed = 0 ;; free the quadratic (second Legendre) coefficient
-  pi[8].fixed = 0 ;; free the third Legendre coefficient
+  pi[7].fixed = 0 ;; free the second Legendre coefficient
+;  pi[8].fixed = 0 ;; free the third Legendre coefficient
 
-  ;; Let the lim darkening, quadratic and cubic coefficient be negative
+  ;; Let the limb darkening, quadratic and cubic coefficient be negative
   pi[2].limited=[0,0]
+  pi[3].limited=[0,0]
   pi[7].limited=[0,0]
   pi[8].limited=[0,0]
 
