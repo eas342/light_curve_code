@@ -1,9 +1,11 @@
-pro plot_specphot,divbymodel=divbymodel,usebin=usebin,removelin=removelin
+pro plot_specphot,divbymodel=divbymodel,usebin=usebin,removelin=removelin,$
+                  psplot=psplot
 ;; Makes an image of the spectrophotometry to get a visual sense of
 ;; the transit
 ;; divbymodel -- divide the image by the nominal transit model
 ;; usebin -- use the wavelength bins
 ;; removelin -- remove the linear trend in each time series
+;; psplot -- makes a postscript plot
 
   ;; get the compiled spectroscopic data
   restore,'data/specdata.sav'
@@ -81,26 +83,45 @@ pro plot_specphot,divbymodel=divbymodel,usebin=usebin,removelin=removelin
      ColorRange = [0.995E,1.005E]
   endif else ColorRange = [0.95E,1.01E]
 
+  if keyword_set(psplot) then begin
+     set_plot,'ps'
+     !p.font=0
+     plotnmpre = 'plots/specphot_images/specphot_image'
+     device,encapsulated=1, /helvetica,$
+            filename=plotnmpre+'.eps'
+     device,xsize=12, ysize=11,decomposed=1,/color
+  endif
+
   loadct,1
-  window,0
+  if not keyword_set(psplot) then window,0
   plotimage,xypic,range=ColorRange,$
             imgxrange=wavrange,$
             imgyrange=[tplot[0],tplot[ntime-1]],$
             xtitle='Wavelength (um)',$
             ytitle='Orbital Phase',$
-            charsize=2,font=1
-  axis,xaxis=1,xrange=!x.crange,color=mycol('black'),xstyle=1,font=1,charsize=2.5,xthick=4
-  axis,xaxis=1,xrange=!x.crange,color=mycol('orange'),xstyle=1,font=1,charsize=2
+            charsize=1,$
+            xmargin=[9,12],ymargin=[4,2]
+  ;; Back an outline for thick axes
+  axis,xaxis=1,xrange=!x.crange,color=mycol('black'),xstyle=1,xthick=4,xtickname=replicate(' ',7)
+  axis,xaxis=1,xrange=!x.crange,color=mycol('orange'),xstyle=1,xtickname=replicate(' ',7)
+  axis,xaxis=0,xrange=!x.crange,color=mycol('black'),xstyle=1,xthick=4,xtickname=replicate(' ',7)
+  axis,xaxis=0,xrange=!x.crange,color=mycol('orange'),xstyle=1,xtickname=replicate(' ',7)
+  axis,yaxis=1,yrange=!y.crange,color=mycol('black'),ystyle=1,ythick=4,ytickname=replicate(' ',7)
+  axis,yaxis=1,yrange=!y.crange,color=mycol('orange'),ystyle=1,ytickname=replicate(' ',7)
+  axis,yaxis=0,yrange=!y.crange,color=mycol('black'),ystyle=1,ythick=4,ytickname=replicate(' ',7)
+  axis,yaxis=0,yrange=!y.crange,color=mycol('orange'),ystyle=1,ytickname=replicate(' ',7)
 
   loadct,0
   ;; Show ingress and egress
-  plots,[wavrange[0],wavrange[1]],[hstart,hstart],color=mycol('brown'),linestyle=2,thick=2
-  plots,[wavrange[0],wavrange[1]],[hend,hend],color=mycol('brown'),linestyle=2,thick=2
+  plots,[wavrange[0],wavrange[1]],[hstart,hstart],color=mycol('white'),linestyle=2,thick=4
+  plots,[wavrange[0],wavrange[1]],[hstart,hstart],color=mycol('brown'),linestyle=2,thick=3
+  plots,[wavrange[0],wavrange[1]],[hend,hend],color=mycol('white'),linestyle=2,thick=4
+  plots,[wavrange[0],wavrange[1]],[hend,hend],color=mycol('brown'),linestyle=2,thick=3
   loadct,1
   
-  fileNpre = 'plots/specphot_images/specphot_image'
-  write_png,fileNpre+'.png',tvrd(true=1)
-  window,1,ysize=300
+;  fileNpre = 'plots/specphot_images/specphot_image'
+;  write_png,fileNpre+'.png',tvrd(true=1)
+;  if not keyword_set(psplot) then window,1,ysize=300
 
   ;; Save as a FITS image
   fitsNamePre = 'data/specphot'
@@ -112,12 +133,21 @@ pro plot_specphot,divbymodel=divbymodel,usebin=usebin,removelin=removelin
 
   ;; make an image for the legend
   legrow = findgen(256)*(ColorRange[1]-ColorRange[0])/float(256)+ColorRange[0]
-  legimg = rebin(legrow,256,3)
-  plotimage,legimg,imgxrange=ColorRange,$
+  legimg = transpose(rebin(legrow,256,3))
+  plotimage,legimg,imgyrange=ColorRange,$
             range=ColorRange,$
-            xtitle='Relative Flux',font=1,charsize=2,$
-            ystyle=4
-  write_png,'plots/specphot_images/image_key.png',tvrd(true=1)
-  loadct,0
+            ytitle='Relative Flux',$
+            xstyle=4,/noerase,position=[0.95,!y.window[0],0.98,!y.window[1]]
+;            xstyle=4,/noerase,position=[0.95,0.3,0.98,0.9]
+;  write_png,'plots/specphot_images/image_key.png',tvrd(true=1)
+;  loadct,0
+  if keyword_set(psplot) then begin
+     device,/close
+     cgPS2PDF,plotnmpre+'.eps'
+     spawn,'convert -density 450% '+plotnmpre+'.pdf '+plotnmpre+'.png'
+     device,decomposed=0
+     set_plot,'x'
+     !p.font=-1
+  endif
 
 end
