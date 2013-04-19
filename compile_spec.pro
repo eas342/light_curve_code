@@ -220,6 +220,6 @@ endif
 save,flgrid,lamgrid,utgrid,bingrid,binfl,binflE,$
      ErrGrid,SNR,Divspec,DivspecE,backgrid,$
      Nwavbins,binsizes,binind,binindE,filen,$
-     airmass,altitude,backgrid,$
+     airmass,altitude,backgrid,header,$
      filename='data/specdata.sav'
 end
