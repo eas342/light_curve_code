@@ -50,8 +50,14 @@ pro analyze_cov,psplot=psplot
         myXrange = [-2.5,2.5] * lmunct[xPind] + lmfit[xPind]
         myYrange = [-2.5,2.5] * lmunct[yPind] + lmfit[yPind]
         myNodata = 0
+        myYstyle=1
+        myXstyle=1
 
-        if j GT i-1 then myNodata = 1 ;; Don't replicate the top right portion of the plot
+        if j GT i-1 then begin
+           myNodata = 1 ;; Don't replicate the top right portion of the plot
+           myYstyle=1+4
+           myXstyle=1+4
+        endif
 
         if j EQ 0 then begin ;; Left side
 ;           myYtickName = [string(myYrange[0],format='(F8.4)'),$
@@ -74,7 +80,7 @@ pro analyze_cov,psplot=psplot
              xtitle=myXtitle,ytitle=myYtitle,$
              charsize=2,xmargin=myXmargin,ymargin=myYmargin,$
              xticks=2,yticks=2,xtickname=myXtickName,ytickname=myYtickName,$
-             ystyle=1,xstyle=1,$
+             ystyle=myYstyle,xstyle=myXstyle,$
              xminor=4,xticklen=0.05,yminor=4,$
              xrange=myXrange,yrange=myYrange,$
              nodata=myNodata
