@@ -18,7 +18,7 @@ pro plot_specphot,divbymodel=divbymodel,usebin=usebin,removelin=removelin,$
      plot_tim_ser
   endif
   restore,'data/timedata.sav'
-  
+  restore,'data/specdata.sav'
 
   ntime = n_elements(tplot)
 
