@@ -1,5 +1,6 @@
 pro plot_specphot,divbymodel=divbymodel,usebin=usebin,removelin=removelin,$
-                  psplot=psplot,individual=individual
+                  psplot=psplot,individual=individual,skipInitialize=skipInitialize,$
+                  timebin=timebin
 ;; Makes an image of the spectrophotometry to get a visual sense of
 ;; the transit
 ;; divbymodel -- divide the image by the nominal transit model
@@ -7,13 +8,17 @@ pro plot_specphot,divbymodel=divbymodel,usebin=usebin,removelin=removelin,$
 ;; removelin -- remove the linear trend in each time series
 ;; psplot -- makes a postscript plot
 ;; individual -- specifies which of the inidividual spectra to look at
+;; skipInitialize -- skips running plot_tim_ser to run faster
+;; timebin -- uses time-binned data
 
-  ;; get the compiled spectroscopic data
-  restore,'data/specdata.sav'
 
   ;; get the time info
-  plot_tim_ser
+
+  if not keyword_set(skipInitialize) then begin
+     plot_tim_ser
+  endif
   restore,'data/timedata.sav'
+  
 
   ntime = n_elements(tplot)
 

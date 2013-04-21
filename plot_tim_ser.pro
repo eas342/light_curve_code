@@ -293,7 +293,6 @@ TsigRejCrit = 2.5D ;; sigma rejection criterion for time bins
         offp = where(tplot LT hstart OR tplot GT hend)
 
 
-        
      endif
 
      if total(finite(y)) GT 0 and total(finite(yerr)) GT 0.0 then begin
