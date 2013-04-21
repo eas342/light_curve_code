@@ -1,11 +1,12 @@
 pro plot_specphot,divbymodel=divbymodel,usebin=usebin,removelin=removelin,$
-                  psplot=psplot
+                  psplot=psplot,individual=individual
 ;; Makes an image of the spectrophotometry to get a visual sense of
 ;; the transit
 ;; divbymodel -- divide the image by the nominal transit model
 ;; usebin -- use the wavelength bins
 ;; removelin -- remove the linear trend in each time series
 ;; psplot -- makes a postscript plot
+;; individual -- specifies which of the inidividual spectra to look at
 
   ;; get the compiled spectroscopic data
   restore,'data/specdata.sav'
@@ -16,24 +17,31 @@ pro plot_specphot,divbymodel=divbymodel,usebin=usebin,removelin=removelin,$
 
   ntime = n_elements(tplot)
 
-
-  if keyword_set(usebin) then begin
-     nwavs = n_elements(bingrid)
-     xydivspec = binfl
-     wavrange = [bingrid[0],bingrid[nwavs-1]]
-  endif else begin
+  if n_elements(individual) NE 0 then begin
      nwavs = n_elements(lamgrid)
-     xydivspec = transpose(divspec[*,0,*],[0,2,1])
+     xydivspec = transpose(flgrid[*,individual-1,*],[0,2,1])
      wavrange = [lamgrid[0],lamgrid[nwavs-1l]]
+  endif else begin
+     if keyword_set(usebin) then begin
+        nwavs = n_elements(bingrid)
+        xydivspec = binfl
+        wavrange = [bingrid[0],bingrid[nwavs-1]]
+     endif else begin
+        nwavs = n_elements(lamgrid)
+        xydivspec = transpose(divspec[*,0,*],[0,2,1])
+        wavrange = [lamgrid[0],lamgrid[nwavs-1l]]
+     endelse
   endelse
-
   ;; Make a median spectrum to divide out
   meddivspec = fltarr(nwavs)
   for i=0l,nwavs-1l do begin
      meddivspec[i] = median(xydivspec[i,*])
   endfor
   replicatedspec = rebin(meddivspec,nwavs,ntime)
-  xypic = xydivspec / replicatedspec
+  if n_elements(individual) EQ 0 then begin
+     xypic = xydivspec / replicatedspec
+  endif else xypic = xydivspec
+
 ;  xypic = xydivspec
 
   if keyword_set(removelin) then begin
@@ -88,8 +96,8 @@ pro plot_specphot,divbymodel=divbymodel,usebin=usebin,removelin=removelin,$
      !p.font=0
      plotnmpre = 'plots/specphot_images/specphot_image'
      device,encapsulated=1, /helvetica,$
-            filename=plotnmpre+'.eps'
-     device,xsize=12, ysize=11,decomposed=1,/color
+            filename=plotnmpre+'.eps',bits_per_pixel=8
+     device,xsize=10, ysize=9,decomposed=1,/color
   endif
 
   loadct,1
@@ -113,15 +121,44 @@ pro plot_specphot,divbymodel=divbymodel,usebin=usebin,removelin=removelin,$
 
   loadct,0
   ;; Show ingress and egress
-  plots,[wavrange[0],wavrange[1]],[hstart,hstart],color=mycol('white'),linestyle=2,thick=4
-  plots,[wavrange[0],wavrange[1]],[hstart,hstart],color=mycol('brown'),linestyle=2,thick=3
-  plots,[wavrange[0],wavrange[1]],[hend,hend],color=mycol('white'),linestyle=2,thick=4
-  plots,[wavrange[0],wavrange[1]],[hend,hend],color=mycol('brown'),linestyle=2,thick=3
+  plots,[wavrange[0],wavrange[1]],[hstart,hstart],color=mycol('black'),linestyle=2,thick=5
+  plots,[wavrange[0],wavrange[1]],[hstart,hstart],color=mycol('yellow'),linestyle=2,thick=3
+  plots,[wavrange[0],wavrange[1]],[hend,hend],color=mycol('black'),linestyle=2,thick=5
+  plots,[wavrange[0],wavrange[1]],[hend,hend],color=mycol('yellow'),linestyle=2,thick=3
   loadct,1
+
+  ;; Choose a set of parameters to pass on to the fits file for the header
   
-;  fileNpre = 'plots/specphot_images/specphot_image'
-;  write_png,fileNpre+'.png',tvrd(true=1)
-;  if not keyword_set(psplot) then window,1,ysize=300
+  keepFitsParams = ['TELESCOP','INSTRUME','OBSERVER','OBJECT','COMMENT',$
+                    'DATE_OBS','ITIME','NDR','SLIT','GRAT','GFLT','AFOC',$
+                    'PLATE_SC','RA','DEC','EPOCH','EXPTIME']
+  nkeepParams = n_elements(keepFitsParams)
+
+  ;; Additional parameters
+  addedParams = ['XSTART','XFINISH','DELTAX',$
+                 'YSTART','YFINISH','DELTAY']
+  addedValues = [lamgrid[0],lamgrid[nwavs-1l],lamgrid[1]-lamgrid[0],$
+                 tplot[0],tplot[ntime-1l],tplot[1]-tplot[0]]
+
+  addedComments = [' / Microns start wavelength',$
+                   ' / Microns End wavelength',$
+                   ' / Wavelength step (microns)',$
+                  ' / Orbital Phase start',$
+                  ' / Orbital Phase end',$
+                  ' / Orbital Phase step']
+
+  nadded = n_elements(addedParams)
+  outHeader = strarr(nkeepParams + nadded)
+  for i=0l,nkeepParams-1l do begin
+     HeaderInd = strpos(header,keepFitsParams[i])
+     GoodInd = where(headerInd EQ 0)
+     outHeader[i] = Header[goodInd[0]]
+  endfor
+  for i=0l,nadded-1l do begin
+     outHeader[i + nKeepParams] = string(addedParams[i],format='(A-8)') + '=' +$
+                                  string(addedValues[i],format='(F21.7)') + $
+                                  string(addedComments[i],format='(A-50)')
+  endfor
 
   ;; Save as a FITS image
   fitsNamePre = 'data/specphot'
@@ -129,18 +166,22 @@ pro plot_specphot,divbymodel=divbymodel,usebin=usebin,removelin=removelin,$
   if keyword_set(usebin)     then fitsNamePre = fitsNamePre+'_bin'
   if keyword_set(removelin)  then fitsNamePre = fitsNamePre+'_lin_detrend'
   
-  writefits,fitsNamePre+'.fits',xypic
+  ;; Generate a primary FITS header
+  mkhdr,simpleHeader,xypic
+  nsimple = n_elements(simpleHeader)
+  fullHeader = [simpleHeader[0l:nsimple-4l],outHeader,$
+                string('END',format='(A-60)'),string(' ',format='(A-60)')]
+
+  writefits,fitsNamePre+'.fits',xypic,fullHeader
 
   ;; make an image for the legend
-  legrow = findgen(256)*(ColorRange[1]-ColorRange[0])/float(256)+ColorRange[0]
-  legimg = transpose(rebin(legrow,256,3))
+  Ncolors =  256l
+  legrow = findgen(Ncolors)*(ColorRange[1]-ColorRange[0])/float(Ncolors)+ColorRange[0]
+  legimg = transpose(rebin(legrow,Ncolors,3))
   plotimage,legimg,imgyrange=ColorRange,$
             range=ColorRange,$
             ytitle='Relative Flux',$
             xstyle=4,/noerase,position=[0.95,!y.window[0],0.98,!y.window[1]]
-;            xstyle=4,/noerase,position=[0.95,0.3,0.98,0.9]
-;  write_png,'plots/specphot_images/image_key.png',tvrd(true=1)
-;  loadct,0
   if keyword_set(psplot) then begin
      device,/close
      cgPS2PDF,plotnmpre+'.eps'
