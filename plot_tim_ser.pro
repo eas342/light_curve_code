@@ -450,11 +450,11 @@ TsigRejCrit = 2.5D ;; sigma rejection criterion for time bins
 
            endif else begin
               expr = 'quadlc(X,P[0],P[1],P[2],P[3],P[4])* ( P[5] + '+$
-                     'Legendre((2E * X - Max(X) - Min(X))/(Max(X) - Min(X)),1) * P[6] + '+$
-                     'Legendre((2E * X - Max(X) - Min(X))/(Max(X) - Min(X)),2) * P[7] + '+$
-                     'Legendre((2E * X - Max(X) - Min(X))/(Max(X) - Min(X)),3) * P[8] + '+$
-                     'Legendre((2E * X - Max(X) - Min(X))/(Max(X) - Min(X)),4) * P[9] + '+$
-                     'Legendre((2E * X - Max(X) - Min(X))/(Max(X) - Min(X)),5) * P[10])'
+                     'Legendre((2D * X - Max(X) - Min(X))/(Max(X) - Min(X) + 3D-16),1) * P[6] + '+$
+                     'Legendre((2D * X - Max(X) - Min(X))/(Max(X) - Min(X) + 3D-16),2) * P[7] + '+$
+                     'Legendre((2D * X - Max(X) - Min(X))/(Max(X) - Min(X) + 3D-16),3) * P[8] + '+$
+                     'Legendre((2D * X - Max(X) - Min(X))/(Max(X) - Min(X) + 3D-16),4) * P[9] + '+$
+                     'Legendre((2D * X - Max(X) - Min(X))/(Max(X) - Min(X) + 3D-16),5) * P[10])'
               
               ;expr = 'quadlc(X,P[0],P[1],P[2],P[3],P[4])* (P[5] + X * P[6] + X^2 * P[7] + X^3 * P[8])'
            endelse
@@ -495,10 +495,10 @@ TsigRejCrit = 2.5D ;; sigma rejection criterion for time bins
               pi[7].fixed = 0 ;; let the quadratic coefficient vary
            endif
            if keyword_set(cubfit) then begin
-              pi[10].fixed = 0 ;; let the fifth Leg coefficient vary
-              pi[9].fixed = 0 ;; let the fifth Leg coefficient vary
-              pi[8].fixed = 0 ;; let the cubic coefficient vary
-              pi[7].fixed = 0 ;; let the cubic coefficient vary
+;              pi[10].fixed = 0 ;; let the fifth Leg coefficient vary
+;              pi[9].fixed = 0 ;; let the 4th Leg coefficient vary
+;              pi[8].fixed = 0 ;; let the 3rd Leg coefficient vary
+              pi[7].fixed = 0 ;; let the 2nd Leg coefficient vary
            endif
 
 ;           if keyword_set(clarlimb) then begin
