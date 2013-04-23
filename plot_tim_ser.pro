@@ -6,7 +6,7 @@ pro plot_tim_ser,fitcurve=fitcurve,fitpoly=fitpoly,usepoly=usepoly,makestops=mak
                  timebin=timebin,offreject=offreject,showclipping=showclipping,$
                  errorDistb=errorDistb,colorclip=colorclip,quadfit=quadfit,legorder=legorder,$
                  fixrad=fixrad,freelimblin=freelimblin,showDiffAirmass=showDiffairmass,$
-                 normalize=normalize
+                 normalize=normalize,showNomRad=showNomRad
 ;; plots the binned data as a time series and can also fit the Rp/R* changes
 ;; apPlot -- this optional keyword allows one to choose the aperture
 ;;           to plot
@@ -48,6 +48,8 @@ pro plot_tim_ser,fitcurve=fitcurve,fitpoly=fitpoly,usepoly=usepoly,makestops=mak
 ;;           it all
 ;; freelimblin -- frees only the linear limb darkening coefficient
 ;; normalize -- normalizes the flux by the off transits points
+;; showNomRad -- shows the transit curve with the nominal radius
+;;               in addition to the best-fit radius
 
 ;sigrejcrit = 6D  ;; sigma rejection criterion
 sigrejcrit = 5D  ;; sigma rejection criterion
@@ -318,8 +320,8 @@ TsigRejCrit = 2.5D ;; sigma rejection criterion for time bins
                  ydynam = [ylowerL,yUpperL]
               end
               else: begin
-                 ylowerL = y[sorty[ceil(5E/100E*float(ylength))]] * 0.97
-                 yUpperL = y[sorty[floor(95E/100E*float(ylength))]] * 1.03
+                 ylowerL = y[sorty[ceil(5E/100E*float(ylength))]] * 0.99
+                 yUpperL = y[sorty[floor(95E/100E*float(ylength))]] * 1.01
                  ydynam = [ylowerL,yUpperL]
               end
            endcase
@@ -508,8 +510,11 @@ TsigRejCrit = 2.5D ;; sigma rejection criterion for time bins
 ;           endelse
 ;           stop
            result = mpfitexpr(expr,tplot,y,yerr,start,parinfo=pi,perr=punct)
-           modelY = expression_eval(expr,tplot,result)
-           oplot,tplot,modelY,color=mycol('orange'),thick=2
+           modelPts = 512l
+           ntpoints = n_elements(tplot)
+           modelX = findgen(modelPts)/(modelPts-1l) * (tplot[ntpoints-1] - tplot[0]) + tplot[0]
+           modelY = expression_eval(expr,modelX,result)
+           oplot,modelX,modelY,color=mycol('blue'),thick=2
 
            ;; save the planet radius and all data
            plrad[k] = result[0]
@@ -517,7 +522,16 @@ TsigRejCrit = 2.5D ;; sigma rejection criterion for time bins
            
            resultarr[*,k] = result
            resultarrE[*,k] = punct
-
+           
+           if keyword_set(showNomRad) then begin
+              pi[0].fixed = 1 ;; fix the radius
+              nomRadResult = mpfitexpr(expr,tplot,y,yerr,start,parinfo=pi)
+              modelY2 = expression_eval(expr,modelX,nomRadResult)
+              oplot,modelX,modelY2,color=mycol('orange'),thick=2
+              legend,['Best-Fit Radius','Nominal Radius'],$
+                     linestyle=[0,0],color=mycol(['blue','orange']),$
+                     thick=[2,2],/clear
+           endif
 ;           modelY = quadlc(tplot,result[0],result[1],result[2],result[3],result[4]) $
 ;                   * (result[5] + phtest * result[6] + phtest^2 * result[7] + phtest^3 * result[8])
 
