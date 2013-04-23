@@ -4,7 +4,7 @@ pro plot_tim_ser,fitcurve=fitcurve,fitpoly=fitpoly,usepoly=usepoly,makestops=mak
                  psplot=psplot,noreject=noreject,differential=differential,$
                  individual=individual,pngcopy=pngcopy,freeall=freall,fixall=fixall,$
                  timebin=timebin,offreject=offreject,showclipping=showclipping,$
-                 errorDistb=errorDistb,colorclip=colorclip,quadfit=quadfit,cubfit=cubfit,$
+                 errorDistb=errorDistb,colorclip=colorclip,quadfit=quadfit,legorder=legorder,$
                  fixrad=fixrad,freelimblin=freelimblin,showDiffAirmass=showDiffairmass,$
                  normalize=normalize
 ;; plots the binned data as a time series and can also fit the Rp/R* changes
@@ -42,8 +42,8 @@ pro plot_tim_ser,fitcurve=fitcurve,fitpoly=fitpoly,usepoly=usepoly,makestops=mak
 ;; showclipping -- shows the clipping of data points to remove outliers
 ;; errorDistb -- Plot a histogram of the photometric error distribution
 ;; colorclip -- colors the clipped points
-;; quadfit -- fits a quadratic baseline instead of a linear baseline
-;; quadfit -- fits a cubic baseline instead of a linear baseline
+;; quadfit  -- fits a 2nd order Legendre polynomial instead of a linear baseline
+;; legorder -- fits a legorder order Legendre polynomial baseline
 ;; fixrad -- fixes the planet radius to see if limb darkening can do
 ;;           it all
 ;; freelimblin -- frees only the linear limb darkening coefficient
@@ -476,30 +476,30 @@ TsigRejCrit = 2.5D ;; sigma rejection criterion for time bins
               keyword_set(freelimblin): pi[2].fixed = 0
               else: junk=junk
            endcase
-           pi[6].fixed = 0 ;; let the linear coefficient vary
+
            if keyword_set(freeall) then begin
               pi[*].fixed = 0
            endif ;; free all parameters
            if keyword_set(fixall) then begin
               pi[*].fixed = 1
            endif
-           pi[0].limited = [1,1]
+           pi[0].limited = [1,1] ;; make sure Rp/R* is limited
            pi[0].limits = [0D,1D] ;; Keep Rp/R* between 0 and 1
            pi[5].fixed = 0 ;; make sure the flux ratio offset is free
-           pi[6].limited = [0,0] ;; let the linear coefficient by + or -
-           pi[7].limited = [0,0] ;; let the quadratic coefficient by + or -
-           pi[8].limited = [0,0] ;; let the cubic coefficient by + or -
-           pi[9].limited = [0,0] ;; let the quartic coefficient by + or -
-           pi[10].limited= [0,0] ;; let the quintic coefficient by + or -
-           if keyword_set(quadfit) then begin
-              pi[7].fixed = 0 ;; let the quadratic coefficient vary
-           endif
-           if keyword_set(cubfit) then begin
-;              pi[10].fixed = 0 ;; let the fifth Leg coefficient vary
-;              pi[9].fixed = 0 ;; let the 4th Leg coefficient vary
-;              pi[8].fixed = 0 ;; let the 3rd Leg coefficient vary
-              pi[7].fixed = 0 ;; let the 2nd Leg coefficient vary
-           endif
+           for i=6,10-1 do pi[i].limited = [0,0] ;; let the polynomial coefficients be + or -
+
+           case 1 of 
+              keyword_set(quadfit): begin
+                 pi[6].fixed = 0 ;; let the linear coefficient
+                 pi[7].fixed = 0 ;; let the second Legendre coefficient vary
+              end
+              n_elements(legOrder) NE 0: begin
+                 for i=5l,legOrder+5l do begin
+                    pi[i].fixed = 0 ;; let the i-th Legendre coefficient vary
+                 endfor
+              end
+              else: pi[6].fixed = 0 ;; let the linear coefficient vary by default
+           endcase
 
 ;           if keyword_set(clarlimb) then begin
 ;              start=[planetdat.p,planetdat.b_impact,u1bin[k],u2bin[k],planetdat.a_o_rstar,0.0E]
