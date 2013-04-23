@@ -1,7 +1,7 @@
 pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
                      nbins=nbins,custfile=custfile,$
                      showtheospec=showtheospec,choosefile=choosefile,$
-                     totsets=totsets
+                     totsets=totsets,wavnum=wavnum
 ;;psplot -- saves a postscript plot
 ;;showstarspec -- shows a star spectrum on the same plot
 ;;nbins -- number of points bo bin in Rp/R*
@@ -10,6 +10,7 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
 ;;choosefile -- choose a file from the radius_vs_wavelength directory
 ;;totsets -- optional keyword to specify the number of total sets of
 ;;           data to over-plot (eliminates the old additionalfile keyword)
+;;wavnum -- changes the units on wavelength to wavenumber
 
   !x.margin = [13,14]
   ;; set the plot
@@ -72,19 +73,29 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
   endif else begin
   endelse
 
+  wavlwidth = binsizes/2E
+  if keyword_set(wavnum) then begin
+     myxtitle = 'Wave Number (cm!E-1!N)'
+     wavlwidth = 1E4 / wavl^2 * wavlwidth
+     wavl = 1E4 / (wavl)
+     myxrange = [4000,11500]
+  endif else begin
+     myxtitle='Wavelength (um)'
+     myxrange = [0.8,2.55]
+  endelse
+
   plot,wavl,rad,$
-       xtitle='Wavelength (um)',$
+       xtitle=myxtitle,$
        ytitle='Rp/R*',$
 ;       ystyle=16,xstyle=1,$
-       ystyle=ytempstyle,xstyle=1,xrange=[0.8,2.55],$
+       ystyle=ytempstyle,xstyle=1,xrange=myxrange,$
        yrange=[0.12,0.17],/nodata
 ;       yrange=[0.12,0.16],/nodata
 ;  oploterror,wavl,rad,rade
-  wavlwidth = binsizes/2E
+
   oploterror,wavl,rad,wavlwidth,rade,psym=3
 ;                color=mycol('yellow') 
   
-
   ;; As in Gibson et al. 2012, show 3 scale heights around the
   ;; adopted Rp/R* from Jacob Bean et al. 2012
   scaleH = 0.00115E
@@ -93,7 +104,6 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
   plots,[!x.crange[0],!x.crange[1]],[0.1433,0.1433]+3E*scaleH,color=mycol(['red']),linestyle=2
   plots,[!x.crange[0],!x.crange[1]],[0.1433,0.1433]-3E*scaleH,color=mycol(['red']),linestyle=2
         
-     
      
   prevXrange = !x.crange
   if keyword_set(showtheospec) then begin ;; show the theoretical transmission spectrum
@@ -125,6 +135,11 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
      readcol,file2,wavl2,wavl2size,rad2,rade2,skipline=1,format='(F,F,F)'
      ;; find the bin width
      wavlwidth2 = wavl2size/2E
+     if keyword_set(wavnum) then begin
+        wavlwidth = 1E4 / wavl^2 * wavlwidth
+        wavl = 1E4 / (wavl)
+     endif
+
      oploterror,wavl2,rad2,wavlwidth2,rade2,psym=3,$
                 color=colorchoices[i-1l]
      print,'Legend Name for data from file '+file2+' ?'
