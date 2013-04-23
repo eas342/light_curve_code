@@ -32,7 +32,7 @@ pro try_mcmc,psplot=psplot
   ;; start with parameters fixed and then modify
   pi[0].fixed = 0 ;; free the planet radius
   pi[2].fixed = 0 ;; free the linear limb darkening
-  pi[3].fixed = 0 ;; free the quadratic limb darkening
+;  pi[3].fixed = 0 ;; free the quadratic limb darkening
   pi[5].fixed = 0 ;; free the offset
   pi[6].fixed = 0 ;; free the linear coefficient
   pi[7].fixed = 0 ;; free the second Legendre coefficient
@@ -41,6 +41,7 @@ pro try_mcmc,psplot=psplot
   ;; Let the limb darkening, quadratic and cubic coefficient be negative
   pi[2].limited=[0,0]
   pi[3].limited=[0,0]
+  pi[6].limited=[0,0]
   pi[7].limited=[0,0]
   pi[8].limited=[0,0]
 
@@ -56,7 +57,7 @@ pro try_mcmc,psplot=psplot
   fileopt = file_search(currentd+'/data/cleaned_tim_ser/*.txt')
   totfiles = n_elements(fileopt)
 ;  for i=0l,n_elements(fileopt)-1l do begin
-  for i=3l,3l do begin
+  for i=1l,1l do begin
      trimst = strsplit(fileopt[i],'/',/extract)
      trimname = trimst(n_elements(trimst)-1l)
      namespl = strsplit(trimname,'_',/extract)
