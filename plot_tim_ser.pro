@@ -488,6 +488,9 @@ TsigRejCrit = 2.5D ;; sigma rejection criterion for time bins
            pi[0].limited = [1,1] ;; make sure Rp/R* is limited
            pi[0].limits = [0D,1D] ;; Keep Rp/R* between 0 and 1
            pi[5].fixed = 0 ;; make sure the flux ratio offset is free
+           ;; Let the limb darkening be + or -
+           pi[2].limited = [0,0]
+           pi[3].limited = [0,0]
            for i=6,10-1 do pi[i].limited = [0,0] ;; let the polynomial coefficients be + or -
 
            case 1 of 
@@ -512,9 +515,10 @@ TsigRejCrit = 2.5D ;; sigma rejection criterion for time bins
            result = mpfitexpr(expr,tplot,y,yerr,start,parinfo=pi,perr=punct)
            modelPts = 512l
            ntpoints = n_elements(tplot)
+           modelY = expression_eval(expr,tplot,result)
            modelX = findgen(modelPts)/(modelPts-1l) * (tplot[ntpoints-1] - tplot[0]) + tplot[0]
-           modelY = expression_eval(expr,modelX,result)
-           oplot,modelX,modelY,color=mycol('blue'),thick=2
+           modelY1 = expression_eval(expr,modelX,result)
+           oplot,modelX,modelY1,color=mycol('blue'),thick=2
 
            ;; save the planet radius and all data
            plrad[k] = result[0]
@@ -532,8 +536,6 @@ TsigRejCrit = 2.5D ;; sigma rejection criterion for time bins
                      linestyle=[0,0],color=mycol(['blue','orange']),$
                      thick=[2,2],/clear
            endif
-;           modelY = quadlc(tplot,result[0],result[1],result[2],result[3],result[4]) $
-;                   * (result[5] + phtest * result[6] + phtest^2 * result[7] + phtest^3 * result[8])
 
            if keyword_set(psplot) then begin
               device,/close
