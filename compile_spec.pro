@@ -1,7 +1,7 @@
 pro compile_spec,extraction2=extraction2,optimal=optimal,nwavbins=nwavbins,$
                  dec23=dec23,dec29=dec29,nyquist=nyquist,extremeRange=extremeRange,$
                  maskwater=maskwater,custRange=custRange,widewatermask=widewatermask,$
-                 cleanbyeye=cleanbyeye,shiftspec=shiftspec
+                 cleanbyeye=cleanbyeye,specshift=specshift
 ;; Compiles the spectra into a few simple arrays to look at the spectrophotometry
 ;; extraction2 -- uses whatever spectra are in the data directory
 ;; optimal -- uses the variance weighted (optimal) extraction
@@ -15,7 +15,7 @@ pro compile_spec,extraction2=extraction2,optimal=optimal,nwavbins=nwavbins,$
 ;; widewatermask -- increases the size of the water mask
 ;; cleanbyeye -- a shortened file list where I've removed the
 ;;               bad spectra by eye
-;; shiftspec -- use the shifting procedure where each specturm is
+;; specshift -- use the shifting procedure where each specturm is
 ;;                shifted w/ cross-correlation
 
 ;Nwavbins = 35 ;; number of wavelength bins
