@@ -96,8 +96,10 @@ TsigRejCrit = 2.5D ;; sigma rejection criterion for time bins
   ;; Prepare to save all the planet transit data as a function of wavelength
 ;  paramnames = ['Rp/R*','b_impact','u1','u2','a/R*','linearA','linearB','quadC','cubicD']
 ;  paramnames = ['Rp/R*','b_impact','u1','u2','a/R*','linearA','linearB','quadC','cubicD','quarticE']
-  paramnames = ['Rp/R*','b_impact','u1','u2','a/R*','linearA','linearB','quadC','cubicD',$
-                'quarticE','quinticD']
+  paramnames = ['Rp/R*','b_impact','u1','u2','a/R*','legendre0','legendre1','legendre2','legendre3',$
+                'legendre4','legendre5']
+  paramfiles = ['rad'  ,'b_impact','u1','u2','a','legendre0','legendre1','legendre2','legendre3',$
+                'legendre4','legendre5']
   nparams = n_elements(paramnames)
   resultarr = fltarr(nparams,nbin)*!values.f_nan
   resultarrE = resultarr
@@ -616,17 +618,27 @@ TsigRejCrit = 2.5D ;; sigma rejection criterion for time bins
        planetdat,fracPhotonarr,$
        filename='data/rmsdata.sav'
 
-  ;; Save the other light curve data
-  openw,1,'radius_vs_wavelength/fit_data.txt'
-  printf,1,'#Wavelength (um) ',format='(A12,$)'
+  ;; Save the parameters to file
   for j=0l,nparams-1l do begin
-     printf,1,paramnames[j],' Error',format='(A12,A12,$)'
+     forprint,bingridmiddle[*],binsizes,resultarr[j,*],resultarrE[j,*],$
+              textout='radius_vs_wavelength/fit_data/'+paramfiles[j]+'_vs_wavl.txt',$
+              comment=string('#Wavelength(um)','Binsize (um)',paramnames[j],'Error',$
+                             format='(4(A16))'),$
+              format='(4(G16.8))',/silent
+     
+  endfor
+  openw,1,'radius_vs_wavelength/fit_data.txt'
+  printf,1,'#Wavelength (um) ',format='(A16,$)'
+  printf,1,'Bin Size (um)',format='(A16,$)'
+  for j=0l,nparams-1l do begin
+     printf,1,paramnames[j],' Error',format='(A16,A16,$)'
   endfor
   printf,1,''
   for k=0l,nbin-1l do begin
-     printf,1,bingridmiddle[k],format='(F12.3,$)'
+     printf,1,bingridmiddle[k],format='(F16.8,$)'
+     printf,1,binsizes[k],format='(F16.8,$)'
      for j=0l,nparams-1l do begin
-        printf,1,resultarr[j,k],resultarrE[j,k],format='(F12.3,F12.3,$)'
+        printf,1,resultarr[j,k],resultarrE[j,k],format='(F16.8,F16.8,$)'
      endfor
      printf,1,''
   endfor
