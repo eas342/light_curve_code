@@ -1,7 +1,7 @@
 pro compile_spec,extraction2=extraction2,optimal=optimal,nwavbins=nwavbins,$
                  dec23=dec23,dec29=dec29,nyquist=nyquist,extremeRange=extremeRange,$
                  maskwater=maskwater,custRange=custRange,widewatermask=widewatermask,$
-                 cleanbyeye=cleanbyeye,specshift=specshift
+                 cleanbyeye=cleanbyeye,specshift=specshift,starshift=starshift
 ;; Compiles the spectra into a few simple arrays to look at the spectrophotometry
 ;; extraction2 -- uses whatever spectra are in the data directory
 ;; optimal -- uses the variance weighted (optimal) extraction
@@ -17,6 +17,7 @@ pro compile_spec,extraction2=extraction2,optimal=optimal,nwavbins=nwavbins,$
 ;;               bad spectra by eye
 ;; specshift -- use the shifting procedure where each specturm is
 ;;                shifted w/ cross-correlation
+;; starshift -- allows integer shifts of the host star vs reference star
 
 ;Nwavbins = 35 ;; number of wavelength bins
 ;Nwavbins = 9 ;; number of wavelength bins
@@ -150,6 +151,13 @@ endif
 ;; Find the photon erros
 ReadNarr = replicate(ReadN,Ngpts,Nap,Nfile)
 ErrGrid = nansqrt( flgrid + backgrid + readnarr^2 )
+
+;; Star Shift
+if n_elements(starshift) NE 0 then begin
+   xygrid = flgrid[*,1,*] ;; adjust the reference star
+   shiftedGrid = shift(xygrid,starshift)
+   flgrid[*,1,*] = shiftedGrid
+endif
 
 ;; Shift arrays
 if keyword_set(specshift) then begin
