@@ -154,8 +154,9 @@ ErrGrid = nansqrt( flgrid + backgrid + readnarr^2 )
 
 ;; Star Shift
 if n_elements(starshift) NE 0 then begin
-   xygrid = flgrid[*,1,*] ;; adjust the reference star
-   shiftedGrid = shift(xygrid,starshift)
+   xygrid = fltarr(Ngpts,nfile)
+   xygrid[*,*] = flgrid[*,1,*] ;; adjust the reference star
+   shiftedGrid = shift_interp(xygrid,starshift)
    flgrid[*,1,*] = shiftedGrid
 endif
 
