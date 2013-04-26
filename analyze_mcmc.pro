@@ -53,7 +53,7 @@ pro analyze_mcmc,psplot=psplot,$
      endif
      plot,xhist,yhist,$
           xtitle=parnames[pInd],psym=10,$
-          charsize=2,xmargin=[5,3],xticks=1,yticks=1,$
+          charsize=2,xmargin=[5,5],xticks=1,yticks=1,$
           yrange=[0,max(yhist)],ystyle=1,xrange=[min(xhist),max(xhist)],$
           xstyle=1,ymargin=[4,1.5],$
           xminor=5,xticklen=0.05,ytitle='Counts',ytickname=''
