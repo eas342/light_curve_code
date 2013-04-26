@@ -1,7 +1,8 @@
 pro compile_spec,extraction2=extraction2,optimal=optimal,nwavbins=nwavbins,$
                  dec23=dec23,dec29=dec29,nyquist=nyquist,extremeRange=extremeRange,$
                  maskwater=maskwater,custRange=custRange,widewatermask=widewatermask,$
-                 cleanbyeye=cleanbyeye,specshift=specshift,starshift=starshift
+                 cleanbyeye=cleanbyeye,specshift=specshift,starshift=starshift,$
+                 custmask=custmask
 ;; Compiles the spectra into a few simple arrays to look at the spectrophotometry
 ;; extraction2 -- uses whatever spectra are in the data directory
 ;; optimal -- uses the variance weighted (optimal) extraction
@@ -18,6 +19,8 @@ pro compile_spec,extraction2=extraction2,optimal=optimal,nwavbins=nwavbins,$
 ;; specshift -- use the shifting procedure where each specturm is
 ;;                shifted w/ cross-correlation
 ;; starshift -- allows integer shifts of the host star vs reference star
+;; custmask -- creates a custom max over a specified wavelength rage
+;;             such as [1.45,1.55]
 
 ;Nwavbins = 35 ;; number of wavelength bins
 ;Nwavbins = 9 ;; number of wavelength bins
@@ -121,13 +124,15 @@ badp = where(flgrid LE 0)
 flgrid[badp] = !values.f_nan
 
 ;; Mask water if asked to
-if keyword_set(maskwater) or keyword_set(widewatermask) then begin
+if keyword_set(maskwater) or keyword_set(widewatermask) or n_elements(custmask) NE 0 then begin
    if keyword_set(maskwater) then begin
       waterFirst=[1.34,1.37]
    endif else begin
-;      waterFirst=[1.33,1.42]
+      if keyword_set(widewatermask) then waterFirst=[1.33,1.42] else begin
+         waterFirst = custmask
+      endelse
 ;      waterFirst=[1.30,1.48]
-      waterFirst=[1.30,1.50]
+;      waterFirst=[1.30,1.50]
    endelse
    watermask = where(lamgrid GT waterFirst[0] and lamgrid LE waterFirst[1])
    for i=0l,nfile-1l do begin
