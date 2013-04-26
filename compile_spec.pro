@@ -152,13 +152,12 @@ endif
 ReadNarr = replicate(ReadN,Ngpts,Nap,Nfile)
 ErrGrid = nansqrt( flgrid + backgrid + readnarr^2 )
 
-;; Star Shift
-if n_elements(starshift) NE 0 then begin
-   xygrid = fltarr(Ngpts,nfile)
-   xygrid[*,*] = flgrid[*,1,*] ;; adjust the reference star
-   shiftedGrid = shift_interp(xygrid,starshift)
-   flgrid[*,1,*] = shiftedGrid
-endif
+;; Star Shift, the default is to move the reference star by -1 pixel
+if n_elements(starshift) EQ 0 then starshift = -1
+xygrid = fltarr(Ngpts,nfile)
+xygrid[*,*] = flgrid[*,1,*] ;; adjust the reference star
+shiftedGrid = shift_interp(xygrid,starshift)
+flgrid[*,1,*] = shiftedGrid
 
 ;; Shift arrays
 if keyword_set(specshift) then begin
