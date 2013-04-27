@@ -21,4 +21,7 @@ transit_info/utc2bjd.pro
 data/cleaned_tim_ser/*.txt
 data/mcmc/param_unc/*.txt
 data/mcmc/*.sav
-
+molec_inputs/*bin_locations.txt
+molec_inputs/*.eps
+molec_inputs/*.png
+molec_inputs/*.pdf
