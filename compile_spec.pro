@@ -2,7 +2,7 @@ pro compile_spec,extraction2=extraction2,optimal=optimal,nwavbins=nwavbins,$
                  dec23=dec23,dec29=dec29,nyquist=nyquist,extremeRange=extremeRange,$
                  maskwater=maskwater,custRange=custRange,widewatermask=widewatermask,$
                  cleanbyeye=cleanbyeye,specshift=specshift,starshift=starshift,$
-                 custmask=custmask
+                 custmask=custmask,molecbin=molecbin
 ;; Compiles the spectra into a few simple arrays to look at the spectrophotometry
 ;; extraction2 -- uses whatever spectra are in the data directory
 ;; optimal -- uses the variance weighted (optimal) extraction
@@ -21,6 +21,7 @@ pro compile_spec,extraction2=extraction2,optimal=optimal,nwavbins=nwavbins,$
 ;; starshift -- allows integer shifts of the host star vs reference star
 ;; custmask -- creates a custom max over a specified wavelength rage
 ;;             such as [1.45,1.55]
+;; molecbin -- bins the spectra for a given molecule instead of a grid
 
 ;Nwavbins = 35 ;; number of wavelength bins
 ;Nwavbins = 9 ;; number of wavelength bins
@@ -216,41 +217,91 @@ endif else begin
    endelse
 endelse
 ;; These are the starts of the bins (not the middles)
-binGrid = (EndWav - StartWav) * findgen(Nwavbins)/float(Nwavbins) + $
-          StartWav
-binsizes = fltarr(Nwavbins) + (EndWav - StartWav)/float(Nwavbins)
+if keyword_set(molecbin) then begin
+   Nwavbins = 2 ;; in the molecule and outside the molecule
+   molecule='C2H2'
+   readcol,'molec_inputs/C2H2_bin_locations.txt',molecStarts,molecEnds,$
+           skipline=1,format='(F,F)'
+   nmolecWavs = n_elements(molecStarts)
+   for i=0l,nmolecWavs-1l do begin ;; collect wavelengths
+      molecP = where(lamgrid GT molecStarts[i] and lamgrid LE molecEnds[i])
+      if molecP NE [-1] then begin
+         if n_elements(molecInd) EQ 0 then molecInd = molecP else begin
+            molecInd = [molecInd,molecP]
+         endelse
+      endif
+   endfor
+   ;; Find the complement
+   byteTest = bytarr(Ngpts)
+   byteTest[molecInd] = 1
+   outmolec = where(byteTest EQ 0)
 
-if keyword_set(nyquist) then begin
-   assert,Nwavbins,'>',1,"Warning, must be more than 1 bin for Nyquist sample"
-   ;; find the bins in between with same bin width
-   InbetweenBins = BinGrid[lindgen(Nwavbins-1l)] + binsizes[lindgen(Nwavbins-1l)]/2E
-   InbetweenSizes = binsizes[lindgen(Nwavbins-1l)]
-   ;; increase the number of bins
-   Nwavbins = Nwavbins * 2l - 1l
-   binsizes = [binsizes,InbetweenSizes]
-   combinedGrid = [binGrid,InbetweenBins]
-   binGrid = combinedGrid[sort(combinedGrid)]
-endif
+   ;; collect the bins
+   binGrid = [1E,2E]
+   binsizes = [0.3E,0.3E]
+   binNames = ['In '+molecule,'Out '+molecule]
+endif else begin
+   binGrid = (EndWav - StartWav) * findgen(Nwavbins)/float(Nwavbins) + $
+             StartWav
+   binsizes = fltarr(Nwavbins) + (EndWav - StartWav)/float(Nwavbins)
+   
+   if keyword_set(nyquist) then begin
+      assert,Nwavbins,'>',1,"Warning, must be more than 1 bin for Nyquist sample"
+      ;; find the bins in between with same bin width
+      InbetweenBins = BinGrid[lindgen(Nwavbins-1l)] + binsizes[lindgen(Nwavbins-1l)]/2E
+      InbetweenSizes = binsizes[lindgen(Nwavbins-1l)]
+      ;; increase the number of bins
+      Nwavbins = Nwavbins * 2l - 1l
+      binsizes = [binsizes,InbetweenSizes]
+      combinedGrid = [binGrid,InbetweenBins]
+      binGrid = combinedGrid[sort(combinedGrid)]
+   endif
+endelse
 
 binfl = fltarr(Nwavbins,nfile) ;; binned flux ratio
 binflE = fltarr(Nwavbins,nfile)
 binind = fltarr(Nwavbins,Nap,nfile) ;; individual binned fluxes
 binindE = fltarr(Nwavbins,Nap,nfile)
 
-for i=0,nfile-1 do begin
-   y = avg_series(lamgrid,Divspec[*,0,i],SNR[*,0,i],binGrid,binsizes,weighted=1,$
-                  oreject=sigRejCrit,eArr=yerr,/silent,errIn=divSpecE[*,0,i])
-   binfl[*,i] = y
-   binflE[*,i] = yerr
-
-   for k=0,Nap-1 do begin
-      y2 = avg_series(lamgrid,flgrid[*,k,i],flgrid[*,k,i]/Errgrid[*,k,i],binGrid,$
-                      binsizes,weighted=1,$
-                      oreject=sigRejCrit,eArr=yerr2,/silent,errIn=Errgrid[*,k,i])
-      binind[*,k,i] = y2
-      binindE[*,k,i] = yerr2
+if keyword_set(molecbin) then begin
+   for i=0l,nfile-1l do begin
+;      binfl[0,i] = 
+;      binflE[*,i] = robust_sigma(Divspec
+      if total(finite(Divspec[molecInd,0,i])) GT 5 then begin
+         resistant_mean,Divspec[molecInd,0,i],10,mean1
+         binfl[0,i] = mean1
+         binflE[0,i] = robust_sigma(Divspec[molecInd,0,i])
+         resistant_mean,Divspec[outmolec,0,i],10,mean2
+         binfl[1,i] = mean2
+         binflE[1,i] = robust_sigma(Divspec[molecInd,0,i])
+      endif
+      for k=0l,Nap-1l do begin
+         if total(finite(flgrid[molecInd,k,i])) GT 5 then begin
+            resistant_mean,flgrid[molecInd,k,i],10,mean1
+            binind[0,k,i] = mean1
+            binindE[0,k,i] = robust_sigma(flgrid[molecInd,k,i])
+            resistant_mean,flgrid[outmolec,k,i],10,mean2
+            binind[1,k,i] = mean2
+            binindE[1,k,i] = robust_sigma(flgrid[outmolec,k,i])
+         endif
+      endfor
    endfor
-endfor
+endif else begin
+   for i=0,nfile-1 do begin
+      y = avg_series(lamgrid,Divspec[*,0,i],SNR[*,0,i],binGrid,binsizes,weighted=1,$
+                     oreject=sigRejCrit,eArr=yerr,/silent,errIn=divSpecE[*,0,i])
+      binfl[*,i] = y
+      binflE[*,i] = yerr
+      
+      for k=0,Nap-1 do begin
+         y2 = avg_series(lamgrid,flgrid[*,k,i],flgrid[*,k,i]/Errgrid[*,k,i],binGrid,$
+                         binsizes,weighted=1,$
+                         oreject=sigRejCrit,eArr=yerr2,/silent,errIn=Errgrid[*,k,i])
+         binind[*,k,i] = y2
+         binindE[*,k,i] = yerr2
+      endfor
+   endfor
+endelse
 
 
 if keyword_set(psplot) then begin
