@@ -317,8 +317,8 @@ TsigRejCrit = 2.5D ;; sigma rejection criterion for time bins
               keyword_set(fullrange): ydynam = [0,0]
               keyword_set(oneprange): ydynam = [0,1]
               keyword_set(differential): begin
-                 ylowerL = y[sorty[ceil(5E/100E*float(ylength))]] * 0.99
-                 yUpperL = y[sorty[floor(95E/100E*float(ylength))]] * 1.01
+                 ylowerL = y[sorty[ceil(5E/100E*float(ylength))]] * 0.999
+                 yUpperL = y[sorty[floor(95E/100E*float(ylength))]] * 1.002
                  ydynam = [ylowerL,yUpperL]
               end
               else: begin
