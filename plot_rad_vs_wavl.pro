@@ -1,7 +1,8 @@
 pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
                      nbins=nbins,custfile=custfile,$
                      showtheospec=showtheospec,choosefile=choosefile,$
-                     totsets=totsets,wavnum=wavnum
+                     totsets=totsets,wavnum=wavnum,custXrange=custXrange,$
+                     showOptical=showOptical,custYrange=custYrange
 ;;psplot -- saves a postscript plot
 ;;showstarspec -- shows a star spectrum on the same plot
 ;;nbins -- number of points bo bin in Rp/R*
@@ -11,6 +12,9 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
 ;;totsets -- optional keyword to specify the number of total sets of
 ;;           data to over-plot (eliminates the old additionalfile keyword)
 ;;wavnum -- changes the units on wavelength to wavenumber
+;;custXrange -- set a custom range for the plot instead of defualt
+;;showOptical -- show the optical transit radius
+;;custYrange -- set a custom range fot eh plot instead of default
 
   !x.margin = [13,14]
   ;; set the plot
@@ -84,12 +88,15 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
      myxrange = [0.8,2.55]
   endelse
 
+  if n_elements(custXrange) NE 0 then myXrange=custXrange
+  if n_elements(custYrange) EQ 0 then custYrange=[0.12,0.17]
+
   plot,wavl,rad,$
        xtitle=myxtitle,$
        ytitle='Rp/R*',$
 ;       ystyle=16,xstyle=1,$
        ystyle=ytempstyle,xstyle=1,xrange=myxrange,$
-       yrange=[0.12,0.17],/nodata
+       yrange=custYrange,/nodata
 ;       yrange=[0.12,0.16],/nodata
 ;  oploterror,wavl,rad,rade
 
@@ -109,8 +116,24 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
   if keyword_set(showtheospec) then begin ;; show the theoretical transmission spectrum
      readcol,'../models/fortney_g10mps_2500K_isothermal.csv',theowav,theorad,$
              skipline=6,format='(F,F)'
-     radToPlanet = 0.1037E ;; found by eye to get the approximate Corot bandpass correctly
+     radToPlanet = 0.102E ;; found by eye to get the approximate Corot bandpass correctly
      oplot,theowav,theorad *radToPlanet,color=mycol('blue')
+
+     ntheo=n_elements(theorad)
+     ;; Bin model over wavelenght ranges
+     binModel = avg_series(theowav,theorad*radToPlanet,fltarr(ntheo)+0.2E,wavl-wavlwidth/2E,wavlwidth,weighted=0)
+     oplot,wavl,binModel,psym=2,color=mycol('blue'),symsize=2
+
+     if keyword_set(showOptical) then begin
+        ;; Show the Bean 2009 result if asked to
+        CorRad = 0.1433 ;;Rp/R*
+        CorErr = 0.0010
+        CorWav = 0.65 ;; microns, approximately
+        CorWid = 0.20 ;; microns, approx
+        binModel2 = avg_series(theowav,theorad*radToPlanet,fltarr(ntheo)+0.2E,CorWav-CorWid/2E,CorWid,weighted=0)
+        oplot,[CorWav],[binModel2],psym=2,color=mycol('blue'),symsize=2
+        oploterror,CorWav,CorRad,CorWid,CorErr,color=mycol('red'),psym=3
+     endif
   endif
 
   ;; if undefined, only show one set of data
