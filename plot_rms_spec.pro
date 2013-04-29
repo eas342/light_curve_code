@@ -41,7 +41,10 @@ pro plot_rms_spec,psplot=psplot,tryclean=tryclean,saveclean=saveclean,$
   cleanedcurve = fltarr(nwavs,ntime)
   cleanfactor = 4E
   for i=0l,nwavs-1l do begin
-     sigarray[i] = robust_sigma(divbycurve[i,0,*])/median(divbycurve[i,0,*])
+     goodp = where(finite(divbycurve[i,0,*]) EQ 1,ngoodp)
+     if ngoodp GE 10 then begin
+        sigarray[i] = robust_sigma(divbycurve[i,0,*])/median(divbycurve[i,0,*])
+     endif else sigarray[i] = !values.f_nan
   endfor
 
   if keyword_set(tryclean) or keyword_set(removelinear) then begin
