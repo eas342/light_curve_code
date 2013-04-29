@@ -25,3 +25,4 @@ molec_inputs/*bin_locations.txt
 molec_inputs/*.eps
 molec_inputs/*.png
 molec_inputs/*.pdf
+data/shift_data/shift_vals_from_arc.txt
