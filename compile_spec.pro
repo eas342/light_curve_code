@@ -2,7 +2,7 @@ pro compile_spec,extraction2=extraction2,optimal=optimal,nwavbins=nwavbins,$
                  dec23=dec23,dec29=dec29,nyquist=nyquist,extremeRange=extremeRange,$
                  maskwater=maskwater,custRange=custRange,widewatermask=widewatermask,$
                  cleanbyeye=cleanbyeye,specshift=specshift,starshift=starshift,$
-                 custmask=custmask,molecbin=molecbin
+                 custmask=custmask,molecbin=molecbin,trystraight=trystraight
 ;; Compiles the spectra into a few simple arrays to look at the spectrophotometry
 ;; extraction2 -- uses whatever spectra are in the data directory
 ;; optimal -- uses the variance weighted (optimal) extraction
@@ -22,6 +22,8 @@ pro compile_spec,extraction2=extraction2,optimal=optimal,nwavbins=nwavbins,$
 ;; custmask -- creates a custom max over a specified wavelength rage
 ;;             such as [1.45,1.55]
 ;; molecbin -- bins the spectra for a given molecule instead of a grid
+;; trystraight -- analyzes the spectra extracted from rectified
+;;                straightened data instead of curved dispersed images
 
 ;Nwavbins = 35 ;; number of wavelength bins
 ;Nwavbins = 9 ;; number of wavelength bins
@@ -61,6 +63,10 @@ endif else begin
       else: readcol,'file_lists/full_speclist.txt',filen,format='(A)'
    endcase
 endelse
+
+if keyword_set(trystraight) then begin
+   readcol,'file_lists/corot1_jan_04_all_rectified.txt',filen,format='(A)'
+endif
 nfile = n_elements(filen)
 
 ;; Get the detector info
