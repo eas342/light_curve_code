@@ -6,7 +6,7 @@ pro plot_tim_ser,fitcurve=fitcurve,fitpoly=fitpoly,usepoly=usepoly,makestops=mak
                  timebin=timebin,offreject=offreject,showclipping=showclipping,$
                  errorDistb=errorDistb,colorclip=colorclip,quadfit=quadfit,legorder=legorder,$
                  fixrad=fixrad,freelimblin=freelimblin,showDiffAirmass=showDiffairmass,$
-                 normalize=normalize,showNomRad=showNomRad
+                 normalize=normalize,showNomRad=showNomRad,fixoffset=fixoffset
 ;; plots the binned data as a time series and can also fit the Rp/R* changes
 ;; apPlot -- this optional keyword allows one to choose the aperture
 ;;           to plot
@@ -46,6 +46,7 @@ pro plot_tim_ser,fitcurve=fitcurve,fitpoly=fitpoly,usepoly=usepoly,makestops=mak
 ;; legorder -- fits a legorder order Legendre polynomial baseline
 ;; fixrad -- fixes the planet radius to see if limb darkening can do
 ;;           it all
+;; fixoffset -- fixes the out of transit flux at a constant value
 ;; freelimblin -- frees only the linear limb darkening coefficient
 ;; normalize -- normalizes the flux by the off transits points
 ;; showNomRad -- shows the transit curve with the nominal radius
@@ -489,7 +490,8 @@ TsigRejCrit = 2.5D ;; sigma rejection criterion for time bins
            endif
            pi[0].limited = [1,1] ;; make sure Rp/R* is limited
            pi[0].limits = [0D,1D] ;; Keep Rp/R* between 0 and 1
-           pi[5].fixed = 0 ;; make sure the flux ratio offset is free
+           ;; make sure the flux ratio offset is free
+           if not keyword_set(fixoffset) then pi[5].fixed = 0 
            ;; Let the limb darkening be + or -
            pi[2].limited = [0,0]
            pi[3].limited = [0,0]
