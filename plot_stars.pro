@@ -112,13 +112,17 @@ pro plot_stars,psplot=psplot,tryclean=tryclean,saveclean=saveclean,$
 
   if keyword_set(flatten) then begin
      myYrange = [0.4,1.5]
-  endif else myYrange=[0,max(yhost)*1.3]
+     myYtitle='Normalized Flux + Offset'
+  endif else begin
+     myYrange=[0,max(yhost)*1.3]
+     myYtitle='Flux (e!E-!N)'
+  endelse
 
   if n_elements(custXrange) EQ 0 then custXrange = [0,0]
 
   plot,lamgrid[goodp],yhost,$
        xtitle='Wavelength (um)',$
-       ytitle='Flux (e!E-!N)',$
+       ytitle=myYtitle,$
        yrange=myYrange,xrange=custXrange
 ;,xrange=[5600,6600],xstyle=1
 ;,ystyle=16;,xrange=[1.15,1.35]
