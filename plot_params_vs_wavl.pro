@@ -31,16 +31,22 @@ pro plot_params_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
   case 1 of
      keyword_set(custfile): radfile=custfile
      keyword_set(choosefile): begin
-        radfile = choose_file(searchDir='radius_vs_wavelength',$
+        radfile = choose_file(searchDir='radius_vs_wavelength/fit_data',$
                               filetype='.txt')
         ;; Search the radius_vs_wavlength directory for .txt files
      end
      else: radfile='radius_vs_wavelength/fit_data/u1_vs_wavl.txt'
   endcase
 
+  ;; Find the parameter name
+  fdirsplit = strsplit(radfile,'/',/extract,count=stringCt)
+  fname = fdirsplit[stringCt-1l]
+  fnamesplit = strsplit(fname,'_vs_',/extract,count=stringCt)
+  paramname = fnamesplit[0]
+
   readcol,radfile,wavl,wavlsize,rad,rade,skipline=1,forma='(F)'
 
-  if keyword_set(showstarspec) then ytempstyle=8 else ytempstyle=0
+  if keyword_set(showstarspec) then ytempstyle=8+1 else ytempstyle=0+1
 
   binsizes = wavlsize
 
@@ -86,7 +92,7 @@ pro plot_params_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
 
   plot,wavl,rad,$
        xtitle=myxtitle,$
-       ytitle='Rp/R*',$
+       ytitle=paramname,$
 ;       ystyle=16,xstyle=1,$
        ystyle=ytempstyle,xstyle=1,xrange=myxrange,$
        /nodata
@@ -101,9 +107,9 @@ pro plot_params_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
   ;; adopted Rp/R* from Jacob Bean et al. 2012
   scaleH = 0.00115E
 ;  scaleH = 0.00115E * 2E
-  plots,[!x.crange[0],!x.crange[1]],[0.1433,0.1433],color=mycol(['red'])
-  plots,[!x.crange[0],!x.crange[1]],[0.1433,0.1433]+3E*scaleH,color=mycol(['red']),linestyle=2
-  plots,[!x.crange[0],!x.crange[1]],[0.1433,0.1433]-3E*scaleH,color=mycol(['red']),linestyle=2
+;  plots,[!x.crange[0],!x.crange[1]],[0.1433,0.1433],color=mycol(['red'])
+;  plots,[!x.crange[0],!x.crange[1]],[0.1433,0.1433]+3E*scaleH,color=mycol(['red']),linestyle=2
+;  plots,[!x.crange[0],!x.crange[1]],[0.1433,0.1433]-3E*scaleH,color=mycol(['red']),linestyle=2
         
      
   prevXrange = !x.crange
