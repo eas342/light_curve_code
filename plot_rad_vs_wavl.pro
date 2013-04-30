@@ -2,7 +2,8 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
                      nbins=nbins,custfile=custfile,$
                      showtheospec=showtheospec,choosefile=choosefile,$
                      totsets=totsets,wavnum=wavnum,custXrange=custXrange,$
-                     showOptical=showOptical,custYrange=custYrange
+                     showOptical=showOptical,custYrange=custYrange,$
+                     powerErr=powerErr,multErr=multErr
 ;;psplot -- saves a postscript plot
 ;;showstarspec -- shows a star spectrum on the same plot
 ;;nbins -- number of points bo bin in Rp/R*
@@ -15,6 +16,8 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
 ;;custXrange -- set a custom range for the plot instead of defualt
 ;;showOptical -- show the optical transit radius
 ;;custYrange -- set a custom range fot eh plot instead of default
+;;powerErr -- takes all radius errors to a specified power
+;;multErr -- takes all radius errors and multiples by a specified constant
 
   !x.margin = [13,14]
   ;; set the plot
@@ -43,6 +46,9 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
   endcase
 
   readcol,radfile,wavl,wavlsize,rad,rade,skipline=1,format='(F,F,F)'
+
+  if n_elements(powerErr) NE 0 then rade = rade^(powerErr)
+  if n_elements(multErr) NE 0 then rade = rade * multErr
 
   if keyword_set(showstarspec) then ytempstyle=8 else ytempstyle=1
 
