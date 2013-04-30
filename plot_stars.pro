@@ -1,7 +1,7 @@
 pro plot_stars,psplot=psplot,tryclean=tryclean,saveclean=saveclean,$
                   removelinear=removelinear,scalephoton=scalephoton,$
                flatten=flatten,smoothtemp=smoothtemp,choose1=choose1,$
-               divide=divide,wavenum=wavenum
+               divide=divide,wavenum=wavenum,custXrange=custXrange
 ;; Plots the reference star and planet host
 ;; spectrum
 ;; psplot -- makes a postscript plot of the RMS spectrum
@@ -15,6 +15,8 @@ pro plot_stars,psplot=psplot,tryclean=tryclean,saveclean=saveclean,$
 ;; choose1 -- plots a single spectrum (instead of the median)
 ;; divide -- divides the stellar host by reference star
 ;; wavnum -- converts wavelength to wave number (cm^-1)
+;; custXrange -- allows you to input a custom X range instead of the
+;;               full
 
   ;; set the plot
   if keyword_set(psplot) then begin
@@ -112,10 +114,12 @@ pro plot_stars,psplot=psplot,tryclean=tryclean,saveclean=saveclean,$
      myYrange = [0.4,1.5]
   endif else myYrange=[0,max(yhost)*1.3]
 
+  if n_elements(custXrange) EQ 0 then custXrange = [0,0]
+
   plot,lamgrid[goodp],yhost,$
        xtitle='Wavelength (um)',$
        ytitle='Flux (e!E-!N)',$
-       yrange=myYrange,xrange=[2.2,2.5]
+       yrange=myYrange,xrange=custXrange
 ;,xrange=[5600,6600],xstyle=1
 ;,ystyle=16;,xrange=[1.15,1.35]
 ;,xrange=[1.45,1.75]
