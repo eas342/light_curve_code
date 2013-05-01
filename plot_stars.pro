@@ -1,7 +1,8 @@
 pro plot_stars,psplot=psplot,tryclean=tryclean,saveclean=saveclean,$
                   removelinear=removelinear,scalephoton=scalephoton,$
                flatten=flatten,smoothtemp=smoothtemp,choose1=choose1,$
-               divide=divide,wavenum=wavenum,custXrange=custXrange
+               divide=divide,wavenum=wavenum,custXrange=custXrange,$
+               showTelluric=showTelluric
 ;; Plots the reference star and planet host
 ;; spectrum
 ;; psplot -- makes a postscript plot of the RMS spectrum
@@ -100,7 +101,7 @@ pro plot_stars,psplot=psplot,tryclean=tryclean,saveclean=saveclean,$
 
   multfac = 0.42E
 ;; Only show finite data, skip NANs
-  goodp = where(finite(hostspec) EQ 1 and finite(refspec) EQ 1)
+  goodp = where(finite(hostspec) EQ 1 and finite(refspec) EQ 1 and lamgrid LT 2.47)
 
   yhost = hostspec[goodp]
   yref = refspec[goodp] * multfac
@@ -139,7 +140,11 @@ pro plot_stars,psplot=psplot,tryclean=tryclean,saveclean=saveclean,$
 
   reftext = 'Ref Star'
   if not keyword_set(flatten) then reftext = reftext + ' * '+string(multfac,format='(F8.4)')
-  legend,['Host Star',reftext,'G0 V Template'],$
+  if keyword_set(showtelluric) then begin
+     name3 = 'Library Telluric Transmission'
+  endif else name3 = 'G0 V Template'
+
+  legend,['Host Star',reftext,name3],$
          color=mycol(['black','blue','red']),/right,linestyle=[0,3,4]
 
   ;; Read in a stellar template and over-plot
@@ -161,7 +166,9 @@ pro plot_stars,psplot=psplot,tryclean=tryclean,saveclean=saveclean,$
   
   if n_elements(smoothtemp) NE 0 then ytemp = smooth(ytemp,smoothtemp)
 
-  oplot,tempwavl[goodp],ytemp,color=mycol('red'),linestyle=4 ;* tempwavl^(1/2)
+  if not keyword_set(showtelluric) then begin
+     oplot,tempwavl[goodp],ytemp,color=mycol('red'),linestyle=4 ;* tempwavl^(1/2)
+  endif
 
   
 
@@ -173,6 +180,12 @@ pro plot_stars,psplot=psplot,tryclean=tryclean,saveclean=saveclean,$
 ;  oplot,tempwavl[goodp],smooth(ytemp,tempsmooth),color=mycol('green')
 ;  oplot,tempwavl[goodp],ytemppoly,color=mycol('green')
 
+  if keyword_set(showTelluric) then begin
+     restore,'data/telluric/mauna_kea_trans_gemini.sav'
+     ;; Interpolate the 
+     plot,wavlt,smooth(trans,2000),/noerase,xstyle=4+1,ystyle=4,color=mycol('red'),xrange=!x.crange,$
+          yrange=[0,2]
+  endif
 
   if keyword_set(psplot) then begin
      device, /close
@@ -182,48 +195,6 @@ pro plot_stars,psplot=psplot,tryclean=tryclean,saveclean=saveclean,$
      set_plot,'x'
      !p.font=-1
   endif
-
-  if keyword_set(tryclean) then begin
-;     wait,1
-     
-     ;; Make a special broadband light curve
-     specialpt = where(sigarray LT 0.01,nspecial)
-
-     ;; Weight the points by the rms
-;     weights=1/sigarray^2
-     weights=1/sigarray^2
-     ;; discount wavelengths and/or pixels that vary wildly
-;     badp = where(sigarray GT 0.01 OR lamgrid LT 0.87 OR lamgrid GT 2.4)
-;     badp = where(sigarray GT 0.20)
-     if badp NE [-1] then weights[badp] = 0.0E
-     weightsCopy = rebin(weights,nwavs,ntime)
-     ;; Set all non-finite values of the cleaned curve to have NANS in the weights
-     nonfinite = where(finite(cleanedcurve) EQ 0)
-     weightsCopy[nonfinite] = !values.f_nan
-     ;; weighted sum normalized by the weights for that spectrum
-     ;; this accounts for missing data (that has NANs)
-     combinedpt = total(cleanedcurve * weightsCopy,1,/nan)/total(weightsCopy,1,/nan)
-     
-     
-
-     combinedpt2 = total(cleanedcurve[specialpt,*],1)/float(nspecial)
-     plot,tplot,combinedpt2,ystyle=16,psym=4
-;     plot,tplot,combinedpt2,ystyle=16,psym=4,yrange=[0.40,0.45]
-;     oplot,tplot,combinedpt+0.01,psym=5,color=mycol('green')
-;     plot,tplot,combinedpt,psym=5,color=mycol('green'),ystyle=16
-
-
-     ;try out straight avg over wavelength range
-     goodrange = where(lamgrid GE 0.9 and lamgrid LT 2.4,ngoodrange)
-     combinedpt2 = total(cleanedcurve[goodrange,*],1)/float(ngoodrange)
-
-;     plot,tplot,combinedpt2,ystyle=16,psym=4
-;
-     if keyword_set(saveclean) then begin
-        
-     endif
-  endif
-
 
 
 end
