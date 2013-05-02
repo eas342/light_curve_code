@@ -1,9 +1,13 @@
-pro find_shift_values,discreet=discreet,showfits=showfits,psplot=psplot
+pro find_shift_values,discreet=discreet,showfits=showfits,psplot=psplot,$
+                      dec23=dec23
 ;; Straightens A Spectrum so that the X direction is wavelength
 ;; discreet - only move by discreet steps
 ;; showfits -- shows the fits to cross-correlations
+;; dec23 -- looks at the Dec 23 data
 
-img = mrdfits('../IRTF_UT2012Jan04/proc/bigdog/masterarc.fits',0,origHeader)
+if keyword_set(dec23) then begin
+   img = mrdfits('../IRTF_UT2011Dec23/proc/bigdog/masterarc.fits',0,origHeade)
+endif else img = mrdfits('../IRTF_UT2012Jan04/proc/bigdog/masterarc.fits',0,origHeader)
 
 imgSize = size(img)
 NX = imgSize[1]
@@ -42,7 +46,7 @@ for i=0l,NY-1l do begin
       fitExpr = 'P[0] * SinC(P[1] * (X -P[2])) + P[3] + P[4] *  EXP(-0.5E * ((X - P[2])/P[5])^2)'
 ;      fitExpr = 'P[0] * SinC(P[1] * (X -P[2])) * P[4] * EXP(-0.5E * ((X - P[2])/P[5])^2) + P[3]'
 ;      fitExpr = 'P[0] * SinC(P[1] * (X -P[2])) + P[3] + P[4] * X + P[5] * X^2
-      startParams = [1,0.3,0,8,0,3]
+      startParams = [1,0.3,5,8,0,3]
 
 ;      fitExpr = 'P[0] * SinC(P[1] * (X -P[2]))'
 ;      startParams = [1,0.3,0]
@@ -62,7 +66,7 @@ for i=0l,NY-1l do begin
       shiftarray[i] = -result[2]
    endelse
 
-   if i EQ 100 and keyword_set(showfits) then begin
+   if i GE 120 and keyword_set(showfits) then begin
       plot,lagarray,crosscor,ystyle=16,$
            xtitle='Lag (px)',ytitle='Cross Correlation'
       oplot,[-shiftarray[i],-shiftarray[i]],!y.crange,color=mycol('red')
@@ -71,6 +75,7 @@ for i=0l,NY-1l do begin
          oplot,lagarray,expression_eval(fitExpr,lagarray,result),color=mycol('blue')
 ;         plot,img[*,i],/noerase,xstyle=4,ystyle=4
       endif
+      stop
    endif
 
 endfor
@@ -111,7 +116,9 @@ if keyword_set(psplot) then begin
    !p.font=-1
 endif
 
-
-writefits,'../IRTF_UT2012Jan04/proc/bigdog_rectified/masterarc_cross_shift.fits',recimg,origHeader
+if keyword_set(dec23) then begin
+   outFitsNm = '../IRTF_UT2011Dec23/proc/bigdog_rectified/masterarc.fits'
+endif else outFitsNm = '../IRTF_UT2012Jan04/proc/bigdog_rectified/masterarc_cross_shift.fits'
+writefits,outFitsNm,recimg,origHeader
 
 end
