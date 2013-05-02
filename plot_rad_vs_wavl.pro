@@ -199,6 +199,7 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
      set_plot,'x'
      !p.font=-1
   endif
+  !x.margin = [10.0,3.0]
 
 end  
   
