@@ -174,10 +174,18 @@ flgrid[*,1,*] = shiftedGrid
 ;; Shift arrays
 if keyword_set(specshift) then begin
    ;; Align the stars within their bins
+   
+   if keyword_set(trystraight) then begin
+      ;; since the straightend spec has some weird properties above
+      ;; 2.47um because of shifting spectra, mask those out
+      badp = where(lamgrid GT 2.47)
+      flgrid[badp,*,*] = !values.f_nan
+   endif
+
    for i=0l,Nap-1l do begin
       xyspec = fltarr(Ngpts,nfile)
       xyspec[*,*] = flgrid[*,i,*]
-      ShiftedGrid1 = find_shifts(xyspec)
+      ShiftedGrid1 = find_shifts(xyspec,/cutEnds)
       flgrid[*,i,*] = ShiftedGrid1
    endfor
 
