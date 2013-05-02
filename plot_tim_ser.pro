@@ -373,7 +373,7 @@ TsigRejCrit = 2.5D ;; sigma rejection criterion for time bins
         if keyword_set(individual) then begin
            oplot,tplot,y2,psym=4,color=mycol('blue')
            legend,['Planet Host','Reference Star X '+strtrim(reffactor,1)],$
-                  psym=[2,4],color=mycol(['black','blue']),$
+                  psym=[4,4],color=mycol(['black','blue']),$
                   /right,/clear
         endif
 
