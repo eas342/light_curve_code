@@ -187,6 +187,10 @@ TsigRejCrit = 2.5D ;; sigma rejection criterion for time bins
      if goodp NE [-1] then begin
         y = y[goodp]
         yerr = yerr[goodp]
+        if keyword_set(individual) then begin
+           y2 = y2[goodp]
+           y2err = y2err[goodp]
+        endif
         tplot = tplot[goodp]
         airmass = airmass[goodp]
         offp = where(tplot LT hstart OR tplot GT hend)
@@ -206,8 +210,12 @@ TsigRejCrit = 2.5D ;; sigma rejection criterion for time bins
               goodp = where(abs(y - meanoff) LE sigrejcrit * stdoff,complement=throwaframes)
               if goodp NE [-1] then begin
                  y = y[goodp]
-                 tplot = tplot[goodp]
                  yerr = yerr[goodp]
+                 tplot = tplot[goodp]
+                 if keyword_set(individual) then begin
+                    y2 = y2[goodp]
+                    y2err = y2err[goodp]
+                 endif
                  airmass = airmass[goodp]
                  offp = where(tplot LT hstart OR tplot GT hend)
               endif
@@ -237,6 +245,8 @@ TsigRejCrit = 2.5D ;; sigma rejection criterion for time bins
               y = y[goodp]
               divbycurveclip1 = divbycurve[goodp]
               yerr = yerr[goodp]
+              y2 = y2[goodp]
+              y2err = y2err[goodp]
               tplot = tplot[goodp]
               airmass = airmass[goodp]
            endif
@@ -261,6 +271,8 @@ TsigRejCrit = 2.5D ;; sigma rejection criterion for time bins
               y = y[goodp]
 ;              yerr = fltarr(n_elements(goodp)) + rsigma * rlinefit[0]
               yerr = yerr[goodp]
+              y2 = y2[goodp]
+              y2err = y2err[goodp]
               tplot = tplot[goodp]
               airmass = airmass[goodp]
               offp = where(tplot LT hstart OR tplot GT hend)
