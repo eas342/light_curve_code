@@ -46,7 +46,7 @@ pro plot_params_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
 
   readcol,radfile,wavl,wavlsize,rad,rade,skipline=1,forma='(F)'
 
-  if keyword_set(showstarspec) then ytempstyle=8+1 else ytempstyle=0+1
+  if keyword_set(showstarspec) then ytempstyle=8+16 else ytempstyle=0+16
 
   binsizes = wavlsize
 
