@@ -1,11 +1,14 @@
-pro compile_spec,extraction2=extraction2,optimal=optimal,nwavbins=nwavbins,$
+pro compile_spec,extraction2=extraction2,sum=sum,nwavbins=nwavbins,$
                  dec23=dec23,dec29=dec29,nyquist=nyquist,extremeRange=extremeRange,$
                  maskwater=maskwater,custRange=custRange,widewatermask=widewatermask,$
                  cleanbyeye=cleanbyeye,specshift=specshift,starshift=starshift,$
-                 custmask=custmask,molecbin=molecbin,trystraight=trystraight
+                 custmask=custmask,molecbin=molecbin,trystraight=trystraight,$
+                 matchgrid=matchgrid
 ;; Compiles the spectra into a few simple arrays to look at the spectrophotometry
 ;; extraction2 -- uses whatever spectra are in the data directory
-;; optimal -- uses the variance weighted (optimal) extraction
+;; sum -- uses the variance weighted (optimal) extraction by
+;;            default, but with the sum keyword it will use the
+;;            standard sum extraction from the IRAF reduction
 ;; nwavbins -- sets the number of wavelength bins to create
 ;; dec23 -- look at the dec23 data set (default is jan04)
 ;; nyquist -- sample the wavelength bands at 2X bandwidth for Nyquist sampling
@@ -24,6 +27,8 @@ pro compile_spec,extraction2=extraction2,optimal=optimal,nwavbins=nwavbins,$
 ;; molecbin -- bins the spectra for a given molecule instead of a grid
 ;; trystraight -- analyzes the spectra extracted from rectified
 ;;                straightened data instead of curved dispersed images
+;; matchgrid -- matches the output grid to the original grid (no
+;;              wavelength binning)
 
 ;Nwavbins = 35 ;; number of wavelength bins
 ;Nwavbins = 9 ;; number of wavelength bins
@@ -102,9 +107,9 @@ utgrid = dblarr(nfile)
 airmass = dblarr(nfile)
 Altitude = dblarr(nfile,Nap) ;; Altitude of each star
 
-if keyword_set(optimal) then begin
-   SpecKey = 1
-endif else SpecKey = 0
+if keyword_set(sum) then begin
+   SpecKey = 0
+endif else SpecKey = 1
 
 for i=0l,nfile-1l do begin
    ;; Read all files into the grid
@@ -255,6 +260,13 @@ if keyword_set(molecbin) then begin
    binsizes = [0.3E,0.3E]
    binNames = ['In '+molecule,'Out '+molecule]
 endif else begin
+   if keyword_set(matchgrid) then begin
+      startIndmatch = 12
+      EndIndmatch = 478
+      binGrid = lamgrid[startIndmatch:EndIndmatch]
+      Nwavbins = n_elements(lamgrid[startIndmatch:EndIndmatch])
+      binsizes = Dlam
+   endif
    binGrid = (EndWav - StartWav) * findgen(Nwavbins)/float(Nwavbins) + $
              StartWav
    binsizes = fltarr(Nwavbins) + (EndWav - StartWav)/float(Nwavbins)
@@ -301,20 +313,27 @@ if keyword_set(molecbin) then begin
       endfor
    endfor
 endif else begin
-   for i=0,nfile-1 do begin
-      y = avg_series(lamgrid,Divspec[*,0,i],SNR[*,0,i],binGrid,binsizes,weighted=1,$
-                     oreject=sigRejCrit,eArr=yerr,/silent,errIn=divSpecE[*,0,i])
-      binfl[*,i] = y
-      binflE[*,i] = yerr
-      
-      for k=0,Nap-1 do begin
-         y2 = avg_series(lamgrid,flgrid[*,k,i],flgrid[*,k,i]/Errgrid[*,k,i],binGrid,$
-                         binsizes,weighted=1,$
-                         oreject=sigRejCrit,eArr=yerr2,/silent,errIn=Errgrid[*,k,i])
-         binind[*,k,i] = y2
-         binindE[*,k,i] = yerr2
+   if keyword_set(matchgrid) then begin
+      binfl[*,*] = Divspec[startIndmatch:EndIndmatch,0,*]
+      binflE[*,*] = Divspec[startIndmatch:EndIndmatch,0,*]/SNR[startIndmatch:EndIndmatch,0,*]
+      binind[*,*,*] = flgrid[startIndmatch:EndIndmatch,*,*]
+      binindE[*,*,*] = Errgrid[startIndmatch:EndIndmatch,*,*]
+   endif else begin
+      for i=0,nfile-1 do begin
+         y = avg_series(lamgrid,Divspec[*,0,i],SNR[*,0,i],binGrid,binsizes,weighted=1,$
+                        oreject=sigRejCrit,eArr=yerr,/silent,errIn=divSpecE[*,0,i])
+         binfl[*,i] = y
+         binflE[*,i] = yerr
+         
+         for k=0,Nap-1 do begin
+            y2 = avg_series(lamgrid,flgrid[*,k,i],flgrid[*,k,i]/Errgrid[*,k,i],binGrid,$
+                            binsizes,weighted=1,$
+                            oreject=sigRejCrit,eArr=yerr2,/silent,errIn=Errgrid[*,k,i])
+            binind[*,k,i] = y2
+            binindE[*,k,i] = yerr2
+         endfor
       endfor
-   endfor
+   endelse
 endelse
 
 
