@@ -1,7 +1,7 @@
 pro plot_params_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
                      nbins=nbins,custfile=custfile,$
                      showtheospec=showtheospec,choosefile=choosefile,$
-                     totsets=totsets,wavnum=wavnum
+                     totsets=totsets,wavnum=wavnum,custYrange=custYrange
 ;;psplot -- saves a postscript plot
 ;;showstarspec -- shows a star spectrum on the same plot
 ;;nbins -- number of points bo bin in Rp/R*
@@ -90,9 +90,12 @@ pro plot_params_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
      myxrange = [0.8,2.55]
   endelse
 
+  if n_elements(custYrange) EQ 0 then custYrange = [0,0]
+
   plot,wavl,rad,$
        xtitle=myxtitle,$
        ytitle=paramname,$
+       yrange=custYrange,$
 ;       ystyle=16,xstyle=1,$
        ystyle=ytempstyle,xstyle=1,xrange=myxrange,$
        /nodata
