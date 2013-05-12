@@ -6,7 +6,8 @@ pro plot_tim_ser,fitcurve=fitcurve,fitpoly=fitpoly,usepoly=usepoly,makestops=mak
                  timebin=timebin,offreject=offreject,showclipping=showclipping,$
                  errorDistb=errorDistb,colorclip=colorclip,quadfit=quadfit,legorder=legorder,$
                  fixrad=fixrad,freelimblin=freelimblin,showDiffAirmass=showDiffairmass,$
-                 normalize=normalize,showNomRad=showNomRad,fixoffset=fixoffset
+                 normalize=normalize,showNomRad=showNomRad,fixoffset=fixoffset,$
+                 custresidYrange=custresidYrange
 ;; plots the binned data as a time series and can also fit the Rp/R* changes
 ;; apPlot -- this optional keyword allows one to choose the aperture
 ;;           to plot
@@ -51,6 +52,8 @@ pro plot_tim_ser,fitcurve=fitcurve,fitpoly=fitpoly,usepoly=usepoly,makestops=mak
 ;; normalize -- normalizes the flux by the off transits points
 ;; showNomRad -- shows the transit curve with the nominal radius
 ;;               in addition to the best-fit radius
+;; custresidYrange -- sets the Yrange of all residual plots at a
+;;                    specific value
 
 ;sigrejcrit = 6D  ;; sigma rejection criterion
 sigrejcrit = 5D  ;; sigma rejection criterion
@@ -576,6 +579,8 @@ TsigRejCrit = 2.5D ;; sigma rejection criterion for time bins
            ylowerL = resid[sorty[ceil(5E/100E*float(ylength))]]
            yUpperL = resid[sorty[floor(95E/100E*float(ylength))]]
            ydynam = [-1E,1E] * max(abs([ylowerL,yUpperL])) * 4E
+           
+           if n_elements(custresidYrange) NE 0 then ydynam = custresidYrange
 
            overplotMarg = [13,14]
            plot,tplot,resid,yrange=ydynam,$
