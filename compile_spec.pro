@@ -2,7 +2,7 @@ pro compile_spec,extraction2=extraction2,sum=sum,nwavbins=nwavbins,$
                  dec23=dec23,dec29=dec29,nyquist=nyquist,extremeRange=extremeRange,$
                  maskwater=maskwater,custRange=custRange,widewatermask=widewatermask,$
                  cleanbyeye=cleanbyeye,specshift=specshift,starshift=starshift,$
-                 custmask=custmask,molecbin=molecbin,trystraight=trystraight,$
+                 custmask=custmask,molecbin=molecbin,trycurved=trycurved,$
                  matchgrid=matchgrid
 ;; Compiles the spectra into a few simple arrays to look at the spectrophotometry
 ;; extraction2 -- uses whatever spectra are in the data directory
@@ -25,8 +25,8 @@ pro compile_spec,extraction2=extraction2,sum=sum,nwavbins=nwavbins,$
 ;; custmask -- creates a custom max over a specified wavelength rage
 ;;             such as [1.45,1.55]
 ;; molecbin -- bins the spectra for a given molecule instead of a grid
-;; trystraight -- analyzes the spectra extracted from rectified
-;;                straightened data instead of curved dispersed images
+;; trycurved -- analyzes the spectra extracted from non-rectified
+;;                dispersed images instead of straightened data
 ;; matchgrid -- matches the output grid to the original grid (no
 ;;              wavelength binning)
 
@@ -59,18 +59,21 @@ endif else begin
          if keyword_set(cleanbyeye) then begin
             readcol,'file_lists/corot1_dec23cleaned_by_eye.txt',filen,format='(A)',$
                     stringskip='#'
-         endif else readcol,'file_lists/corot1_dec23fullspec.txt',filen,format='(A)'
-
+         endif else readcol,'file_lists/dec23_straight_spec.txt',filen,format='(A)'
       end
       keyword_set(dec29): begin
          readcol,'file_lists/corot1_dec29fullspec.txt',filen,format='(A)'
       end
-      else: readcol,'file_lists/full_speclist.txt',filen,format='(A)'
+      else: readcol,'file_lists/corot1_jan_04_all_rectified.txt',filen,format='(A)'
    endcase
 endelse
 
-if keyword_set(trystraight) then begin
-   readcol,'file_lists/corot1_jan_04_all_rectified.txt',filen,format='(A)'
+if keyword_set(trycurved) then begin
+   if keyword_set(dec23) then begin
+      readcol,'file_lists/corot1_dec23fullspec.txt',filen,format='(A)'
+   endif else begin
+      readcol,'file_lists/full_speclist.txt',filen,format='(A)'
+   endelse
 endif
 nfile = n_elements(filen)
 
