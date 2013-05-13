@@ -77,7 +77,10 @@ pro simulate_series,theta=theta,Npoints=Npoints,psplot=psplot,$
 
   endfor
 
-
+  ;; Save one of the series to a file
+  forprint,x,y,$
+     textout='data/simulated_series/simser.txt',$
+     comment='# Time    Flux',/silent
   
 ;  steparray = lindgen(Npoints)
 ;  autoC = a_correlate(y,steparray)
