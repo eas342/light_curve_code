@@ -5,13 +5,14 @@ function ev_leval,p,x=x,y=y
 ;; p[1] is the correlation function time scale
 ;; p[2] is sigma - the error in the points
 
+
 npts = n_elements(x)
 
 ;; Generate the correlation function
-C = fltarr(npts,npts)
+C = dblarr(npts,npts)
 for i=0,npts -1l do begin
    for j=0l,npts-1l do begin
-      C[i,j] = p[0] * exp(-0.5E * ((x[i] - x[j])/p[1])^2)
+      C[i,j] = p[0] * exp(-0.5D * ((x[i] - x[j])/p[1])^2)
    endfor
 endfor
 
@@ -27,7 +28,8 @@ Cinv = invert(C)
 r = y/p[2]
 
 ;; 2 X Log Likelihood from Gibson et al. 2012, appendix A3
-Likelihood = -(r ## Cinv ## transpose(r)) - determ(C) - float(npts) * 0.7982
+Likelihood = -(r ## Cinv ## transpose(r)) - alog10(determ(C)) - double(npts) * 0.7982D
+
 ;; minimize -L to maximize L
 return,-Likelihood[0]
 

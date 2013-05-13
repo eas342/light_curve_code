@@ -1,5 +1,6 @@
 pro simulate_series,theta=theta,Npoints=Npoints,psplot=psplot,$
-                    custYrange=custYrange
+                    custYrange=custYrange,sigma=sigma,$
+                    Nrealizations=Nrealizations
 ;; Makes a random time series with correlated noise
 ;; theta - is the set of hyperparameters that govern the correlated
 ;;         noise - theta[0] is the maximum correlation coefficient and
@@ -8,6 +9,7 @@ pro simulate_series,theta=theta,Npoints=Npoints,psplot=psplot,$
 ;;           allowing the user to change the default
 ;; psplot -- generates a postscript plot
 ;; custYrange -- allows the user to specify a custom Y range
+;; Nrealizations -- specifies the number of realizations
 
   ;; set the plot
   if keyword_set(psplot) then begin
@@ -19,43 +21,60 @@ pro simulate_series,theta=theta,Npoints=Npoints,psplot=psplot,$
            device,xsize=10, ysize=7,decomposed=1,/color
   endif
 
-  if n_elements(Npoints) EQ 0 then Npoints=600l
+  if n_elements(Npoints) EQ 0 then Npoints=80l
 
-  X = findgen(Npoints)
+  X = dindgen(Npoints)
 
-  Nrealizations = 5l
+  if n_elements(Nrealizations) EQ 0 then Nrealizations= 5l
   
   startseeds = lindgen(Nrealizations) + 1l
   colchoices = mycol(['red','purple','blue','orange','brown','black'])
-  colorarray = colchoices[lindgen(Npoints) mod n_elements(colchoices)]
+  colorarray = colchoices[lindgen(Nrealizations) mod n_elements(colchoices)]
   stychoices = [0,2,3,5,7]
-  stylearr = stychoices[lindgen(Npoints) mod n_elements(stychoices)]
+  stylearr = stychoices[lindgen(Nrealizations) mod n_elements(stychoices)]
 
   ;; Make a correlation matrix, C
-  C = fltarr(Npoints,Npoints)
+  C = dblarr(Npoints,Npoints)
 
   ;; Try a squared exponential kernel from Danielski 2013
   ;; theta[0] is the maximum covariance
   ;; theta[1] is the inverse length scale
-  if n_elements(theta) EQ 0 then theta = [0.2, 200]
+  if n_elements(theta) EQ 0 then theta = [15, 20]
+
+  ;; ensure that's it's double precision
+  theta= double(theta)
 
   for i=0l,Npoints-1l do begin
      for j=0l,Npoints-1l do begin
-        C[i,j] = theta[0] * exp(-0.5E *((X[i] - X[j])/theta[1])^2)
+        C[i,j] = theta[0] * exp(-0.5D *((X[i] - X[j])/theta[1])^2)
      endfor
   endfor
 
   ;; Add sigma to all diagonal elements
-  sigma = 1E
+  if n_elements(sigma) EQ 0 then sigma = 1E
+  sigma = double(sigma)
   for i=0l,Npoints-1l do begin
      C[i,i] = C[i,i] + sigma
   endfor
-  U = C ;; copy the correlation matrix
+
+  ;; Try a Test Correlation matrix
+;  C = [[1,0.6,0.3],[0.6,1,0.5],[0.3,0.5,1]]
+;  Npoints = 3
+  CC = C ;; copy the correlation matrix
   ;; Find Cholesky decomposition - this will be multiplied by an
   ;;                               uncorrelated data array
-  LA_CHOLDC,U
 
-  ;; find the inverse of the correlation matrix
+  LA_CHOLDC,CC,/double
+
+  ;; Only keep the lower triangle & transpose
+  U = fltarr(Npoints,Npoints)
+  for i=0l,nPoints-1l do begin
+     for j=0l,i do begin
+        U[j,i] = CC[j,i]
+     endfor
+  endfor
+  U = transpose(U)
+
   if n_elements(custYrange) EQ 0 then custYrange = [-10,10]
   custYtitle=cgGreek('sigma')+'= '+string(sigma,format='(G5.2)')+',  '+cgGreek('theta')+'!D0!N= '+$
              string(Theta[0],format='(G5.2)')+',  '+cgGreek('theta')+'!D1!N= '+$
@@ -63,12 +82,13 @@ pro simulate_series,theta=theta,Npoints=Npoints,psplot=psplot,$
 
   for j=0l,Nrealizations-1l do begin 
 
-     RandomSer = randomn(startseeds[j],Npoints)
+     RandomSer = randomn(startseeds[j],Npoints,/double)
      ;; Multiply by matrix from correlation matrix
      Y = RandomSer ## U
+
      if j EQ 0l then begin
         plot,x,y,yrange=custYrange,$
-             xtitle='Time (counts)',$
+             xtitle='Time (steps)',$
              ytitle='Flux',$
              title=custYtitle,xmargin=[7,7]
      endif else begin
@@ -80,7 +100,8 @@ pro simulate_series,theta=theta,Npoints=Npoints,psplot=psplot,$
   ;; Save one of the series to a file
   forprint,x,y,$
      textout='data/simulated_series/simser.txt',$
-     comment='# Time    Flux',/silent
+     comment='# Time    Flux',/silent,$
+           format='(D,D)'
   
 ;  steparray = lindgen(Npoints)
 ;  autoC = a_correlate(y,steparray)
