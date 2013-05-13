@@ -9,15 +9,11 @@ npts = n_elements(x)
 
 ;; Generate the correlation function
 C = fltarr(npts,npts)
-;for i=0,npts -1l do begin
-;   for j=0l,npts-1l do begin
-;      C[i,j] = p[0] * exp(-0.5E * ((x[i] - x[j])/p[1])^2)
-;   endfor
-;endfor
-
-;; Let's try fitting data to a line instead - here p[0] and
-;;                                            p[1] will be the linear coefficients
-ymodel = x * p[0] + p[1]
+for i=0,npts -1l do begin
+   for j=0l,npts-1l do begin
+      C[i,j] = p[0] * exp(-0.5E * ((x[i] - x[j])/p[1])^2)
+   endfor
+endfor
 
 ;; add sigma to the correlation matrix
 for i=0l,npts-1l do begin
@@ -28,7 +24,7 @@ endfor
 Cinv = invert(C)
 
 ;; Residuals
-r = (y - ymodel)/p[2]
+r = y/p[2]
 
 ;; 2 X Log Likelihood from Gibson et al. 2012, appendix A3
 Likelihood = -(r ## Cinv ## transpose(r)) - determ(C) - float(npts) * 0.7982
