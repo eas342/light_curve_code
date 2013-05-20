@@ -3,7 +3,7 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
                      showtheospec=showtheospec,choosefile=choosefile,$
                      totsets=totsets,wavnum=wavnum,custXrange=custXrange,$
                      showOptical=showOptical,custYrange=custYrange,$
-                     powerErr=powerErr,multErr=multErr
+                     powerErr=powerErr,multErr=multErr,medianbin=medianbin
 ;;psplot -- saves a postscript plot
 ;;showstarspec -- shows a star spectrum on the same plot
 ;;nbins -- number of points bo bin in Rp/R*
@@ -18,6 +18,8 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
 ;;custYrange -- set a custom range fot eh plot instead of default
 ;;powerErr -- takes all radius errors to a specified power
 ;;multErr -- takes all radius errors and multiples by a specified constant
+;;medianbin -- bins the points by the median value instead of the
+;;             weighted average
 
   !x.margin = [13,14]
   ;; set the plot
@@ -68,7 +70,11 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
         allowedpts = subInd[allowedsubpts]
         newwavl[i] = mean(wavl[allowedpts])
         weights = 1E/rade[allowedpts]^2
-        newrad[i] = total(weights *rad[allowedpts])/total(weights)
+        if keyword_set(medianbin) then begin
+           newrad[i] = median(rad[allowedpts])
+        endif else begin
+           newrad[i] = total(weights *rad[allowedpts])/total(weights)
+        endelse
         newbinsizes[i] = binsizes[i] * float(n_elements(allowedpts))
         newrade[i] = sqrt(1E /total(weights))
      endfor
