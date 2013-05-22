@@ -33,7 +33,7 @@ pro analyze_resids,psplot=psplot
   plot,steparray * (t[1] - t[0]),autoC,$
        xtitle='Delay (min)',$
        ytitle='Autocorrelation',$
-       title='1.43um Time Series',/xlog,$
+       title='1.43um Time Series',$
        xrange=[0.4,200]
 
   if keyword_set(psplot) then begin
