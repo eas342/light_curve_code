@@ -18,7 +18,7 @@ endfor
 
 ;; add sigma to the correlation matrix
 for i=0l,npts-1l do begin
-   C[i,i] = C[i,i] + p[2]
+   C[i,i] = C[i,i] + p[2]^2
 endfor
 
 ;; Invert C
@@ -28,7 +28,7 @@ Cinv = invert(C)
 r = y/p[2]
 
 ;; 2 X Log Likelihood from Gibson et al. 2012, appendix A3
-Likelihood = -(r ## Cinv ## transpose(r)) - alog10(determ(C)) - double(npts) * 0.7982D
+Likelihood = -(r ## Cinv ## transpose(r)) - alog(determ(C)) - double(npts) * 1.8378771D
 
 ;; minimize -L to maximize L
 return,-Likelihood[0]
