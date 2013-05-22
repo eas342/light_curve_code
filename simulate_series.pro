@@ -1,6 +1,6 @@
 pro simulate_series,theta=theta,Npoints=Npoints,psplot=psplot,$
                     custYrange=custYrange,sigma=sigma,$
-                    Nrealizations=Nrealizations
+                    Nrealizations=Nrealizations,autoc=autoc
 ;; Makes a random time series with correlated noise
 ;; theta - is the set of hyperparameters that govern the correlated
 ;;         noise - theta[0] is the maximum correlation coefficient and
@@ -10,6 +10,7 @@ pro simulate_series,theta=theta,Npoints=Npoints,psplot=psplot,$
 ;; psplot -- generates a postscript plot
 ;; custYrange -- allows the user to specify a custom Y range
 ;; Nrealizations -- specifies the number of realizations
+;; autoc -- show the autocorrelation functions instead of the time series
 
   ;; set the plot
   if keyword_set(psplot) then begin
@@ -54,7 +55,7 @@ pro simulate_series,theta=theta,Npoints=Npoints,psplot=psplot,$
   if n_elements(sigma) EQ 0 then sigma = 1E
   sigma = double(sigma)
   for i=0l,Npoints-1l do begin
-     C[i,i] = C[i,i] + sigma
+     C[i,i] = C[i,i] + sigma^2
   endfor
 
   ;; Try a Test Correlation matrix
@@ -74,11 +75,16 @@ pro simulate_series,theta=theta,Npoints=Npoints,psplot=psplot,$
      endfor
   endfor
   U = transpose(U)
+  autoArray = fltarr(Npoints,Nrealizations)
 
   if n_elements(custYrange) EQ 0 then custYrange = [-10,10]
-  custYtitle=cgGreek('sigma')+'= '+string(sigma,format='(G5.2)')+',  '+cgGreek('theta')+'!D0!N= '+$
-             string(Theta[0],format='(G5.2)')+',  '+cgGreek('theta')+'!D1!N= '+$
+  custYtitle=cgGreek('sigma')+'= '+string(sigma,format='(G6.2)')+',  '+cgGreek('theta')+'!D0!N= '+$
+             string(Theta[0],format='(G7.2)')+',  '+cgGreek('theta')+'!D1!N= '+$
              string(Theta[1],format='(G7.2)')
+
+  ;; If asked to, show the auto-correlation functions instead of the
+  ;; time series
+  if keyword_set(autoC) then steparray = lindgen(Npoints)
 
   for j=0l,Nrealizations-1l do begin 
 
@@ -86,13 +92,44 @@ pro simulate_series,theta=theta,Npoints=Npoints,psplot=psplot,$
      ;; Multiply by matrix from correlation matrix
      Y = RandomSer ## U
 
-     if j EQ 0l then begin
-        plot,x,y,yrange=custYrange,$
-             xtitle='Time (steps)',$
-             ytitle='Flux',$
-             title=custYtitle,xmargin=[7,7]
+     if keyword_set(autoC) then begin
+        autoArray[*,j] = a_correlate(y,steparray,/cov)
+        if j EQ 0l then begin
+           plot,steparray,autoArray[*,j],$
+                ytitle='ACF',$
+                xtitle='Lag',yrange=custYrange,$
+                title=custYtitle
+        endif else begin
+           oplot,steparray,autoArray[*,j],color=colorarray[j]
+        endelse
+        ;; Show the initial covariance
+        if j EQ Nrealizations-1l then begin
+           oplot,C[0,*],linestyle=0,colo=mycol('black'),thick=10
+           oplot,C[0,*],linestyle=0,colo=mycol('blue'),thick=6
+           ;; Find the average auto-correlation function
+           avgAuto = fltarr(Npoints)
+           for l=0l,Npoints-1l do begin
+              avgAuto[l] = mean(autoArray[l,*])
+           endfor
+           oplot,avgAuto,color=mycol('black'),linestyle=2,thick=6
+           oplot,avgAuto,color=mycol('yellow'),linestyle=2,thick=3
+
+           legend,['Individual ACF','Input Kernel','Ensemble Avg ACF'],$
+                  color=mycol(['purple','black','black']),$
+                  thick=[1,10,6],/right,linestyle=[0,0,2]
+           legend,['Individual ACF','Input ACF','Ensemble Avg ACF'],$
+                  color=mycol(['purple','blue','yellow']),$
+                  thick=[1,6,3],/right,linestyle=[0,0,2]
+        endif
      endif else begin
-        oplot,x,y,linestyle=stylearr[j],color=colorarray[j]
+        if j EQ 0l then begin
+           plot,x,y,yrange=custYrange,$
+                xtitle='Time (steps)',$
+                ytitle='Flux',$
+                title=custYtitle,xmargin=[7,7]
+        endif else begin
+           oplot,x,y,linestyle=stylearr[j],color=colorarray[j]
+        endelse
      endelse
 
   endfor
@@ -103,8 +140,6 @@ pro simulate_series,theta=theta,Npoints=Npoints,psplot=psplot,$
      comment='# Time    Flux',/silent,$
            format='(D,D)'
   
-;  steparray = lindgen(Npoints)
-;  autoC = a_correlate(y,steparray)
 
   if keyword_set(psplot) then begin
      device, /close
