@@ -6,7 +6,7 @@ pro plot_tim_ser,fitcurve=fitcurve,fitpoly=fitpoly,usepoly=usepoly,makestops=mak
                  timebin=timebin,offreject=offreject,showclipping=showclipping,$
                  errorDistb=errorDistb,colorclip=colorclip,quadfit=quadfit,legorder=legorder,$
                  fixrad=fixrad,freelimblin=freelimblin,showDiffAirmass=showDiffairmass,$
-                 normalize=normalize,showNomRad=showNomRad,fixoffset=fixoffset,$
+                 nonormalize=nonormalize,showNomRad=showNomRad,fixoffset=fixoffset,$
                  custresidYrange=custresidYrange
 ;; plots the binned data as a time series and can also fit the Rp/R* changes
 ;; apPlot -- this optional keyword allows one to choose the aperture
@@ -49,7 +49,7 @@ pro plot_tim_ser,fitcurve=fitcurve,fitpoly=fitpoly,usepoly=usepoly,makestops=mak
 ;;           it all
 ;; fixoffset -- fixes the out of transit flux at a constant value
 ;; freelimblin -- frees only the linear limb darkening coefficient
-;; normalize -- normalizes the flux by the off transits points
+;; nonormalize -- do NOT normalize flux by the off transits points
 ;; showNomRad -- shows the transit curve with the nominal radius
 ;;               in addition to the best-fit radius
 ;; custresidYrange -- sets the Yrange of all residual plots at a
@@ -200,7 +200,7 @@ TsigRejCrit = 2.5D ;; sigma rejection criterion for time bins
      endif
      stdoff = stddev(y[offp])
 
-     if keyword_set(normalize) then begin
+     if not keyword_set(nonormalize) then begin
         y = y / median(y[offp])
         yerr = y / median(y[offp])
      endif
