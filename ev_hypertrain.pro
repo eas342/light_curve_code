@@ -18,7 +18,7 @@ function ev_hypertrain,xt,yt,parinfo=pi,findsig=findsig,$
   pi =  replicate({value:0.D,fixed:0,limited:[1,0],limits:[0.D,0.D],$
                  step:0.05},3)
 
-  pi(2).fixed = 1 ;; fix the white noise sigma parameter for now
+;  pi(2).fixed = 1 ;; fix the white noise sigma parameter for now
   pi(*).value = pstart
 
   FUNCTARGS = {x:xt,y:yt} ;; these will be ased
