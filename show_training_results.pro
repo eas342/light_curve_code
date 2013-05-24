@@ -1,5 +1,5 @@
 pro show_training_results,pnum,psplot=psplot,custreject=custreject,$
-                          domedian=domedian
+                          domedian=domedian,custyrange=custyrange
 ;; Shows the fitted hyper-parameters from multi-train.pro
 ;; pnum -- the parameter index (0 for theta_0 1 for theta_1)
 ;; psplot -- save a postscript plot
@@ -7,8 +7,9 @@ pro show_training_results,pnum,psplot=psplot,custreject=custreject,$
 ;;               finding the mean hyperparameters
 ;; domedian -- find the median value of the best-fit parameters
 ;;             instead of the robust average
+;; custyrange -- custom Y range
 
-restore,'data/training_series.sav' ;; ParamArr and thetaTrue
+restore,'data/training_series.sav' ;; ParamArr and ParamTrue
 
 ;; set the plot
 if keyword_set(psplot) then begin
@@ -20,26 +21,33 @@ if keyword_set(psplot) then begin
    device,xsize=10, ysize=7,decomposed=1,/color
 endif
 
+yArray = ParamArr[pnum,*]
+robustSig = robust_sigma(yArray)
 
-yhist = histogram(ParamArr[pnum,*],binsize=5,locations=xhist)
+yhist = histogram(yArray,binsize=RobustSig*0.3,locations=xhist)
+
+paramsymbols = [cgGreek('theta')+'!D0!N',$
+                cgGreek('theta')+'!D1!N',$
+                cgGreek('sigma')]
 
 plot,xhist,yhist,psym=10,$
-     xtitle=cgGreek('theta')+'!D'+strtrim(pnum,1)+'!N',$
-     ytitle='Counts'
+     xtitle=paramsymbols[pnum],$
+     ytitle='Counts',yrange=custyrange
 
 ;; Show the input value
-oplot,thetaTrue[pnum]*[1,1],!y.crange,color=mycol('red'),linestyle=2
+oplot,ParamTrue[pnum]*[1,1],!y.crange,color=mycol('red'),linestyle=2
 
 ;; Show the average value & standard deviation
 if n_elements(custreject) EQ 0 then custreject=3
-meanVal = robust_mean(ParamArr[pnum,*],oreject=custreject,err=sigVal)
-if keyword_set(domedian) then meanVal = median(ParamArr[pnum,*])
+meanVal = robust_mean(yArray,oreject=custreject,err=sigVal)
+if keyword_set(domedian) then meanVal = median(yArray)
 oplot,meanVal*[1,1],!y.crange,color=mycol('blue'),linestyle=0
 oplot,(meanVal+sigVal)*[1,1],!y.crange,color=mycol('blue'),linestyle=1
 oplot,(meanVal-sigVal)*[1,1],!y.crange,color=mycol('blue'),linestyle=1
 
-legend,['True Input Value','Histogram','Robust Mean','Mean +/- Error'],$
-       /right,linestyle=[2,0,0,1],color=[mycol('red'),!p.color,mycol(['blue','blue'])]
+al_legend,['True Input Value','Histogram','Robust Mean','Mean +/- Error'],$
+       /right,linestyle=[2,0,0,1],color=[mycol('red'),!p.color,mycol(['blue','blue'])],$
+       /clear
 
 
 if keyword_set(psplot) then begin
