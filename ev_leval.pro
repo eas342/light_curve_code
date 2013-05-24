@@ -25,7 +25,7 @@ endfor
 Cinv = invert(C)
 
 ;; Residuals
-r = y/p[2]
+r = y
 
 ;; 2 X Log Likelihood from Gibson et al. 2012, appendix A3
 Likelihood = -(r ## Cinv ## transpose(r)) - alog(determ(C)) - double(npts) * 1.8378771D
