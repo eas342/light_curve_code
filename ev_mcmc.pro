@@ -44,7 +44,7 @@ function ev_mcmc,expr,X,Y,Yerr,start,chainL=chainL,parinfo=pi,maxp=maxp,$
   
   modelY = expression_eval(expr,X,chainparams[*,0])
   if n_elements(hyperparams) NE 0 then begin
-     chisQarray[0] = ev_leval(chainHypers[*,j],x=x,y=(Y - newModel))
+     chisQarray[0] = ev_leval(chainHypers[*,0],x=x,yin=(Y - ModelY),yerr=Yerr)
   endif else chisQarray[0] = total( ((Y - ModelY)/Yerr)^2 )
 
   j=1
@@ -69,7 +69,7 @@ function ev_mcmc,expr,X,Y,Yerr,start,chainL=chainL,parinfo=pi,maxp=maxp,$
      newModel = expression_eval(expr,X,chainparams[*,j])
 
      if n_elements(hyperparams) NE 0 then begin
-        newchisQ = ev_leval(chainHypers[*,j],x=x,y=(Y - newModel))
+        newchisQ = ev_leval(chainHypers[*,j],x=x,yin=(Y - newModel),yerr=Yerr)
      endif else newchisQ = total( ((Y - newModel)/Yerr)^2 )
 
      DeltaChisQ = newChisQ - chisQarray[j-1]
@@ -80,7 +80,10 @@ function ev_mcmc,expr,X,Y,Yerr,start,chainL=chainL,parinfo=pi,maxp=maxp,$
      endelse
 ;     print,'Offset   Delta Chi-Squared   Lratio    Keep?'
 ;     print,chainparams[5,j],DeltaChisQ,lratio,(Lratio GT randKeeparr[i])
-
+     if n_elements(hyperparams) NE 0 then begin
+        freeParams = where(pi.fixed NE 1)
+        print,chainparams[freeParams,j]
+     endif
 ;     if i mod 10 eq 9 then stop
 
      if Lratio GT randKeeparr[i] then begin;; Probability of keeping the point

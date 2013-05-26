@@ -1,4 +1,4 @@
-function ev_leval,p,x=x,y=y
+function ev_leval,p,x=x,yin=y,yerr=yerr
 ;; Evaluates the likelihood function for a given set of
 ;; hyperparameters p and data (X,Y)
 ;; p[0] is the correlation function strength
@@ -12,14 +12,24 @@ npts = n_elements(x)
 C = dblarr(npts,npts)
 for i=0,npts -1l do begin
    for j=0l,npts-1l do begin
-      C[i,j] = p[0] * exp(-0.5D * ((x[i] - x[j])/p[1])^2)
+      Argument = -0.5D * ((x[i] - x[j])/p[1])^2
+      if Argument LT -15D then C[i,j] = 0D else begin
+         C[i,j] = p[0] * exp(-0.5D * ((x[i] - x[j])/p[1])^2)
+      endelse
    endfor
 endfor
 
 ;; add sigma to the correlation matrix
-for i=0l,npts-1l do begin
-   C[i,i] = C[i,i] + p[2]^2
-endfor
+if n_elements(yerr) NE 0 then begin
+   for i=0l,npts-1l do begin
+      C[i,i] = C[i,i] + yerr[i]^2
+   endfor
+   
+endif else begin
+   for i=0l,npts-1l do begin
+      C[i,i] = C[i,i] + p[2]^2
+   endfor
+endelse
 
 ;; Invert C
 Cinv = invert(C)
@@ -27,8 +37,14 @@ Cinv = invert(C)
 ;; Residuals
 r = y
 
+;; Factor out a sigma^2 and find the log of the determinant
+if n_elements(yerr) NE 0 then begin
+   sigFact = median(yerr)
+endif else sigFact = p[2]
+logdetermC = 2D * double(npts) * alog(sigFact) + alog(determ(C/sigFact^2))
+
 ;; 2 X Log Likelihood from Gibson et al. 2012, appendix A3
-Likelihood = -(r ## Cinv ## transpose(r)) - alog(determ(C)) - double(npts) * 1.8378771D
+Likelihood = -(r ## Cinv ## transpose(r)) - logdetermC - double(npts) * 1.8378771D
 
 ;; minimize -L to maximize L
 return,-Likelihood[0]
