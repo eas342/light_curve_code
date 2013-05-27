@@ -14,7 +14,7 @@ for i=0,npts -1l do begin
    for j=0l,npts-1l do begin
       Argument = -0.5D * ((x[i] - x[j])/p[1])^2
       if Argument LT -15D then C[i,j] = 0D else begin
-         C[i,j] = p[0] * exp(-0.5D * ((x[i] - x[j])/p[1])^2)
+         C[i,j] = p[0] * exp(Argument)
       endelse
    endfor
 endfor
