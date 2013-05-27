@@ -18,32 +18,56 @@ pro analyze_mcmc,psplot=psplot,$
 ;  restore,'data/mcmc/mcmc_chains_1.43um.sav'
   ;;chainparams,lmfit,lmunct
 
-
   parnames = ['Rp/R*','b/R*','u1','u2','A/R*','A_0','A_1','A_2','A_3']
 ;  parfree =  [      1,     0,   1,   0,     0,    1,   1,    1,    0 ]
+
+  ;; If there are hyper-parameters, plot those as well
+  if n_elements(chainhypers) NE 0 then begin
+     sizePchain = size(chainparams)
+     nregular = sizePchain[1] ;; number of regular parameters
+     nparams = nregular + 2
+
+     freep = [freep,1,1] ; make 2 hyperparametsr free
+     parnames = [parnames,cgGreek('Theta')+['!D0!N','!D1!N']]
+     fullchain = fltarr(nregular+2,sizePchain[2])
+     fullchain[0:nregular-1,*] = chainparams
+     fullchain[nregular:nparams-1l,*] = chainhypers[0:1,*]
+     chainparams = fullchain
+     medparams = [lmfit,0,0]
+  endif else begin
+     nparams = n_elements(lmfit)
+     ;; Returned parameters and uncertainties
+     medparams = lmfit
+  endelse
+
   freeInd = where(freep)
-  nparams = n_elements(lmfit)
+  paramUpper = fltarr(nparams)
+  paramLower = fltarr(nparams)
+
   nfree = total(freep)
   assert,n_elements(parnames),'=',nparams,'Warning # of parameter mismatch'
 
-  ;; Returned parameters and uncertainties
-  medparams = lmfit
-  paramUpper = fltarr(nparams)
-  paramLower = fltarr(nparams)
 
   !p.multi = [0,3,2]
   !X.Omargin = [4,2]
 
   for i=0l,nfree-1l do begin
-     pInd = freeInd[i];; parameter index
+     pInd = freeInd[i] ;; parameter index
 ;     plothist,chainparams[pInd,*],xhist,yhist,bin=lmunct[pInd] * 8E,$
 ;              /nodata
 ;     yhist = histogram(chainparams[pInd,*],binsize=lmunct[pInd] *
 ;     0.1E,$
-     if lmunct[pInd] EQ 0.0D then mybinsize = 0.001 else mybinsize = lmunct[pInd] * 0.5E
+     if pInd GT nregular-1l then begin
+        mybinsize = robust_sigma(chainparams[pInd,*]) * 0.5E
+     endif else begin
+        if lmunct[pInd] EQ 0.0D then mybinsize = 0.001 else begin
+           mybinsize = lmunct[pInd] * 0.5E
+        endelse 
+     endelse 
+
      yhist = histogram(chainparams[pInd,*],binsize=mybinsize,$
                        locations=xhistleft)
-     xhist = xhistleft + lmunct[pInd] * 0.5E /2E
+     xhist = xhistleft + mybinsize /2E
 ;     stop
      normalization = total(yhist)
      if n_elements(xhist) LE 1 then begin
@@ -59,8 +83,10 @@ pro analyze_mcmc,psplot=psplot,$
           xminor=5,xticklen=0.05,ytitle='Counts',ytickname=''
 ;          ymargin=[2,2]
      ;; Show the error bars from the Levenberg-Marquardt method
-     oplot,lmfit[pInd] - [1E,1E] * lmunct[pInd],!y.crange,linestyle=2
-     oplot,lmfit[pInd] + [1E,1E] * lmunct[pInd],!y.crange,linestyle=2
+     if pInd LE nregular-1l then begin
+        oplot,lmfit[pInd] - [1E,1E] * lmunct[pInd],!y.crange,linestyle=2
+        oplot,lmfit[pInd] + [1E,1E] * lmunct[pInd],!y.crange,linestyle=2
+     endif
 ;     stop
 
      ;; Show the 68% confidence limits from MCMC
@@ -95,7 +121,8 @@ pro analyze_mcmc,psplot=psplot,$
 
   textcomment=string('Parameter','LM Fit','LM +/-','MCMC Fit','MCMC+','MCMC-',$
                     format='(A8,5(1x,A16))')
-  forprint,parnames,lmfit,lmunct,medparams,paramUpper,paramLower,$
+  forprint,parnames[0:nregular-1l],lmfit,lmunct,medparams[0:nregular-1l],$
+           paramUpper[0:nregular-1l],paramLower[0:nregular-1l],$
            format='(A8,5(1x,F16.5))',textout='data/mcmc/param_unc/param_unc.txt',$
            comment=textcomment
 
