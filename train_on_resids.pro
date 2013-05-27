@@ -6,17 +6,25 @@ pro train_on_resids
           phase,fl,flerr,modelfl,resid
 
   phaseFact = max(phase)
+;  phaseFact = 1D
   phase = phase / phaseFact
-  residFact = 0.1 * max(resid)
-  resid = resid / residFact
-  
+  multfac = 1.0
+;  residFact = 0.1 * max(resid)
+  residFact = 1D
+  resid = resid / residFact * multfac
+
 ;   ParamArr = ev_hypertrain(phase,resid,pstart=[0.1,0.001 *
 ;   1E4,0.05])
 
-  custpi = replicate({value:0.D,fixed:0,limited:[1,0],limits:[1D-8,0.D],$
-                      step:0.05},3)
+  custpi = replicate({value:0.D,fixed:0,limited:[1,0],limits:[1D-3,0.D],$
+                      step:0.001},3)
 
-   ParamArr = ev_hypertrain(phase,resid,pstart=[1,3,1],custStepsize=0.5E,$
+;  custstart=[1,3,1]
+
+;  custstart = [1E * multfac,3E,1E * multfac]
+  custstart = [0.01,0.05,0.27]
+
+   ParamArr = ev_hypertrain(phase,resid,pstart=custstart,$
                            parinfo=custpi)
 ;   stop
    ;; Re-scale the variables
