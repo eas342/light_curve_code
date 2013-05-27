@@ -55,10 +55,10 @@ pro try_mcmc,psplot=psplot
   ;; set up the hyperparameters
   hyperpi = replicate({fixed:0, limited:[1,0], limits:[0.0E,0.0E],$
                       start:0E,jumpsize:0E},3)
-;  hyperpi[*].start = [0.0028,0.0005,0.0024]
-;  hyperpi[*].jumpsize = [0.001,0.0005,0.002]
-  hyperpi[*].start = [0.00,0.0005,0.0024]
-  hyperpi[*].jumpsize = [0.00,0.0005,0.000]
+  hyperpi[*].start = [0.0028,1D-5,0.0024]
+  hyperpi[*].jumpsize = [0.0001,1E-6,0]
+;  hyperpi[*].start = [0.00,0.0005,0.0024]
+;  hyperpi[*].jumpsize = [0.00,0.0005,0.000]
 
   ;; Go through the cleaned time series
   cd,c=currentd
@@ -76,8 +76,9 @@ pro try_mcmc,psplot=psplot
              format='(F,F,F,F,F)',skipline=1
 
 ;     result = ev_mcmc(expr,phase,fl,flerr,start,parinfo=pi,chainL = 3000l,maxp=99000l)
-     result = ev_mcmc(expr,phase,fl,flerr,start,parinfo=pi,chainL = 300l,maxp=10000l,$
-                     hyperparams=hyperpi)
+;     result = ev_mcmc(expr,phase,fl,flerr,start,parinfo=pi,chainL = 300l,maxp=10000l,$
+     result = ev_mcmc(expr,phase,fl,flerr,start,parinfo=pi,chainL = 3000l,maxp=99000l,$
+                      hyperparams=hyperpi)
 ;     result = ev_mcmc(expr,phase,fl,flerr,start,parinfo=pi,chainL = 3000l,maxp=90l)
      analyze_mcmc,/psplot
      ;; Save the chains

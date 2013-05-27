@@ -54,8 +54,12 @@ function ev_mcmc,expr,X,Y,Yerr,start,chainL=chainL,parinfo=pi,maxp=maxp,$
   jumps = rebin(punct,nparams,maxP) * randParray * 0.8E
   if n_elements(hyperparams) NE 0 then begin
      hyperjumps = rebin(hyperparams.jumpsize,nhypers,maxP) * randHarray
+     freeParams = where(pi.fixed NE 1)
+     print,['Param 0'+strtrim(freeParams,1),'Hyper'+strtrim([0,1,2],1),'Chi-Sq']
   endif
 ;  jumps = rebin(punct,nparams,maxP) * randParray * 1.5E
+
+
 
   for i=0l,maxP-1l do begin
 ;     modelY = expression_eval(expr,X,chainparams[*,j-1])
@@ -69,7 +73,11 @@ function ev_mcmc,expr,X,Y,Yerr,start,chainL=chainL,parinfo=pi,maxp=maxp,$
      newModel = expression_eval(expr,X,chainparams[*,j])
 
      if n_elements(hyperparams) NE 0 then begin
-        newchisQ = ev_leval(chainHypers[*,j],x=x,yin=(Y - newModel),yerr=Yerr)
+        ;; Hyper parameters less than zero should have -infinite
+        ;; likelihood, so we will skip the ev_leval procedure for those
+        if where(chainHypers[*,j] LT 0) EQ [-1] then begin
+           newchisQ = ev_leval(chainHypers[*,j],x=x,yin=(Y - newModel),yerr=Yerr)
+        endif else newchisQ =exp(50D)
      endif else newchisQ = total( ((Y - newModel)/Yerr)^2 )
 
      DeltaChisQ = newChisQ - chisQarray[j-1]
@@ -80,10 +88,9 @@ function ev_mcmc,expr,X,Y,Yerr,start,chainL=chainL,parinfo=pi,maxp=maxp,$
      endelse
 ;     print,'Offset   Delta Chi-Squared   Lratio    Keep?'
 ;     print,chainparams[5,j],DeltaChisQ,lratio,(Lratio GT randKeeparr[i])
-     if n_elements(hyperparams) NE 0 then begin
-        freeParams = where(pi.fixed NE 1)
-        print,chainparams[freeParams,j]
-     endif
+;     if n_elements(hyperparams) NE 0 then begin
+;        print,[chainparams[freeParams,j],chainhypers[*,j],newchisQ]
+;     endif
 ;     if i mod 10 eq 9 then stop
 
      if Lratio GT randKeeparr[i] then begin;; Probability of keeping the point
