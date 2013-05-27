@@ -1,4 +1,8 @@
-pro analyze_cov,psplot=psplot
+pro analyze_cov,psplot=psplot,nocontour=nocontour
+;; Make a plot of the co-variance of the MCMC parameters
+;; psplot - make postscript & png files
+;; nocontours -- skips the 68% and 95% contours
+
   ;; set the plot
   if keyword_set(psplot) then begin
      set_plot,'ps'
@@ -84,39 +88,41 @@ pro analyze_cov,psplot=psplot
              xminor=4,xticklen=0.05,yminor=4,$
              xrange=myXrange,yrange=myYrange,$
              nodata=myNodata
-
-        ;; Now show a contour at 68% confidence
-        binX = lmunct[XpInd]*0.3
-        binY = lmunct[YpInd]*0.3
-        bin2=hist_2d(chainparams[XpInd,*],chainparams[YpInd,*],$
-                    bin1=binX,bin2=binY,$
-                    min1=myXrange[0],max1=myXrange[1],$
-                    min2=myYrange[0],max2=myYrange[1])
         
-        ;; Get dimensions of image
-        bin2dims = size(bin2,/dim)
-        Nxpoints = bin2dims[0]
-        xcontour = findgen(Nxpoints) * binX + myXrange[0] + binX/2E ;; middle of bins
-        NYpoints = bin2dims[1]
-        ycontour = findgen(NYpoints) * binY + myYrange[0] + binY/2E ;; middle of bins
-
-        ;; Find the 68% and 95% contours
-        normbin = bin2 / float(total(bin2)) ;; PDF
-        sortbin = sort(normbin)
-        cumulativeT = total(normbin[sortbin],/cumulative)
-        tabinv,cumulativeT,(1E -0.68),sig1pt
-        tabinv,cumulativeT,(1E -0.95),sig2pt
-        level1sig = bin2[sortbin[sig1pt]] ;; 68% confidence level
-        level2sig = bin2[sortbin[sig2pt]] ;; 95% confidence level
-
-        contour,bin2,xcontour,ycontour,color=mycol('white'),/overplot,$
-                xrange=myXrange,yrange=myYrange,nodata=myNodata,$
-                levels=[level2sig,level1sig],thick=3
-        contour,bin2,xcontour,ycontour,color=mycol('red'),/overplot,$
-                xrange=myXrange,yrange=myYrange,nodata=myNodata,$
-                levels=[level2sig,level1sig],thick=2
-
-        ;; Show the 68% confidence intervals
+        if not keyword_set(nocontour) then begin
+           
+           ;; Now show a contour at 68% confidence
+           binX = lmunct[XpInd]*0.3
+           binY = lmunct[YpInd]*0.3
+           bin2=hist_2d(chainparams[XpInd,*],chainparams[YpInd,*],$
+                        bin1=binX,bin2=binY,$
+                        min1=myXrange[0],max1=myXrange[1],$
+                        min2=myYrange[0],max2=myYrange[1])
+           
+           ;; Get dimensions of image
+           bin2dims = size(bin2,/dim)
+           Nxpoints = bin2dims[0]
+           xcontour = findgen(Nxpoints) * binX + myXrange[0] + binX/2E ;; middle of bins
+           NYpoints = bin2dims[1]
+           ycontour = findgen(NYpoints) * binY + myYrange[0] + binY/2E ;; middle of bins
+           
+           ;; Find the 68% and 95% contours
+           normbin = bin2 / float(total(bin2)) ;; PDF
+           sortbin = sort(normbin)
+           cumulativeT = total(normbin[sortbin],/cumulative)
+           tabinv,cumulativeT,(1E -0.68),sig1pt
+           tabinv,cumulativeT,(1E -0.95),sig2pt
+           level1sig = bin2[sortbin[sig1pt]] ;; 68% confidence level
+           level2sig = bin2[sortbin[sig2pt]] ;; 95% confidence level
+           
+           contour,bin2,xcontour,ycontour,color=mycol('white'),/overplot,$
+                   xrange=myXrange,yrange=myYrange,nodata=myNodata,$
+                   levels=[level2sig,level1sig],thick=3
+           contour,bin2,xcontour,ycontour,color=mycol('red'),/overplot,$
+                   xrange=myXrange,yrange=myYrange,nodata=myNodata,$
+                   levels=[level2sig,level1sig],thick=2
+           
+           ;; Show the 68% confidence intervals
 ;        sortedp = sort(chainparams[XpInd,*])
 ;        chainL = n_elements(chainparams[XpInd,*])
 ;        thresh = 0.68
@@ -125,11 +131,11 @@ pro analyze_cov,psplot=psplot
 ;        conflimits = chainparams[XpInd,[lowerp,upperp]]
 ;        oplot,replicate(conflimits[0],2),!y.crange,linestyle=3,color=mycol('blue')
 ;        oplot,replicate(conflimits[1],2),!y.crange,linestyle=3,color=mycol('blue')
-
-
+        endif
+        
      endfor
   endfor
-
+  
   !Y.OMargin = [0,0]
   !X.OMargin = [0,0]
 
