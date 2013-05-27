@@ -41,7 +41,12 @@ r = y
 if n_elements(yerr) NE 0 then begin
    sigFact = median(yerr)
 endif else sigFact = p[2]
-logdetermC = 2D * double(npts) * alog(sigFact) + alog(determ(C/sigFact^2))
+
+;; Find the log determinant from the method described by
+;; http://blogs.sas.com/content/iml/2012/10/31/compute-the-log-determinant-of-a-matrix/
+CC = C
+la_choldc,CC,/double
+logdetermC = 2D * total(alog(diag_matrix(CC)))
 
 ;; 2 X Log Likelihood from Gibson et al. 2012, appendix A3
 Likelihood = -(r ## Cinv ## transpose(r)) - logdetermC - double(npts) * 1.8378771D
