@@ -1,5 +1,5 @@
 function ev_hypertrain,xt,yt,parinfo=pi,findsig=findsig,$
-                       pstart=pstart,custStepsize=custStepsize,$
+                       pstart=pstart,custStepsize=custStepsize
 ;; Finds the Gaussian Process hyper-parameters for a training data set
 ;; uses the tnmin program to optimize the hyper-parameters
 ;; xt and yt are the input x and y coordinates
@@ -26,8 +26,8 @@ function ev_hypertrain,xt,yt,parinfo=pi,findsig=findsig,$
   endif
   pi(*).value = pstart
 
-  FUNCTARGS = {x:xt,y:yt} ;; these will be ased
-  a1 = ev_leval(pstart,x=xt,y=yt)
+  FUNCTARGS = {x:xt,yin:yt} ;; these will be entered in the likelihood function
+  a1 = ev_leval(pstart,x=xt,yin=yt)
 
   fitp = tnmin('ev_leval',FUNCTARGS=FUNCTARGS,parinfo=pi,/autoderivative)
 
