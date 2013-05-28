@@ -7,7 +7,7 @@ pro plot_tim_ser,fitcurve=fitcurve,fitpoly=fitpoly,usepoly=usepoly,makestops=mak
                  errorDistb=errorDistb,colorclip=colorclip,quadfit=quadfit,legorder=legorder,$
                  fixrad=fixrad,freelimblin=freelimblin,showDiffAirmass=showDiffairmass,$
                  nonormalize=nonormalize,showNomRad=showNomRad,fixoffset=fixoffset,$
-                 custresidYrange=custresidYrange
+                 custresidYrange=custresidYrange,fitepoch=fitepoch
 ;; plots the binned data as a time series and can also fit the Rp/R* changes
 ;; apPlot -- this optional keyword allows one to choose the aperture
 ;;           to plot
@@ -54,6 +54,7 @@ pro plot_tim_ser,fitcurve=fitcurve,fitpoly=fitpoly,usepoly=usepoly,makestops=mak
 ;;               in addition to the best-fit radius
 ;; custresidYrange -- sets the Yrange of all residual plots at a
 ;;                    specific value
+;; fitepoch -- fits the transit center
 
 ;sigrejcrit = 6D  ;; sigma rejection criterion
 sigrejcrit = 5D  ;; sigma rejection criterion
@@ -101,9 +102,9 @@ TsigRejCrit = 2.5D ;; sigma rejection criterion for time bins
 ;  paramnames = ['Rp/R*','b_impact','u1','u2','a/R*','linearA','linearB','quadC','cubicD']
 ;  paramnames = ['Rp/R*','b_impact','u1','u2','a/R*','linearA','linearB','quadC','cubicD','quarticE']
   paramnames = ['Rp/R*','b_impact','u1','u2','a/R*','legendre0','legendre1','legendre2','legendre3',$
-                'legendre4','legendre5']
+                'legendre4','legendre5','Phase Offset']
   paramfiles = ['rad'  ,'b_impact','u1','u2','a','legendre0','legendre1','legendre2','legendre3',$
-                'legendre4','legendre5']
+                'legendre4','legendre5','phase_offset']
   nparams = n_elements(paramnames)
   resultarr = fltarr(nparams,nbin)*!values.f_nan
   resultarrE = resultarr
@@ -460,7 +461,7 @@ TsigRejCrit = 2.5D ;; sigma rejection criterion for time bins
 ;           start=double([planetdat.p,planetdat.b_impact,u1parm,u2parm,$
 ;                         planetdat.a_o_rstar,1.0D,0D,0D,0D])
            start=double([planetdat.p,planetdat.b_impact,u1parm,u2parm,$
-                         planetdat.a_o_rstar,1.0D,0D,0D,0D,0D,0D])
+                         planetdat.a_o_rstar,1.0D,0D,0D,0D,0D,0D,0D])
 
 
 ;           if keyword_set(quadfit) then begin
@@ -473,7 +474,7 @@ TsigRejCrit = 2.5D ;; sigma rejection criterion for time bins
                      ' * P[8])/quadlc('+quadlcArg+')'
 
            endif else begin
-              expr = 'quadlc(X,P[0],P[1],P[2],P[3],P[4])* ( P[5] + '+$
+              expr = 'quadlc(X-P[11],P[0],P[1],P[2],P[3],P[4])* ( P[5] + '+$
                      'Legendre((2D * X - Max(X) - Min(X))/(Max(X) - Min(X) + 3D-16),1) * P[6] + '+$
                      'Legendre((2D * X - Max(X) - Min(X))/(Max(X) - Min(X) + 3D-16),2) * P[7] + '+$
                      'Legendre((2D * X - Max(X) - Min(X))/(Max(X) - Min(X) + 3D-16),3) * P[8] + '+$
@@ -510,6 +511,10 @@ TsigRejCrit = 2.5D ;; sigma rejection criterion for time bins
            pi[0].limited = [1,1] ;; make sure Rp/R* is limited
            pi[0].limits = [0D,1D] ;; Keep Rp/R* between 0 and 1
            ;; make sure the flux ratio offset is free
+           if keyword_set(fitepoch) then begin
+              pi[11].fixed = 0
+              pi[11].limited = [0,0]
+           endif
            if not keyword_set(fixoffset) then pi[5].fixed = 0 
            ;; Let the limb darkening be + or -
            pi[2].limited = [0,0]
