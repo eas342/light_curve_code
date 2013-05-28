@@ -41,9 +41,8 @@ pro plot_params_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
   ;; Find the parameter name
   fdirsplit = strsplit(radfile,'/',/extract,count=stringCt)
   fname = fdirsplit[stringCt-1l]
-  fnamesplit = strsplit(fname,'_vs_',/extract,count=stringCt)
-  paramname = fnamesplit[0]
-
+  fparamposition = strpos(fname,'_vs_')
+  paramname = strmid(fname,0,fparamposition)
   readcol,radfile,wavl,wavlsize,rad,rade,skipline=1,forma='(F)'
 
   if keyword_set(showstarspec) then ytempstyle=8+16 else ytempstyle=0+16
@@ -141,7 +140,7 @@ pro plot_params_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
   for i=2l,totsets do begin
      ;; If asked to, overplot another Rad/vs wavlength file
      print,'Choose Additional file ',strtrim(i-1l,1)
-     file2 = choose_file(searchDir='radius_vs_wavelength',filetype='.txt')
+     file2 = choose_file(searchDir='radius_vs_wavelength/fit_data',filetype='.txt')
      readcol,file2,wavl2,wavl2size,rad2,rade2,skipline=1,format='(F,F,F)'
      ;; find the bin width
      wavlwidth2 = wavl2size/2E
