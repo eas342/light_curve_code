@@ -586,7 +586,8 @@ TsigRejCrit = 2.5D ;; sigma rejection criterion for time bins
            plot,tplot,resid,yrange=ydynam,$
                 title='Residuals at '+wavname,$
                 xtitle='Orbital Phase',ytitle='Flux Residual (%)',$
-                psym=2,ystyle=8+1,xmargin=overplotMarg,/nodata
+                psym=2,ystyle=8+1,xmargin=overplotMarg,/nodata,$
+                xrange=custXrange
            if n_elements(timebin) EQ 0 then oplot,tplot,resid,psym=4 else begin
               oploterror,tplot,resid,tsizes/2E,yerr/meanoff * 100E,psym=3,hatlength=0,thick=2
            endelse
