@@ -158,7 +158,7 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
      tempnm=''
      read,tempnm,format='(A)'
      legnamearr[0l] = tempnm
-     colorchoices = mycol(['black','orange','purple','blue'])
+     colorchoices = [!p.color,mycol(['orange','purple','blue'])]
      ncolchoices = n_elements(colorchoices)
      colorarr = colorchoices[lindgen(totsets) mod ncolchoices]
   endif
