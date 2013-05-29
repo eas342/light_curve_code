@@ -45,6 +45,20 @@ pro plot_params_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
   paramname = strmid(fname,0,fparamposition)
   readcol,radfile,wavl,wavlsize,rad,rade,skipline=1,forma='(F)'
 
+  if paramname EQ 'phase_offset' then begin
+     ;; Treat the phase offset as an O-C diagram
+     paramname = 'O - C (min)'
+     ;; get the planet info
+     readcol,'transit_info/planet_info.txt',info,data,format='(A,D)',$
+             skipline=1
+     planetdat = create_struct('null','')
+     for l=0l,n_elements(info)-1l do begin
+        planetdat = create_struct(planetdat,info[l],data[l])
+     endfor
+     rad = rad * planetdat.period * 24E * 60E
+     rade = rade * planetdat.period * 24E * 60E
+  endif
+
   if keyword_set(showstarspec) then ytempstyle=8+16 else ytempstyle=0+16
 
   binsizes = wavlsize
@@ -148,6 +162,10 @@ pro plot_params_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
         wavlwidth = 1E4 / wavl^2 * wavlwidth
         wavl = 1E4 / (wavl)
      endif
+     if paramname EQ 'O - C (min)' then begin
+        rad2 = rad2 * planetdat.period * 24E * 60E
+        rade2 = rade2 * planetdat.period * 24E * 60E
+     endif
 
      oploterror,wavl2,rad2,wavlwidth2,rade2,psym=3,$
                 color=colorchoices[i-1l]
@@ -168,8 +186,8 @@ pro plot_params_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
      axis,yaxis=1,yrange=!y.crange,color=mycol('blue'),/ystyle,$
           ytitle='Raw Source Flux (DN)'
      
-     !x.margin = [10.0,3.0]
   endif
+  !x.margin = [10.0,3.0] ;;return to normal
 
   if keyword_set(psplot) then begin
      device, /close
