@@ -65,6 +65,7 @@ pro analyze_mcmc,psplot=psplot,$
         endelse 
      endelse 
 
+     if mybinsize EQ 0 then mybinsize=1 ;; can't use a zero bin size
      yhist = histogram(chainparams[pInd,*],binsize=mybinsize,$
                        locations=xhistleft)
      xhist = xhistleft + mybinsize /2E
