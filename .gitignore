@@ -20,7 +20,8 @@ transit_info/print_times.pro
 transit_info/tai_utc.pro
 transit_info/utc2bjd.pro
 data/cleaned_tim_ser/*.txt
-data/mcmc/param_unc/*.txt
+data/mcmc/*/*.txt
+data/mcmc/*/*/*.txt
 data/mcmc/*.sav
 data/simulated_series/*.txt
 molec_inputs/*bin_locations.txt
