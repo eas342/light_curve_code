@@ -69,7 +69,7 @@ pro analyze_mcmc,psplot=psplot,$
      yhist = histogram(chainparams[pInd,*],binsize=mybinsize,$
                        locations=xhistleft)
      xhist = xhistleft + mybinsize /2E
-;     stop
+
      normalization = total(yhist)
      if n_elements(xhist) LE 1 then begin
         ;; IF the histogram is very sparse, just plot [0,0],[0,0]
@@ -78,17 +78,19 @@ pro analyze_mcmc,psplot=psplot,$
      endif
      plot,xhist,yhist,$
           xtitle=parnames[pInd],psym=10,$
-          charsize=2,xmargin=[5,5],xticks=1,yticks=1,$
+          charsize=2,xmargin=[5,5],$
           yrange=[0,max(yhist)],ystyle=1,xrange=[min(xhist),max(xhist)],$
           xstyle=1,ymargin=[4,1.5],$
-          xminor=5,xticklen=0.05,ytitle='Counts',ytickname=''
-;          ymargin=[2,2]
+          xticklen=0.05,ytitle='Counts',$
+          xtick_get=xtickvals,xtickformat='(A1)',$;; supress & save tick labels
+          ytick_get=ytickvals,ytickformat='(A1)'
+     twotick_labels,xtickvals,ytickvals
+
      ;; Show the error bars from the Levenberg-Marquardt method
      if pInd LE nregular-1l then begin
         oplot,lmfit[pInd] - [1E,1E] * lmunct[pInd],!y.crange,linestyle=2
         oplot,lmfit[pInd] + [1E,1E] * lmunct[pInd],!y.crange,linestyle=2
      endif
-;     stop
 
      ;; Show the 68% confidence limits from MCMC
      sortedp = sort(chainparams[pInd,*])
@@ -103,7 +105,7 @@ pro analyze_mcmc,psplot=psplot,$
      medparams[pInd] = median(chainparams[pInd,*])
      paramLower[pInd] = medparams[pInd] - conflimits[0]
      paramUpper[pInd] = conflimits[1] - medparams[pInd]
-     
+
   endfor
 
   print,'Acceptance Ratio = ',aRatio
