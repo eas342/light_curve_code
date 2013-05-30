@@ -131,4 +131,7 @@ pro analyze_mcmc,psplot=psplot,nohyper=nohyper,extend2lm=extend2lm
            format='(A8,5(1x,F16.5))',textout='data/mcmc/param_unc/param_unc.txt',$
            comment=textcomment
 
+  save,medparams,paramLower,paramUpper,filename='data/mcmc/param_unc/param_unc.sav'
+  ;; Save the uncertainties and medians for use by analyze_cov
+
 end

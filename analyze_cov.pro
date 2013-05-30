@@ -16,8 +16,17 @@ pro analyze_cov,psplot=psplot,nocontour=nocontour
 
   ;; get the mcmc data
   restore,'data/mcmc/mcmc_chains.sav'
-;  restore,'data/mcmc/mcmc_chains_1.43um.sav'
   ;;chainparams,lmfit,lmunct
+
+  ;; Use analyze_mcmc to get the parameter uncertainties
+  analyze_mcmc
+  restore,'data/mcmc/param_unc/param_unc.sav'
+  lmunct = (paramLower + paramUpper)/2E
+  lmfit = medparams
+
+  ;; medparams, paramLower and paramUpper
+;  restore,'data/mcmc/mcmc_chains_1.43um.sav'
+
 
   parnames = ['R!Dp!N/R!D*','b/R!D*!N','u!D1!N','u!D2!N','a/R!D*!N','A!D0!N','A!D1!N','A!D2!N','A!D3!N']
 
@@ -25,11 +34,6 @@ pro analyze_cov,psplot=psplot,nocontour=nocontour
   nparams = n_elements(lmfit)
   nfree = total(freep)
   assert,n_elements(parnames),'=',nparams,'Warning # of parameter mismatch'
-
-  ;; Returned parameters and uncertainties
-  medparams = lmfit
-  paramUpper = fltarr(nparams)
-  paramLower = fltarr(nparams)
 
   !p.multi = [0,nfree-1,nfree-1]
   !Y.OMargin = [4,1.5]
