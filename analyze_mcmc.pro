@@ -1,6 +1,10 @@
-pro analyze_mcmc,psplot=psplot,$
-                 paramUpper=paramUpper,paramLower=paramLower,$
-                 medparams=medparams
+pro analyze_mcmc,psplot=psplot,nohyper=nohyper,extend2lm=extend2lm
+;; Takes the MCMC results and plots histograms for the parameters
+;; psplot - generates postscript, png and pdf plots
+;; nohyper - don't display hyper parameters - often used if
+;;           hyper-parameters are fixed
+;; extend2lm -- extend the X range to show all Levenberg-Marquardt results
+
   ;; set the plot
   if keyword_set(psplot) then begin
      set_plot,'ps'
@@ -21,10 +25,10 @@ pro analyze_mcmc,psplot=psplot,$
   parnames = ['Rp/R*','b/R*','u1','u2','A/R*','A_0','A_1','A_2','A_3']
 ;  parfree =  [      1,     0,   1,   0,     0,    1,   1,    1,    0 ]
 
+  sizePchain = size(chainparams)
+  nregular = sizePchain[1] ;; number of regular parameters
   ;; If there are hyper-parameters, plot those as well
-  if n_elements(chainhypers) NE 0 then begin
-     sizePchain = size(chainparams)
-     nregular = sizePchain[1] ;; number of regular parameters
+  if n_elements(chainhypers) NE 0 AND not keyword_set(nohyper) then begin
      nparams = nregular + 2
 
      freep = [freep,1,1] ; make 2 hyperparametsr free
@@ -53,17 +57,7 @@ pro analyze_mcmc,psplot=psplot,$
 
   for i=0l,nfree-1l do begin
      pInd = freeInd[i] ;; parameter index
-;     plothist,chainparams[pInd,*],xhist,yhist,bin=lmunct[pInd] * 8E,$
-;              /nodata
-;     yhist = histogram(chainparams[pInd,*],binsize=lmunct[pInd] *
-;     0.1E,$
-     if pInd GT nregular-1l then begin
-        mybinsize = robust_sigma(chainparams[pInd,*]) * 0.5E
-     endif else begin
-        if lmunct[pInd] EQ 0.0D then mybinsize = 0.001 else begin
-           mybinsize = lmunct[pInd] * 0.5E
-        endelse 
-     endelse 
+     mybinsize = robust_sigma(chainparams[pInd,*]) * 0.5E
 
      if mybinsize EQ 0 then mybinsize=1 ;; can't use a zero bin size
      yhist = histogram(chainparams[pInd,*],binsize=mybinsize,$
@@ -76,12 +70,20 @@ pro analyze_mcmc,psplot=psplot,$
         xhist = [-1,0,1]
         yhist = [0,1,0]
      endif
+     if keyword_set(extend2lm) and pInd LE nregular-1l then begin
+        ;; Show the LM results in case their many sigma away, give a
+        ;; breathing room of (Max - Min)*0.05
+        breathRoom = (max(xhist) - min(xhist))*0.05
+        myXrange=[min([xhist,lmfit[pInd] - lmunct[pInd] - breathRoom]),$
+                  max([xhist,lmfit[pInd] + lmunct[pInd] + breathRoom])]
+     endif else myXrange=[min(xhist),max(xhist)]
+
      plot,xhist,yhist,$
           xtitle=parnames[pInd],psym=10,$
           charsize=2,xmargin=[5,5],$
-          yrange=[0,max(yhist)],ystyle=1,xrange=[min(xhist),max(xhist)],$
+          yrange=[0,max(yhist)],ystyle=1,xrange=myXrange,$
           xstyle=1,ymargin=[4,1.5],$
-          xticklen=0.05,ytitle='Counts',$
+          xticklen=0.05,ytitle='Counts!C',$
           xtick_get=xtickvals,xtickformat='(A1)',$;; supress & save tick labels
           ytick_get=ytickvals,ytickformat='(A1)'
      twotick_labels,xtickvals,ytickvals
