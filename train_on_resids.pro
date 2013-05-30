@@ -1,9 +1,9 @@
 pro train_on_resids
 ;; fits the hyperparameters to a set of residuals
 
-  readcol,'data/cleaned_tim_ser/timeser_1.43um_.txt',$
+;  readcol,'data/cleaned_tim_ser/timeser_1.43um_.txt',$
 ;  readcol,'data/cleaned_tim_ser/timeser_0.91um_.txt',$
-;  readcol,'data/cleaned_tim_ser/timeser_1.08um_.txt',$
+  readcol,'data/cleaned_tim_ser/timeser_1.08um_.txt',$
           phase,fl,flerr,modelfl,resid
 ;  stop
   phaseFact = max(phase)
