@@ -34,7 +34,7 @@ pro try_mcmc,psplot=psplot
   pi[2].fixed = 0 ;; free the linear limb darkening
 ;  pi[3].fixed = 0 ;; free the quadratic limb darkening
   pi[5].fixed = 0 ;; free the offset
-;  pi[6].fixed = 0 ;; free the linear coefficient
+  pi[6].fixed = 0 ;; free the linear coefficient
 ;  pi[7].fixed = 0 ;; free the second Legendre coefficient
 ;  pi[8].fixed = 0 ;; free the third Legendre coefficient
 
@@ -55,17 +55,17 @@ pro try_mcmc,psplot=psplot
   ;; set up the hyperparameters
   hyperpi = replicate({fixed:0, limited:[1,0], limits:[0.0E,0.0E],$
                       start:0E,jumpsize:0E},3)
-  hyperpi[*].start = [0.0028,1D-5,0.0024]
-  hyperpi[*].jumpsize = [0.0001,1E-6,0]
-;  hyperpi[*].start = [0.00,0.0005,0.0024]
-;  hyperpi[*].jumpsize = [0.00,0.0005,0.000]
+;  hyperpi[*].start = [0.0028,1D-5,0.0024]
+;  hyperpi[*].jumpsize = [0.0001,1E-6,0]
+  hyperpi[*].start = [0.0002,0.2,0.002]
+  hyperpi[*].jumpsize = [0,0,0]
 
   ;; Go through the cleaned time series
   cd,c=currentd
   fileopt = file_search(currentd+'/data/cleaned_tim_ser/*.txt')
   totfiles = n_elements(fileopt)
-;  for i=0l,n_elements(fileopt)-1l do begin
-  for i=0l,0l do begin
+  for i=0l,n_elements(fileopt)-1l do begin
+;  for i=0l,0l do begin
      trimst = strsplit(fileopt[i],'/',/extract)
      trimname = trimst(n_elements(trimst)-1l)
      namespl = strsplit(trimname,'_',/extract)
@@ -77,7 +77,8 @@ pro try_mcmc,psplot=psplot
 
 ;     result = ev_mcmc(expr,phase,fl,flerr,start,parinfo=pi,chainL = 3000l,maxp=99000l)
 ;     result = ev_mcmc(expr,phase,fl,flerr,start,parinfo=pi,chainL = 300l,maxp=10000l,$
-     result = ev_mcmc(expr,phase,fl,flerr,start,parinfo=pi,chainL = 3000l,maxp=99000l,$
+;     result = ev_mcmc(expr,phase,fl,flerr,start,parinfo=pi,chainL = 3000l,maxp=99000l,$
+     result = ev_mcmc(expr,phase,fl,flerr,start,parinfo=pi,chainL = 5000l,maxp=99000l,$
                       hyperparams=hyperpi)
 ;     result = ev_mcmc(expr,phase,fl,flerr,start,parinfo=pi,chainL = 3000l,maxp=90l)
      analyze_mcmc,/psplot
