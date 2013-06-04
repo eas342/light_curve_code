@@ -58,7 +58,7 @@ pro try_mcmc,psplot=psplot
 ;  hyperpi[*].start = [0.0028,1D-5,0.0024]
 ;  hyperpi[*].jumpsize = [0.0001,1E-6,0]
   hyperpi[*].start = [0.0002,0.2,0.002]
-  hyperpi[*].jumpsize = [0.00004,0,0]
+  hyperpi[*].jumpsize = [0.00004,0.001,0]
 
   ;; Go through the cleaned time series
   cd,c=currentd
