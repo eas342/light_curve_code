@@ -29,5 +29,23 @@ pro gather_mcmc_radii
            comment='#Wavelength(um) Bin size(um) Rp/R*   Rp/R* Error',$
            textout='radius_vs_wavelength/mcmc_rad_vs_wavl.txt'
 
+  replaceTypes = ['/','*','!']
+  nTypes = n_elements(replaceTypes)
+
+  ;; Save the rest of the parameters
+  for i=0l,nparam-1l do begin
+     ;; Trim out the parentheses, slashes, stars etc. for the file
+     ;; name
+     parfname = paramnames[i]
+     for j=0l,nTypes-1l do begin
+        parfname = strjoin(strsplit(parfname,replaceTypes[j],/extract),'_')
+     endfor
+
+     forprint,wavl,wavlsize,ParamArray[*,i],ParamArrayErr[*,0],$
+              comment='#Wavelength(um) Bin size(um) '+paramnames[i]+' '+paramnames[i]+' Error',$
+              textout='radius_vs_wavelength/fit_data_mcmc/'+parfname+'_vs_wavl.txt',$
+              /silent
+  endfor
+
 end
 
