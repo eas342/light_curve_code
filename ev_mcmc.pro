@@ -88,9 +88,6 @@ function ev_mcmc,expr,X,Y,Yerr,start,chainL=chainL,parinfo=pi,maxp=maxp,$
      endelse
 ;     print,'Offset   Delta Chi-Squared   Lratio    Keep?'
 ;     print,chainparams[5,j],DeltaChisQ,lratio,(Lratio GT randKeeparr[i])
-;     if n_elements(hyperparams) NE 0 then begin
-;        print,[chainparams[freeParams,j],chainhypers[*,j],newchisQ]
-;     endif
 ;     if i mod 10 eq 9 then stop
 
      if Lratio GT randKeeparr[i] then begin;; Probability of keeping the point
@@ -104,6 +101,9 @@ function ev_mcmc,expr,X,Y,Yerr,start,chainL=chainL,parinfo=pi,maxp=maxp,$
         plot,chainparams(5,0:j-1),ystyle=16
         wait,0.02
 
+;        if n_elements(hyperparams) NE 0 then begin
+;           print,[chainparams[freeParams,j],chainhypers[*,j],newchisQ]
+;        endif
      endif
 
   endfor
@@ -120,6 +120,7 @@ function ev_mcmc,expr,X,Y,Yerr,start,chainL=chainL,parinfo=pi,maxp=maxp,$
 
   ;; Shorten the chains in case the run was truncated prematurely
   chainparams = chainparams[*,0l:(j-1l)]
+  if n_elements(hyperparams) NE 0 then chainhypers = chainhypers[*,0l:(j-1l)]
   save,chainparams,lmfit,lmunct,freep,dof,chisQarray,aRatio,$
        chainhypers,$
        filename='data/mcmc/mcmc_chains.sav'
