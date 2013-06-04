@@ -126,8 +126,17 @@ pro analyze_mcmc,psplot=psplot,nohyper=nohyper,extend2lm=extend2lm
 
   textcomment=string('Parameter','LM Fit','LM +/-','MCMC Fit','MCMC+','MCMC-',$
                     format='(A8,5(1x,A16))')
-  forprint,parnames[0:nregular-1l],lmfit,lmunct,medparams[0:nregular-1l],$
-           paramUpper[0:nregular-1l],paramLower[0:nregular-1l],$
+
+  if n_elements(chainhypers) NE 0 AND not keyword_set(nohyper) then begin
+     lmfull = [lmfit,0,0] ;; full Levenbergy-marquardt array (0 for the hyper-parameters)
+     lmunctfull = [lmunct,0,0]
+  endif else begin
+     lmfull = lmfit
+     lmunctfull = lmunct
+  endelse
+
+  forprint,parnames,lmfull,lmunctfull,medparams,$
+           paramUpper,paramLower,$
            format='(A8,5(1x,F16.5))',textout='data/mcmc/param_unc/param_unc.txt',$
            comment=textcomment
 
