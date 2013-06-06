@@ -47,7 +47,7 @@ pro simulate_series,theta=theta,Npoints=Npoints,psplot=psplot,$
 
   for i=0l,Npoints-1l do begin
      for j=0l,Npoints-1l do begin
-        Argument = -0.5D * ((x[i] - x[j])/theta[1])^2
+        Argument = -0.5D * (abs((x[i] - x[j])/theta[1]))^(1E)
         if Argument LT -15D then C[i,j] = 0D else begin
            C[i,j] = theta[0] * exp(Argument)
         endelse

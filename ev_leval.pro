@@ -12,7 +12,7 @@ npts = n_elements(x)
 C = dblarr(npts,npts)
 for i=0,npts -1l do begin
    for j=0l,npts-1l do begin
-      Argument = -0.5D * ((x[i] - x[j])/p[1])^2
+      Argument = -0.5D * abs((x[i] - x[j])/p[1])
       if Argument LT -15D then C[i,j] = 0D else begin
          C[i,j] = p[0] * exp(Argument)
       endelse
