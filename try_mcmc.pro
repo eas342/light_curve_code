@@ -34,7 +34,7 @@ pro try_mcmc,psplot=psplot
   pi[2].fixed = 0 ;; free the linear limb darkening
 ;  pi[3].fixed = 0 ;; free the quadratic limb darkening
   pi[5].fixed = 0 ;; free the offset
-  pi[6].fixed = 0 ;; free the linear coefficient
+;  pi[6].fixed = 0 ;; free the linear coefficient
 ;  pi[7].fixed = 0 ;; free the second Legendre coefficient
 ;  pi[8].fixed = 0 ;; free the third Legendre coefficient
 
@@ -57,8 +57,8 @@ pro try_mcmc,psplot=psplot
                       start:0E,jumpsize:0E},3)
 ;  hyperpi[*].start = [0.0028,1D-5,0.0024]
 ;  hyperpi[*].jumpsize = [0.0001,1E-6,0]
-  hyperpi[*].start = [0.0002,0.2,0.002]
-  hyperpi[*].jumpsize = [0.00004,0.001,0]
+  hyperpi[*].start = [0.0005,0.2,0.002]
+  hyperpi[*].jumpsize = [0.0001,0.05,0]
 
   ;; Go through the cleaned time series
   cd,c=currentd
