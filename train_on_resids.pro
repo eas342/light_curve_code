@@ -3,7 +3,8 @@ pro train_on_resids
 
 ;  readcol,'data/cleaned_tim_ser/timeser_1.43um_.txt',$
 ;  readcol,'data/cleaned_tim_ser/timeser_0.91um_.txt',$
-  readcol,'data/cleaned_tim_ser/timeser_1.08um_.txt',$
+;  readcol,'data/cleaned_tim_ser/timeser_1.08um_.txt',$
+  readcol,'data/cleaned_tim_ser/timeser_2.14um_.txt',$
           phase,fl,flerr,modelfl,resid
 ;  stop
   phaseFact = max(phase)
@@ -14,13 +15,12 @@ pro train_on_resids
   residFact = 1D
   resid = resid / residFact * multfac
 
-  custpi = replicate({value:0.D,fixed:0,limited:[1,0],limits:[1D-5,0.D],$
+  custpi = replicate({value:0.D,fixed:0,limited:[1,0],limits:[1D-6,0.D],$
                       step:0.001*multfac},3)
 
 ;  custstart=[1,3,1]
-
-  custstart = [0.01 * multfac,0.05,0.27 * multfac]
-;  custstart = [0.01,0.05,0.27]
+;  custstart = [0.01 * multfac,0.05,0.27 * multfac]
+  custstart = [0.2,0.15,0.36]
 
    ParamArr = ev_hypertrain(phase,resid,pstart=custstart,$
                            parinfo=custpi)
