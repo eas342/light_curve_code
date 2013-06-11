@@ -34,7 +34,7 @@ pro try_mcmc,psplot=psplot
   pi[2].fixed = 0 ;; free the linear limb darkening
 ;  pi[3].fixed = 0 ;; free the quadratic limb darkening
   pi[5].fixed = 0 ;; free the offset
-  pi[6].fixed = 0 ;; free the linear coefficient
+;  pi[6].fixed = 0 ;; free the linear coefficient
 ;  pi[7].fixed = 0 ;; free the second Legendre coefficient
 ;  pi[8].fixed = 0 ;; free the third Legendre coefficient
 
