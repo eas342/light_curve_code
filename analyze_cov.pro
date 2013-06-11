@@ -148,13 +148,16 @@ pro analyze_cov,psplot=psplot,nocontour=nocontour,nohyper=nohyper,$
            tabinv,cumulativeT,(1E -0.95),sig2pt
            level1sig = bin2[sortbin[sig1pt]] ;; 68% confidence level
            level2sig = bin2[sortbin[sig2pt]] ;; 95% confidence level
-           
+
+           if level2sig GE level1sig then begin
+              mylevels=level1sig
+           endif else mylevels = [level2sig,level1sig]
            contour,bin2,xcontour,ycontour,color=mycol('white'),/overplot,$
                    xrange=myXrange,yrange=myYrange,nodata=myNodata,$
-                   levels=[level2sig,level1sig],thick=3
+                   levels=mylevels,thick=3
            contour,bin2,xcontour,ycontour,color=mycol('red'),/overplot,$
                    xrange=myXrange,yrange=myYrange,nodata=myNodata,$
-                   levels=[level2sig,level1sig],thick=2
+                   levels=mylevels,thick=2
            
            ;; Show the 68% confidence intervals
 ;        sortedp = sort(chainparams[XpInd,*])
