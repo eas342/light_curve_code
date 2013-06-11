@@ -7,22 +7,42 @@ pro multiple_mcmc_nights
 
   read,'Have you emptied the param_unc folder?',junk
 
-  for i=0l,1l do begin
-     if i EQ 0 then begin
-        compile_spec,/dec23,nwavbins=15
-     endif else compile_spec,nwavbins=15
-     plot_tim_ser,timebin=50
+  for i=0l,2l do begin
+     case i of
+        0: compile_spec,/dec23,nwavbins=9
+        1: compile_spec,nwavbins=9 ;; Jan 04
+        2: compile_spec,/dec29
+     endcase
+     if i LE 1 then plot_tim_ser,timebin=50 else plot_tim_ser,timebin=25
      try_mcmc
      gather_mcmc_radii
-     if i EQ 0 then begin
-        spawn,'cp radius_vs_wavelength/mcmc_rad_vs_wavl.txt '+$
-              'radius_vs_wavelength/straightdec23_leg00fit_freelimblin_mcmc_hypers_'+$
-              'free_free_yerr_015pt_absexp_kern.txt'
-     endif else begin
-        spawn,'cp radius_vs_wavelength/mcmc_rad_vs_wavl.txt '+$
-              'radius_vs_wavelength/straightjan04_leg00fit_freelimblin_mcmc_hypers_'+$
-              'free_free_yerr_015pt_absexp_kern.txt'
-     endelse
+     case i of
+        0: begin
+           spawn,'cp radius_vs_wavelength/mcmc_rad_vs_wavl.txt '+$
+                 'radius_vs_wavelength/straightdec23_leg00fit_freelimblin_mcmc_hypers_'+$
+                 'free_free_yerr_009pt_absexp_kern.txt'
+           spawn,'cp -r plots/mcmc/individual_wavs/histograms_png plots/mcmc/individual_wavs/histograms_png_dec23'
+           spawn,'cp -r plots/mcmc/individual_wavs/chain_plots_png plots/mcmc/individual_wavs/chain_plots_png_dec23'
+           spawn,'cp -r plots/mcmc/individual_wavs/cov_plots_png plots/mcmc/individual_wavs/cov_plots_png_dec23'
+        end
+
+        1: begin
+           spawn,'cp radius_vs_wavelength/mcmc_rad_vs_wavl.txt '+$
+                 'radius_vs_wavelength/straightjan04_leg00fit_freelimblin_mcmc_hypers_'+$
+                 'free_free_yerr_009pt_absexp_kern.txt'
+           spawn,'cp -r plots/mcmc/individual_wavs/histograms_png plots/mcmc/individual_wavs/histograms_png_jan04'
+           spawn,'cp -r plots/mcmc/individual_wavs/chain_plots_png plots/mcmc/individual_wavs/chain_plots_png_jan04'
+           spawn,'cp -r plots/mcmc/individual_wavs/cov_plots_png plots/mcmc/individual_wavs/cov_plots_png_jan04'
+        end
+        2: begin
+           spawn,'cp radius_vs_wavelength/mcmc_rad_vs_wavl.txt '+$
+                 'radius_vs_wavelength/straightdec29_leg00fit_freelimblin_mcmc_hypers_'+$
+                 'free_free_yerr_009pt_absexp_kern.txt'
+           spawn,'cp -r plots/mcmc/individual_wavs/histograms_png plots/mcmc/individual_wavs/histograms_png_dec29'
+           spawn,'cp -r plots/mcmc/individual_wavs/chain_plots_png plots/mcmc/individual_wavs/chain_plots_png_dec29'
+           spawn,'cp -r plots/mcmc/individual_wavs/cov_plots_png plots/mcmc/individual_wavs/cov_plots_png_dec29'
+        end
+     endcase
   endfor
 
 
