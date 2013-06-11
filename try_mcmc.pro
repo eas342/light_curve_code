@@ -57,8 +57,12 @@ pro try_mcmc,psplot=psplot
                       start:0E,jumpsize:0E},3)
 ;  hyperpi[*].start = [0.0028,1D-5,0.0024]
 ;  hyperpi[*].jumpsize = [0.0001,1E-6,0]
-  hyperpi[*].start = [0.0005,0.2,0.002]
-  hyperpi[*].jumpsize = [0.0001,0.05,0]
+;  hyperpi[*].start = [0.0005,0.2,0.002] ;; old set I used for absolute exponential kernel
+;  hyperpi[*].jumpsize = [0.0001,0.05,0]
+;  hyperpi[*].start = [0.0005,0.05,0.002] ;; the set I used for modified abs exp kern
+;  hyperpi[*].jumpsize = [0.0002,0.02,0]
+  hyperpi[*].start = [0.0006,0.1,0.002]
+  hyperpi[*].jumpsize = [0.0002,0.5,0]
 
   ;; Go through the cleaned time series
   cd,c=currentd
