@@ -128,7 +128,7 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
   if keyword_set(showtheospec) then begin ;; show the theoretical transmission spectrum
      readcol,'../models/fortney_g10mps_2500K_isothermal.csv',theowav,theorad,$
              skipline=6,format='(F,F)'
-     radToPlanet = 0.102E ;; found by eye to get the approximate Corot bandpass correctly
+     radToPlanet = 0.10185E ;; found by eye to get the approximate Corot bandpass correctly
      oplot,theowav,theorad *radToPlanet,color=mycol('blue')
 
      ntheo=n_elements(theorad)
