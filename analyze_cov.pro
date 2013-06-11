@@ -56,8 +56,8 @@ pro analyze_cov,psplot=psplot,nocontour=nocontour,nohyper=nohyper
   assert,n_elements(parnames),'=',nparams,'Warning # of parameter mismatch'
 
   !p.multi = [0,nfree-1,nfree-1]
-  !Y.OMargin = [4,1.5]
-  !X.OMargin = [14,1.5]
+  !Y.OMargin = [8,1.5]
+  !X.OMargin = [16,1.5]
 
   for i=1l,nfree-1l do begin
      YpInd = freeInd[i];; parameter index for Y axis
@@ -87,31 +87,32 @@ pro analyze_cov,psplot=psplot,nocontour=nocontour,nohyper=nohyper
            myXstyle=1+4
         endif
 
-        if j EQ 0 then begin ;; Left side
-;           myYtickName = [string(myYrange[0],format='(F8.4)'),$
-;                          string((myYrange[1]-myYrange[0])/2E + myYrange[0],format='(F8.4)'),$
-;                                 ' ']
-           myYtickName = ['','',' ']
-           myYtitle = parnames[YpInd]
-        endif
         if j EQ nfree-1l then myXmargin[1] = 1.5 ;;Right side
         if i EQ 0 then myYmargin[1] = 1.5 ;; Top
-        if i EQ nfree-1l then begin  ;; Bottom
+;        if i EQ nfree-1l then begin  ;; Bottom
 ;           myXtickName = [string(myXrange[0],format='(F8.4)'),$
 ;                          string((myXrange[1]-myXrange[0])/2E + myXrange[0],format='(F8.4)'),$
 ;                                 ' ']
-           myXtickName = ['','',' ']
-           myXtitle = parnames[XpInd]
-        endif
+;           myXtickName = ['','',' ']
+;           myXtitle = parnames[XpInd]
+;        endif
 
         plot,chainparams[XpInd,*],chainparams[YpInd,*],psym=3,$
-             xtitle=myXtitle,ytitle=myYtitle,$
+;             xtitle=myXtitle,ytitle=myYtitle,$
              charsize=2,xmargin=myXmargin,ymargin=myYmargin,$
-             xticks=2,yticks=2,xtickname=myXtickName,ytickname=myYtickName,$
+             xtick_get=xtickvals,xtickformat='(A1)',$;; suppress & save tick labels
+             ytick_get=ytickvals,ytickformat='(A1)',$
              ystyle=myYstyle,xstyle=myXstyle,$
-             xminor=4,xticklen=0.05,yminor=4,$
+             xticklen=0.05,$
              xrange=myXrange,yrange=myYrange,$
              nodata=myNodata
+        ;; Show tick labels and axis for bottom row
+        if i EQ nfree-1l then begin
+           twotick_labels,xtickvals,ytickvals,/noY,xtitle=parnames[XpInd],/xmid,xorient=45
+        endif
+        if j EQ 0 then begin ;; Left side
+           twotick_labels,xtickvals,ytickvals,/noX,ytitle=parnames[YpInd],/ymid
+        endif
         
         if not keyword_set(nocontour) then begin
            
