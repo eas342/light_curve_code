@@ -1,9 +1,11 @@
-pro analyze_mcmc,psplot=psplot,nohyper=nohyper,extend2lm=extend2lm
+pro analyze_mcmc,psplot=psplot,nohyper=nohyper,extend2lm=extend2lm,$
+                 discard=discard
 ;; Takes the MCMC results and plots histograms for the parameters
 ;; psplot - generates postscript, png and pdf plots
 ;; nohyper - don't display hyper parameters - often used if
 ;;           hyper-parameters are fixed
 ;; extend2lm -- extend the X range to show all Levenberg-Marquardt results
+;; discard -- specifies the number of initial points to discard
 
   ;; set the plot
   if keyword_set(psplot) then begin
@@ -43,6 +45,13 @@ pro analyze_mcmc,psplot=psplot,nohyper=nohyper,extend2lm=extend2lm
      ;; Returned parameters and uncertainties
      medparams = lmfit
   endelse
+
+  ;; Throw out the first discard points
+  if n_elements(discard) NE 0 then begin
+     truncchain = fltarr(nparams,sizePchain[2]-discard)
+     truncchain = chainparams[*,discard:sizePchain[2]-1l]
+     chainparams = truncchain
+  endif
 
   freeInd = where(freep)
   paramUpper = fltarr(nparams)

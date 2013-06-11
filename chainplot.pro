@@ -1,4 +1,5 @@
-pro chainplot,psplot=psplot,nohyper=nohyper,extend2lm=extend2lm
+pro chainplot,psplot=psplot,nohyper=nohyper,extend2lm=extend2lm,$
+              discard=discard
 ;; Takes the MCMC results and plots the parameters as a function of
 ;; time to check for convergence
 ;; psplot - generates postscript, png and pdf plots
@@ -89,6 +90,11 @@ pro chainplot,psplot=psplot,nohyper=nohyper,extend2lm=extend2lm
      conflimits = chainparams[pInd,[lowerp,upperp]]
      oplot,!x.crange,replicate(conflimits[0],2),linestyle=3,color=mycol('blue')
      oplot,!x.crange,replicate(conflimits[1],2),linestyle=3,color=mycol('blue')
+
+     ;; Show where the points are discarded
+     if n_elements(discard) NE 0 then begin
+        oplot,replicate(discard,2),!y.crange,color=mycol('red')
+     endif
      
   endfor
 

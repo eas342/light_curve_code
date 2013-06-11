@@ -1,11 +1,13 @@
-pro analyze_cov,psplot=psplot,nocontour=nocontour,nohyper=nohyper
+pro analyze_cov,psplot=psplot,nocontour=nocontour,nohyper=nohyper,$
+                discard=discard
 ;; Make a plot of the co-variance of the MCMC parameters
 ;; psplot - make postscript & png files
 ;; nocontours -- skips the 68% and 95% contours
 ;; nohyper -- doesn't show the hyper-parameters
+;; discard -- number of initial points to discard before using the chain
 
   ;; Use analyze_mcmc to get the parameter uncertainties
-  analyze_mcmc
+  analyze_mcmc,discard=discard
   restore,'data/mcmc/param_unc/param_unc.sav'
   unct = (paramLower + paramUpper)/2E
   fitpars = medparams
@@ -49,6 +51,13 @@ pro analyze_cov,psplot=psplot,nocontour=nocontour,nohyper=nohyper
      medparams = fitpars
   endelse
 
+  ;; Throw out the first discard points
+  if n_elements(discard) NE 0 then begin
+     truncchain = fltarr(nparams,sizePchain[2]-discard)
+     truncchain = chainparams[*,discard:sizePchain[2]-1l]
+     chainparams = truncchain
+  endif
+  
 
   freeInd = where(freep)
 
