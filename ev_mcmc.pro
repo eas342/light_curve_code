@@ -34,6 +34,8 @@ function ev_mcmc,expr,X,Y,Yerr,start,chainL=chainL,parinfo=pi,maxp=maxp,$
 
   ;; Start by doing a Levenberg-Marquardt minimum
   result = mpfitexpr(expr,X,Y,Yerr,start,parinfo=pi,perr=punct)
+  lmfit = result
+  lmunct = punct
 
   chainparams = fltarr(nparams,chainL);; chain of parameters 
   chainparams[*,0] = result
@@ -100,24 +102,30 @@ function ev_mcmc,expr,X,Y,Yerr,start,chainL=chainL,parinfo=pi,maxp=maxp,$
 
      if i mod updatept EQ updatept-1l GT 0 then begin
         ;; Show a plot every now and then to show progress
-        plot,chainparams(5,0:j-1),ystyle=16
-        wait,0.02
+        ;; Shorten the chains for plotting
+        fullchain = chainparams
+        chainparams = chainparams[*,0l:(j-1l)]
+        if n_elements(hyperparams) NE 0 then begin
+           fullhypers = chainhypers
+           chainhypers = chainhypers[*,0l:(j-1l)]
+        endif
+        aRatio = float(j)/float(i) ;; acceptance ratio        
+        save,chainparams,lmfit,lmunct,freep,dof,chisQarray,aRatio,$
+             chainhypers,$
+             filename='data/mcmc/mcmc_chains.sav'
+        chainplot
 
-;        if n_elements(hyperparams) NE 0 then begin
-;           print,[chainparams[freeParams,j],chainhypers[*,j],newchisQ]
-;        endif
+        wait,0.02
+        ;; Restore the chain to its full length
+        chainparams = fullchain
+        chainhypers = fullhypers
      endif
 
   endfor
 
-  plothist,chainparams(5,*),bin=punct[5] * 3,$
-           xtitle='Offset',ytitle='PDF'
-  
   ;; Show the Covariance values from mpfit
   oplot,result[5] - [1E,1E] * punct[5],!y.crange,linestyle=2
   oplot,result[5] + [1E,1E] * punct[5],!y.crange,linestyle=2
-  lmfit = result
-  lmunct = punct
   aRatio = float(j)/float(i) ;; acceptance ratio
 
   ;; Shorten the chains in case the run was truncated prematurely
