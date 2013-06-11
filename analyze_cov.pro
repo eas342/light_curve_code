@@ -1,7 +1,14 @@
-pro analyze_cov,psplot=psplot,nocontour=nocontour
+pro analyze_cov,psplot=psplot,nocontour=nocontour,nohyper=nohyper
 ;; Make a plot of the co-variance of the MCMC parameters
 ;; psplot - make postscript & png files
 ;; nocontours -- skips the 68% and 95% contours
+;; nohyper -- doesn't show the hyper-parameters
+
+  ;; Use analyze_mcmc to get the parameter uncertainties
+  analyze_mcmc
+  restore,'data/mcmc/param_unc/param_unc.sav'
+  unct = (paramLower + paramUpper)/2E
+  fitpars = medparams
 
   ;; set the plot
   if keyword_set(psplot) then begin
@@ -16,22 +23,35 @@ pro analyze_cov,psplot=psplot,nocontour=nocontour
 
   ;; get the mcmc data
   restore,'data/mcmc/mcmc_chains.sav'
-  ;;chainparams,lmfit,lmunct
+  ;;chainparams,fitpars,unct
 
-  ;; Use analyze_mcmc to get the parameter uncertainties
-  analyze_mcmc
-  restore,'data/mcmc/param_unc/param_unc.sav'
-  lmunct = (paramLower + paramUpper)/2E
-  lmfit = medparams
 
   ;; medparams, paramLower and paramUpper
 ;  restore,'data/mcmc/mcmc_chains_1.43um.sav'
 
 
   parnames = ['R!Dp!N/R!D*','b/R!D*!N','u!D1!N','u!D2!N','a/R!D*!N','A!D0!N','A!D1!N','A!D2!N','A!D3!N']
+  sizePchain = size(chainparams)
+  nregular = sizePchain[1] ;; number of regular parameters (not including hypers)
+
+  if n_elements(chainhypers) NE 0 AND not keyword_set(nohyper) then begin
+     nparams = nregular + 2
+     freep = [freep,1,1] ; make 2 hyperparametsr free
+     parnames = [parnames,cgGreek('Theta')+['!D0!N','!D1!N']]
+     fullchain = fltarr(nregular+2,sizePchain[2])
+     fullchain[0:nregular-1,*] = chainparams
+     fullchain[nregular:nparams-1l,*] = chainhypers[0:1,*]
+     chainparams = fullchain
+     medparams = [fitpars,0,0]
+  endif else begin
+     nparams = n_elements(fitpars)
+     ;; Returned parameters and uncertainties
+     medparams = fitpars
+  endelse
+
 
   freeInd = where(freep)
-  nparams = n_elements(lmfit)
+
   nfree = total(freep)
   assert,n_elements(parnames),'=',nparams,'Warning # of parameter mismatch'
 
@@ -43,10 +63,10 @@ pro analyze_cov,psplot=psplot,nocontour=nocontour
      YpInd = freeInd[i];; parameter index for Y axis
      for j=0l,nfree-2l do begin
         XpInd = freeInd[j] ;; parameter index for X axis
-;     if lmunct[pInd] EQ 0.0D then mybinsize = 0.001 else mybinsize = lmunct[pInd] * 0.5E
+;     if unct[pInd] EQ 0.0D then mybinsize = 0.001 else mybinsize = unct[pInd] * 0.5E
 ;     yhist = histogram(chainparams[pInd,*],binsize=mybinsize,$
 ;                       locations=xhistleft)
-;     xhist = xhistleft + lmunct[pInd] * 0.5E /2E
+;     xhist = xhistleft + unct[pInd] * 0.5E /2E
 ;     stop
         ;; Set up the default plot parameters
         myXmargin = [0,0]
@@ -55,8 +75,8 @@ pro analyze_cov,psplot=psplot,nocontour=nocontour
         myYtickName = replicate(' ',3)
         myXtitle=''
         myYtitle=''
-        myXrange = [-2.5,2.5] * lmunct[xPind] + lmfit[xPind]
-        myYrange = [-2.5,2.5] * lmunct[yPind] + lmfit[yPind]
+        myXrange = [-3,3] * unct[xPind] + fitpars[xPind]
+        myYrange = [-3,3] * unct[yPind] + fitpars[yPind]
         myNodata = 0
         myYstyle=1
         myXstyle=1
@@ -96,8 +116,8 @@ pro analyze_cov,psplot=psplot,nocontour=nocontour
         if not keyword_set(nocontour) then begin
            
            ;; Now show a contour at 68% confidence
-           binX = lmunct[XpInd]*0.3
-           binY = lmunct[YpInd]*0.3
+           binX = unct[XpInd]*0.3
+           binY = unct[YpInd]*0.3
            bin2=hist_2d(chainparams[XpInd,*],chainparams[YpInd,*],$
                         bin1=binX,bin2=binY,$
                         min1=myXrange[0],max1=myXrange[1],$
