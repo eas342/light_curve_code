@@ -54,7 +54,7 @@ pro chainplot,psplot=psplot,nohyper=nohyper,extend2lm=extend2lm
 
 
   !p.multi = [0,1,nfree]
-  !X.Omargin = [6,1]
+  !X.Omargin = [11,1]
   !Y.omargin = [5,1]
 
   for i=0l,nfree-1l do begin
