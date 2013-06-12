@@ -7,7 +7,7 @@ pro plot_tim_ser,fitcurve=fitcurve,fitpoly=fitpoly,usepoly=usepoly,makestops=mak
                  errorDistb=errorDistb,colorclip=colorclip,quadfit=quadfit,legorder=legorder,$
                  fixrad=fixrad,freelimblin=freelimblin,showDiffAirmass=showDiffairmass,$
                  nonormalize=nonormalize,showNomRad=showNomRad,fixoffset=fixoffset,$
-                 custresidYrange=custresidYrange,fitepoch=fitepoch
+                 custresidYrange=custresidYrange,fitepoch=fitepoch,singleplot=singleplot
 ;; plots the binned data as a time series and can also fit the Rp/R* changes
 ;; apPlot -- this optional keyword allows one to choose the aperture
 ;;           to plot
@@ -55,6 +55,7 @@ pro plot_tim_ser,fitcurve=fitcurve,fitpoly=fitpoly,usepoly=usepoly,makestops=mak
 ;; custresidYrange -- sets the Yrange of all residual plots at a
 ;;                    specific value
 ;; fitepoch -- fits the transit center
+;; singleplot -- Puts everything in a single plot
 
 ;sigrejcrit = 6D  ;; sigma rejection criterion
 sigrejcrit = 5D  ;; sigma rejection criterion
@@ -67,6 +68,7 @@ TsigRejCrit = 2.5D ;; sigma rejection criterion for time bins
      !p.font=0
   endif
 
+
   ;; get the binned data
   restore,'data/specdata.sav'
 
@@ -74,6 +76,11 @@ TsigRejCrit = 2.5D ;; sigma rejection criterion for time bins
 
   nut = n_elements(utgrid)
   nbin = Nwavbins
+
+  if keyword_set(singleplot) then begin
+     !p.multi = [0,1,Nwavbins]
+     !Y.omargin = [4,4]
+  endif
 
   ;; get the transit times
   readcol,'transit_info/jan_04_t_time.txt',epoch,tepoch,format='(A,A)',$
@@ -358,11 +365,19 @@ TsigRejCrit = 2.5D ;; sigma rejection criterion for time bins
         endif
 ;        plot,tplot,y,psym=2,$
         custXrange=[-0.1,0.1]
+        if keyword_set(singleplot) then begin
+           myYmargin=[0,0]
+           mycharsize=2
+        endif else begin
+           myYmargin=[4,2]
+           mycharsize=1
+        endelse
         plot,tplot,y,psym=4,$
              xtitle='Orbital Phase',$
              title=wavname+' um Flux ',$
              ytitle=yptitle,$
-             yrange=ydynam,ystyle=1,/nodata,xrange=custXrange
+             yrange=ydynam,ystyle=1,/nodata,xstyle=1,$
+             ymargin=myYmargin,charsize=mycharsize
         if not keyword_set(differential) then begin
            if keyword_set(showclipping) then begin
               oplot,tplot,y,psym=5,color=mycol('red') ;; original data
@@ -380,7 +395,9 @@ TsigRejCrit = 2.5D ;; sigma rejection criterion for time bins
                   psym=[4,4],color=mycol(['black','blue']),$
                   /right,/clear
         endif
-
+        if keyword_set(singleplot) then begin
+           al_legend,[wavname+' um'],/right,/bottom,/clear
+        endif
         ;; print the stdev for y for off points
 ;        print,'Fractional off transit Stdev in F for ',wavname,': ',stddev(y[offp])/mean(y[offp])
 ;        print,'Fractional off transit Robust sigma for ',wavname,': ',robust_sigma(y[offp])/median(y[offp])
@@ -672,6 +689,11 @@ TsigRejCrit = 2.5D ;; sigma rejection criterion for time bins
      printf,1,''
   endfor
   close,1
+
+  if keyword_set(singleplot) then begin
+     !p.multi = 0
+     !Y.Omargin = [0,0]
+  endif
 
   if keyword_set(psplot) then begin
      device,decomposed=0
