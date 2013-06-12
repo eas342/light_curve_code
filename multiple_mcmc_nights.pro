@@ -20,7 +20,7 @@ pro multiple_mcmc_nights
         0: begin
            spawn,'cp radius_vs_wavelength/mcmc_rad_vs_wavl.txt '+$
                  'radius_vs_wavelength/straightdec23_leg00fit_freelimblin_mcmc_hypers_'+$
-                 'free_free_offtrans_err_009pt_absexp_kernn.txt'
+                 'free_free_offtrans_err_009pt_absexp_kern.txt'
            spawn,'cp plots/mcmc/individual_wavs/histograms_png/* plots/mcmc/individual_wavs/histograms_png_dec23'
            spawn,'cp plots/mcmc/individual_wavs/chain_plots_png/* plots/mcmc/individual_wavs/chain_plots_png_dec23'
            spawn,'cp plots/mcmc/individual_wavs/cov_plots_png/* plots/mcmc/individual_wavs/cov_plots_png_dec23'
@@ -40,7 +40,7 @@ pro multiple_mcmc_nights
                  'free_free_off_trans_err_009pt_absexp_kern.txt'
            spawn,'cp plots/mcmc/individual_wavs/histograms_png/* plots/mcmc/individual_wavs/histograms_png_dec29'
            spawn,'cp plots/mcmc/individual_wavs/chain_plots_png/* plots/mcmc/individual_wavs/chain_plots_png_dec29'
-           spawn,'cp plots/mcmc/individual_wavs/cov_plots_png plots/mcmc/individual_wavs/cov_plots_png_dec29'
+           spawn,'cp plots/mcmc/individual_wavs/cov_plots_png/* plots/mcmc/individual_wavs/cov_plots_png_dec29'
         end
      endcase
   endfor
