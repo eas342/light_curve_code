@@ -80,7 +80,7 @@ pro try_mcmc,psplot=psplot
              format='(F,F,F,F,F)',skipline=1
 
 ;     result = ev_mcmc(expr,phase,fl,flerr,start,parinfo=pi,chainL = 3000l,maxp=99000l)
-     result = ev_mcmc(expr,phase,fl,flerr,start,parinfo=pi,chainL = 5000l,maxp=99000l,$
+     result = ev_mcmc(expr,phase,fl,flerr,start,parinfo=pi,chainL = 7000l,maxp=99000l,$
                       hyperparams=hyperpi)
 ;     result = ev_mcmc(expr,phase,fl,flerr,start,parinfo=pi,chainL = 200l,maxp=99000l,$
 ;                      hyperparams=hyperpi)
