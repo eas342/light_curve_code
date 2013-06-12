@@ -183,7 +183,7 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
      legnamearr[i-1l] = tempnm
   endfor
   if totsets GT 1l then begin
-     legend,legnamearr,psym=1l+lonarr(totsets),color=colorarr
+     al_legend,legnamearr,psym=1l+lonarr(totsets),color=colorarr,/clear
   endif
 
   if keyword_set(showstarspec) then begin
