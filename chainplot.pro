@@ -83,13 +83,15 @@ pro chainplot,psplot=psplot,nohyper=nohyper,extend2lm=extend2lm,$
 
      ;; Show the 68% confidence limits from MCMC
      sortedp = sort(chainparams[pInd,*])
-     chainL = n_elements(chainparams[pInd,*])
-     thresh = 0.68
-     upperp = sortedp[round((0.5E + thresh/2E) * chainL)]
-     lowerp = sortedp[round((0.5E - thresh/2E) * chainL)]
-     conflimits = chainparams[pInd,[lowerp,upperp]]
-     oplot,!x.crange,replicate(conflimits[0],2),linestyle=3,color=mycol('blue')
-     oplot,!x.crange,replicate(conflimits[1],2),linestyle=3,color=mycol('blue')
+     if n_elements(sortedp) GT 15 then begin
+        chainL = n_elements(chainparams[pInd,*])
+        thresh = 0.68
+        upperp = sortedp[round((0.5E + thresh/2E) * chainL)]
+        lowerp = sortedp[round((0.5E - thresh/2E) * chainL)]
+        conflimits = chainparams[pInd,[lowerp,upperp]]
+        oplot,!x.crange,replicate(conflimits[0],2),linestyle=3,color=mycol('blue')
+        oplot,!x.crange,replicate(conflimits[1],2),linestyle=3,color=mycol('blue')
+     endif
 
      ;; Show where the points are discarded
      if n_elements(discard) NE 0 then begin
