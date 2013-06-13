@@ -21,7 +21,7 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
 ;;medianbin -- bins the points by the median value instead of the
 ;;             weighted average
 
-  !x.margin = [13,14]
+  !x.margin = [9,9]
   ;; set the plot
   if keyword_set(psplot) then begin
      set_plot,'ps'
@@ -29,7 +29,7 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
      plotprenm = 'plots/rad_vs_wavl'
      device,encapsulated=1, /helvetica,$
             filename=plotprenm+'.eps'
-           device,xsize=14, ysize=10,decomposed=1,/color
+           device,xsize=10, ysize=7,decomposed=1,/color
   endif
 
   ;; restore the star spectrum to show where telluric & star features
@@ -183,7 +183,7 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
      legnamearr[i-1l] = tempnm
   endfor
   if totsets GT 1l then begin
-     al_legend,legnamearr,psym=1l+lonarr(totsets),color=colorarr,/clear
+     al_legend,legnamearr,psym=1l+lonarr(totsets),color=colorarr,/clear,/right
   endif
 
   if keyword_set(showstarspec) then begin
@@ -200,7 +200,7 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
   if keyword_set(psplot) then begin
      device, /close
      cgPS2PDF,plotprenm+'.eps'
-     spawn,'convert -density 160% '+plotprenm+'.pdf '+plotprenm+'.png'
+     spawn,'convert -density 300% '+plotprenm+'.pdf '+plotprenm+'.png'
      device,decomposed=0
      set_plot,'x'
      !p.font=-1
