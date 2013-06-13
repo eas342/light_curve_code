@@ -318,7 +318,12 @@ TsigRejCrit = 2.5D ;; sigma rejection criterion for time bins
         yerr = stdevArr
         airmass = airbin
         offp = where(tplot LT hstart OR tplot GT hend)
-
+        if keyword_set(offtranserr) then begin
+           fitY2 = linfit(tplot[offp],y[offp])
+           Offresid2 = y[offp] - (fitY2[0] + fitY2[1]*tplot[offp])
+           rstdevOff2 = robust_sigma(Offresid2)
+           yerr = fltarr(n_elements(yerr)) + rstdevOff2
+        endif
 
      endif
 
@@ -581,7 +586,7 @@ TsigRejCrit = 2.5D ;; sigma rejection criterion for time bins
            modelY = expression_eval(expr,tplot,result)
            modelX = findgen(modelPts)/(modelPts-1l) * (tplot[ntpoints-1] - tplot[0]) + tplot[0]
            modelY1 = expression_eval(expr,modelX,result)
-           oplot,modelX,modelY1,color=mycol('blue'),thick=2
+           oplot,modelX,modelY1-offset,color=mycol('blue'),thick=2
 
            ;; save the planet radius and all data
            plrad[k] = result[0]
@@ -600,52 +605,55 @@ TsigRejCrit = 2.5D ;; sigma rejection criterion for time bins
                      thick=[2,2],/clear
            endif
 
-           if keyword_set(psplot) then begin
-              device,/close
-              device,decomposed=0
-              cgPS2PDF,plotnmpre+'.eps',$
-                       /delete_ps
-              if keyword_set(pngcopy) then begin
-                 spawn,'convert -density 160% '+plotnmpre+'.pdf '+plotnmpre+'.png'                 
-              endif
-              plotnmpre = 'plots/residual_series/residuals_'+wavname
-              device,encapsulated=1, /helvetica,$
-                     filename=plotnmpre+'.eps'
-              device,xsize=14, ysize=10,decomposed=1,/color
-
-           endif
            resid = (y - modelY)/meanoff *100E
 
-           ylowerL = resid[sorty[ceil(5E/100E*float(ylength))]]
-           yUpperL = resid[sorty[floor(95E/100E*float(ylength))]]
-           ydynam = [-1E,1E] * max(abs([ylowerL,yUpperL])) * 4E
-           
-           if n_elements(custresidYrange) NE 0 then ydynam = custresidYrange
-
-           overplotMarg = [13,14]
-           plot,tplot,resid,yrange=ydynam,$
-                title='Residuals at '+wavname,$
-                xtitle='Orbital Phase',ytitle='Flux Residual (%)',$
-                psym=2,ystyle=8+1,xmargin=overplotMarg,/nodata,$
-                xrange=custXrange
-           if n_elements(timebin) EQ 0 then oplot,tplot,resid,psym=4 else begin
-              oploterror,tplot,resid,tsizes/2E,yerr/meanoff * 100E,psym=3,hatlength=0,thick=2
-           endelse
-           
-           prevXrange=!x.crange
-           plot,tplot,airmass,xstyle=1+4,xrange=prevXrange,$
-                /noerase,ystyle=4+16,/nodata,xmargin=overplotMarg
-           oplot,tplot,airmass,color=mycol('blue')
-           if keyword_set(showDiffairmass) then begin
-              airmassname = 'Differential Airmass'
-           endif else airmassname = 'Airmass'
-           axis,yaxis=1,yrange=!y.crange,ystyle=1,color=mycol('blue'),$
-                ytitle=airmassname
+           if not keyword_set(singleplot) then begin
+              if keyword_set(psplot) then begin
+                 device,/close
+                 device,decomposed=0
+                 cgPS2PDF,plotnmpre+'.eps',$
+                          /delete_ps
+                 if keyword_set(pngcopy) then begin
+                    spawn,'convert -density 160% '+plotnmpre+'.pdf '+plotnmpre+'.png'                 
+                 endif
+                 plotnmpre = 'plots/residual_series/residuals_'+wavname
+                 device,encapsulated=1, /helvetica,$
+                        filename=plotnmpre+'.eps'
+                 device,xsize=14, ysize=10,decomposed=1,/color
+                 
+              endif
+              
+              ylowerL = resid[sorty[ceil(5E/100E*float(ylength))]]
+              yUpperL = resid[sorty[floor(95E/100E*float(ylength))]]
+              ydynam = [-1E,1E] * max(abs([ylowerL,yUpperL])) * 4E
+              
+              if n_elements(custresidYrange) NE 0 then ydynam = custresidYrange
+              
+              overplotMarg = [13,14]
+              plot,tplot,resid,yrange=ydynam,$
+                   title='Residuals at '+wavname,$
+                   xtitle='Orbital Phase',ytitle='Flux Residual (%)',$
+                   psym=2,ystyle=8+1,xmargin=overplotMarg,/nodata,$
+                   xrange=custXrange
+              if n_elements(timebin) EQ 0 then oplot,tplot,resid,psym=4 else begin
+                 oploterror,tplot,resid,tsizes/2E,yerr/meanoff * 100E,psym=3,hatlength=0,thick=2
+              endelse
+              
+              prevXrange=!x.crange
+              plot,tplot,airmass,xstyle=1+4,xrange=prevXrange,$
+                   /noerase,ystyle=4+16,/nodata,xmargin=overplotMarg
+              oplot,tplot,airmass,color=mycol('blue')
+              if keyword_set(showDiffairmass) then begin
+                 airmassname = 'Differential Airmass'
+              endif else airmassname = 'Airmass'
+              axis,yaxis=1,yrange=!y.crange,ystyle=1,color=mycol('blue'),$
+                   ytitle=airmassname
 ;           oploterr,tplot,resid,yerr/meanoff *100E
-           drawy = [!y.crange[0],!y.crange[1]]
-           plots,[hstart,hstart],drawy,color=mycol('blue'),linestyle=2,thick=2.5
-           plots,[hend,hend],drawy,color=mycol('blue'),linestyle=2,thick=2.5
-           print,'RMS Residuals (%) for '+wavname,'um',(stddev(y - modelY))/median(y)*100E
+              drawy = [!y.crange[0],!y.crange[1]]
+              plots,[hstart,hstart],drawy,color=mycol('blue'),linestyle=2,thick=2.5
+              plots,[hend,hend],drawy,color=mycol('blue'),linestyle=2,thick=2.5
+              print,'RMS Residuals (%) for '+wavname,'um',(stddev(y - modelY))/median(y)*100E
+           endif
         endif
         if not keyword_set(fitcurve) then begin
            ntplot = n_elements(tplot)
