@@ -113,7 +113,7 @@ function ev_mcmc,expr,X,Y,Yerr,start,chainL=chainL,parinfo=pi,maxp=maxp,$
         save,chainparams,lmfit,lmunct,freep,dof,chisQarray,aRatio,$
              chainhypers,$
              filename='data/mcmc/mcmc_chains.sav'
-        chainplot
+        if j GT 10 then chainplot
 
         wait,0.02
         ;; Restore the chain to its full length
