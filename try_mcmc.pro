@@ -78,14 +78,15 @@ pro try_mcmc,psplot=psplot
      readcol,fileopt[i],$
              phase,fl,flerr,modelfl,resid,$
              format='(F,F,F,F,F)',skipline=1
-
+     chainPoints=6000l
+     discardPoints = 1000l
 ;     result = ev_mcmc(expr,phase,fl,flerr,start,parinfo=pi,chainL = 3000l,maxp=99000l)
-     result = ev_mcmc(expr,phase,fl,flerr,start,parinfo=pi,chainL = 7000l,maxp=99000l,$
+     result = ev_mcmc(expr,phase,fl,flerr,start,parinfo=pi,chainL = chainPoints,maxp=99000l,$
                       hyperparams=hyperpi)
 ;     result = ev_mcmc(expr,phase,fl,flerr,start,parinfo=pi,chainL = 200l,maxp=99000l,$
 ;                      hyperparams=hyperpi)
 ;     result = ev_mcmc(expr,phase,fl,flerr,start,parinfo=pi,chainL = 3000l,maxp=90l)
-     analyze_mcmc,/psplot,discard=1000
+     analyze_mcmc,/psplot,discard=discardPoints
      ;; Save the chains
      spawn,'cp data/mcmc/mcmc_chains.sav data/mcmc/mcmc_chains_'+wavname+'.sav'
      ;; Save the histogram plot
@@ -94,12 +95,12 @@ pro try_mcmc,psplot=psplot
      ;; Save the parameter uncertainties
      spawn,'cp data/mcmc/param_unc/param_unc.txt data/mcmc/param_unc/param_unc_'+wavname+'.txt'
 
-     chainplot,/psplot,discard=1000
+     chainplot,/psplot,discard=discardPoints
      ;; Save the chain plot
      spawn,'cp plots/mcmc/mcmc_chains.png plots/mcmc/individual_wavs/chain_plots_png/mcmc_chains_'+wavname+'.png'
      spawn,'cp plots/mcmc/mcmc_chains.eps plots/mcmc/individual_wavs/chain_plots_eps/mcmc_chains_'+wavname+'.eps'
 
-     analyze_cov,/psplot,discard=1000
+     analyze_cov,/psplot,discard=discardPoints
      ;; Save the parameter covariance plot
      spawn,'cp plots/mcmc/covar_plot.png plots/mcmc/individual_wavs/cov_plots_png/cov_plot_'+wavname+'.png'
      spawn,'cp plots/mcmc/covar_plot.eps plots/mcmc/individual_wavs/cov_plots_eps/cov_plot_'+wavname+'.eps'
