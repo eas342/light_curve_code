@@ -77,11 +77,6 @@ TsigRejCrit = 2.5D ;; sigma rejection criterion for time bins
   nut = n_elements(utgrid)
   nbin = Nwavbins
 
-  if keyword_set(singleplot) then begin
-     !p.multi = [0,1,Nwavbins]
-     !Y.omargin = [4,4]
-  endif
-
   ;; get the transit times
   readcol,'transit_info/jan_04_t_time.txt',epoch,tepoch,format='(A,A)',$
           skipline=1
@@ -357,7 +352,7 @@ TsigRejCrit = 2.5D ;; sigma rejection criterion for time bins
            endcase
         endelse
 
-        if keyword_set(psplot) then begin
+        if keyword_set(psplot) and (not keyword_set(singleplot) OR k EQ 0)  then begin
            plotnmpre = 'plots/spec_t_series/tser_'+wavname
            device,encapsulated=1, /helvetica,$
                   filename=plotnmpre+'.eps'
@@ -366,26 +361,47 @@ TsigRejCrit = 2.5D ;; sigma rejection criterion for time bins
 ;        plot,tplot,y,psym=2,$
         custXrange=[-0.1,0.1]
         if keyword_set(singleplot) then begin
-           myYmargin=[0,0]
-           mycharsize=2
+           if k EQ 0 then begin
+              ;; Set up everything for the first time plot
+              myNoerase=0
+              yptitle= yptitle + ' + Offset'
+              myXtitle='Orbital Phase'
+              tickformat='(G0)'
+              myXrange=[min(tplot),max(tplot)+0.21*(max(tplot)-min(tplot))]
+           endif else begin
+              ;; Set up for subsequent plots
+              myNoerase=1
+              yptitle=''
+              myXtitle=''
+              tickformat='(A1)'
+           endelse
+           spacing=0.025
+           ydynam=[1E - spacing * (1+Nwavbins),1+spacing]
+           offset = k * spacing
+           myTitle=''
         endif else begin
-           myYmargin=[4,2]
-           mycharsize=1
+           myNoErase=0
+           offset = 0
+           myTitle=wavname+' um Flux'
+           tickformat='(G0)'
+           myXtitle='Orbital Phase'
         endelse
         plot,tplot,y,psym=4,$
-             xtitle='Orbital Phase',$
-             title=wavname+' um Flux ',$
+             xtitle=myXtitle,$
+             title=myTitle,$
              ytitle=yptitle,$
              yrange=ydynam,ystyle=1,/nodata,xstyle=1,$
-             ymargin=myYmargin,charsize=mycharsize
+             noerase=myNoErase,$
+             xtickformat=tickformat,ytickformat=tickformat,$
+             xrange=myXrange
         if not keyword_set(differential) then begin
            if keyword_set(showclipping) then begin
               oplot,tplot,y,psym=5,color=mycol('red') ;; original data
               oplot,tplotdivcurves,divbycurve,psym=4  ;; divided by light curve
               oplot,tplot,yfit,color=mycol('blue')    ;; fitted line to curve
            endif else begin
-              if n_elements(timebin) EQ 0 then oplot,tplot,y,psym=4 else begin
-                 oploterror,tplot,y,tsizes/2E,yerr,psym=3,hatlength=0,thick=2
+              if n_elements(timebin) EQ 0 then oplot,tplot,y-offset,psym=4 else begin
+                 oploterror,tplot,y-offset,tsizes/2E,yerr,psym=3,hatlength=0,thick=2
               endelse
            endelse 
         endif
@@ -396,7 +412,9 @@ TsigRejCrit = 2.5D ;; sigma rejection criterion for time bins
                   /right,/clear
         endif
         if keyword_set(singleplot) then begin
-           al_legend,[wavname+' um'],/right,/bottom,/clear
+           xyouts,!x.crange[1]-0.1*(!x.crange[1]-!x.crange[0]),$
+                  median(y)-offset,$
+                  [wavname+' um'],alignment=0.5
         endif
         ;; print the stdev for y for off points
 ;        print,'Fractional off transit Stdev in F for ',wavname,': ',stddev(y[offp])/mean(y[offp])
@@ -639,13 +657,17 @@ TsigRejCrit = 2.5D ;; sigma rejection criterion for time bins
                  comment='#Phase  Flux  Fl_err  Model_fl   Residual for '+wavname+'um',$
                  /silent
 
-        if keyword_set(psplot) then begin
+        if keyword_set(psplot) and (not keyword_set(singleplot) OR k EQ Nwavbins-1l)  then begin
            device, /close
            device,decomposed=0
            cgPS2PDF,plotnmpre+'.eps',$
                     /delete_ps
            if keyword_set(pngcopy) then begin
-              spawn,'convert -density 160% '+plotnmpre+'.pdf '+plotnmpre+'.png'
+              if keyword_set(singleplot) then begin
+                 spawn,'convert -density 300% '+plotnmpre+'.pdf '+plotnmpre+'.png'
+              endif else begin
+                 spawn,'convert -density 160% '+plotnmpre+'.pdf '+plotnmpre+'.png'
+              endelse
            endif
         endif
 
