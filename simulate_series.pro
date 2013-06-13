@@ -117,12 +117,12 @@ pro simulate_series,theta=theta,Npoints=Npoints,psplot=psplot,$
            oplot,avgAuto,color=mycol('black'),linestyle=2,thick=6
            oplot,avgAuto,color=mycol('yellow'),linestyle=2,thick=3
 
-           legend,['Individual ACF','Input Kernel','Ensemble Avg ACF'],$
+           al_legend,['Individual ACF','Input Kernel','Ensemble Avg ACF'],$
                   color=mycol(['purple','black','black']),$
-                  thick=[1,10,6],/right,linestyle=[0,0,2]
-           legend,['Individual ACF','Input ACF','Ensemble Avg ACF'],$
+                  thick=[1,10,6],/right,linestyle=[0,0,2],/clear
+           al_legend,['Individual ACF','Input Kernel','Ensemble Avg ACF'],$
                   color=mycol(['purple','blue','yellow']),$
-                  thick=[1,6,3],/right,linestyle=[0,0,2]
+                  thick=[1,6,3],/right,linestyle=[0,0,2],/clear
         endif
      endif else begin
         if j EQ 0l then begin
