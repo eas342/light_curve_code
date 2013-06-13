@@ -13,7 +13,7 @@ pro multiple_mcmc_nights
         1: compile_spec,nwavbins=9 ;; Jan 04
         2: compile_spec,/dec29
      endcase
-     if i LE 1 then plot_tim_ser,timebin=150,/offtranserr else plot_tim_ser,timebin=75,/offtranserr
+     if i LE 1 then plot_tim_ser,timebin=100,/offtranserr else plot_tim_ser,timebin=50,/offtranserr
      try_mcmc
      gather_mcmc_radii
      case i of
@@ -24,6 +24,7 @@ pro multiple_mcmc_nights
            spawn,'cp plots/mcmc/individual_wavs/histograms_png/* plots/mcmc/individual_wavs/histograms_png_dec23'
            spawn,'cp plots/mcmc/individual_wavs/chain_plots_png/* plots/mcmc/individual_wavs/chain_plots_png_dec23'
            spawn,'cp plots/mcmc/individual_wavs/cov_plots_png/* plots/mcmc/individual_wavs/cov_plots_png_dec23'
+           spawn,'cp -r radius_vs_wavelength/fit_data_mcmc/* radius_vs_wavelength/fit_data_mcmc_dec23/'
         end
 
         1: begin
@@ -33,6 +34,7 @@ pro multiple_mcmc_nights
            spawn,'cp plots/mcmc/individual_wavs/histograms_png/* plots/mcmc/individual_wavs/histograms_png_jan04'
            spawn,'cp plots/mcmc/individual_wavs/chain_plots_png/* plots/mcmc/individual_wavs/chain_plots_png_jan04'
            spawn,'cp plots/mcmc/individual_wavs/cov_plots_png/* plots/mcmc/individual_wavs/cov_plots_png_jan04'
+           spawn,'cp -r radius_vs_wavelength/fit_data_mcmc/* radius_vs_wavelength/fit_data_mcmc_jan04/'
         end
         2: begin
            spawn,'cp radius_vs_wavelength/mcmc_rad_vs_wavl.txt '+$
@@ -41,6 +43,7 @@ pro multiple_mcmc_nights
            spawn,'cp plots/mcmc/individual_wavs/histograms_png/* plots/mcmc/individual_wavs/histograms_png_dec29'
            spawn,'cp plots/mcmc/individual_wavs/chain_plots_png/* plots/mcmc/individual_wavs/chain_plots_png_dec29'
            spawn,'cp plots/mcmc/individual_wavs/cov_plots_png/* plots/mcmc/individual_wavs/cov_plots_png_dec29'
+           spawn,'cp -r radius_vs_wavelength/fit_data_mcmc/* radius_vs_wavelength/fit_data_mcmc_dec29/'
         end
      endcase
   endfor
