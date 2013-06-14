@@ -1,5 +1,9 @@
-pro try_mcmc,psplot=psplot
+pro try_mcmc,psplot=psplot,simread=simread
 ;; Tests out my MCMC fit to a time series
+;; psplot -- an outdated feature to plot the results, they are now
+;;           saved by other routines
+;; simread -- use simulated Gaussian Processes as the data input to
+;;            check that it can recover hyper-parameters and errors
 
   ;; set the plot
   if keyword_set(psplot) then begin
@@ -75,9 +79,23 @@ pro try_mcmc,psplot=psplot
      namespl = strsplit(trimname,'_',/extract)
      wavname = namespl[n_elements(namespl)-2l]
 
-     readcol,fileopt[i],$
-             phase,fl,flerr,modelfl,resid,$
-             format='(F,F,F,F,F)',skipline=1
+     if keyword_set(simread) then begin
+        readcol,'data/simulated_series/simser.txt',phase,fl
+        flerr = fltarr(n_elements(phase)) + 1E
+        start = replicate(0E,9)
+        hyperpi[*].start = [10,20,0.002]
+        hyperpi[*].jumpsize = [2,10,0]
+        start = [0.01,replicate(0,8)]
+
+;        start=[0,0]
+;        pi = replicate({fixed:1, limited:[1,0], limits:[0.0E,0.0E]},2)
+;        ;; Model expression
+;        expr = 'P[0] + X * P[1]'
+     endif else begin
+        readcol,fileopt[i],$
+                phase,fl,flerr,modelfl,resid,$
+                format='(F,F,F,F,F)',skipline=1
+     endelse
      chainPoints=6000l
      discardPoints = 1000l
 ;     result = ev_mcmc(expr,phase,fl,flerr,start,parinfo=pi,chainL = 3000l,maxp=99000l)
