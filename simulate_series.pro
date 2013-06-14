@@ -1,6 +1,7 @@
 pro simulate_series,theta=theta,Npoints=Npoints,psplot=psplot,$
                     custYrange=custYrange,sigma=sigma,$
-                    Nrealizations=Nrealizations,autoc=autoc
+                    Nrealizations=Nrealizations,autoc=autoc,$
+                    modified=modified
 ;; Makes a random time series with correlated noise
 ;; theta - is the set of hyperparameters that govern the correlated
 ;;         noise - theta[0] is the maximum correlation coefficient and
@@ -11,6 +12,7 @@ pro simulate_series,theta=theta,Npoints=Npoints,psplot=psplot,$
 ;; custYrange -- allows the user to specify a custom Y range
 ;; Nrealizations -- specifies the number of realizations
 ;; autoc -- show the autocorrelation functions instead of the time series
+;; modified -- multiplies the kernel by parameter theta1
 
   ;; set the plot
   if keyword_set(psplot) then begin
@@ -47,9 +49,11 @@ pro simulate_series,theta=theta,Npoints=Npoints,psplot=psplot,$
 
   for i=0l,Npoints-1l do begin
      for j=0l,Npoints-1l do begin
-        Argument = -0.5D * (abs((x[i] - x[j])/theta[1]))^(1E)
+        Argument = -0.5D * abs((x[i] - x[j])/theta[1])
         if Argument LT -15D then C[i,j] = 0D else begin
-           C[i,j] = theta[0] * exp(Argument) * theta[1]
+           if keyword_set(modified) then C[i,j] = theta[0] * exp(Argument) * theta[1] else begin
+              C[i,j] = theta[0] * exp(Argument)
+           endelse
         endelse
      endfor
   endfor
