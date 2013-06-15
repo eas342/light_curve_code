@@ -41,11 +41,14 @@ pro gather_mcmc_radii
         parfname = strjoin(strsplit(parfname,replaceTypes[j],/extract),'_')
      endfor
 
-     forprint,wavl,wavlsize,ParamArray[*,i],ParamArrayErr[*,0],$
+     forprint,wavl,wavlsize,ParamArray[*,i],ParamArrayErr[*,i],$
               comment='#Wavelength(um) Bin size(um) '+paramnames[i]+' '+paramnames[i]+' Error',$
-              textout='radius_vs_wavelength/fit_data_mcmc/'+parfname+'_vs_wavl.txt',$
-              /silent
+              textout='radius_vs_wavelength/fit_data_mcmc/'+string(i,format='(I02)')+'_'+$
+              parfname+'_vs_wavl.txt',/silent
   endfor
+  mcmcPars = paramArray
+  ;; Save so plot time series can show the model results
+  save,mcmcPars,filename='data/compiled_model_params.sav'
 
 end
 

@@ -56,6 +56,11 @@ pro try_mcmc,psplot=psplot,simread=simread
          'Legendre((2E * X - Max(X) - Min(X))/(Max(X) - Min(X)),2) * P[7] + '+$
          'Legendre((2E * X - Max(X) - Min(X))/(Max(X) - Min(X)),3) * P[8])'
 
+  ;; Save the model expression
+  openw,1,'data/model_expr.txt'
+  printf,1,expr
+  close,1
+
   ;; set up the hyperparameters
   hyperpi = replicate({fixed:0, limited:[1,0], limits:[0.0E,0.0E],$
                       start:0E,jumpsize:0E},3)
@@ -66,7 +71,7 @@ pro try_mcmc,psplot=psplot,simread=simread
 ;  hyperpi[*].start = [0.0005,0.05,0.002] ;; the set I used for modified abs exp kern
 ;  hyperpi[*].jumpsize = [0.0002,0.02,0]
   hyperpi[*].start = [0.0006,0.1,0.002]
-  hyperpi[*].jumpsize = [0.0002,0.5,0]
+  hyperpi[*].jumpsize = [0.0002,0,0]
 
   ;; Go through the cleaned time series
   cd,c=currentd

@@ -33,7 +33,7 @@ pro chainplot,psplot=psplot,nohyper=nohyper,extend2lm=extend2lm,$
   if n_elements(chainhypers) NE 0 AND not keyword_set(nohyper) then begin
      nparams = nregular + 2
 
-     freep = [freep,1,1] ; make 2 hyperparametsr free
+     freep = [freep,1] ; make 2 hyperparametsr free
      parnames = [parnames,cgGreek('Theta')+['!D0!N','!D1!N']]
      fullchain = fltarr(nregular+2,sizePchain[2])
      fullchain[0:nregular-1,*] = chainparams

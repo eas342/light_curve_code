@@ -1,4 +1,4 @@
-function ev_leval,p,x=x,yin=y,yerr=yerr
+function ev_leval,p,x=x,yin=y,yerr=yerr,Cinv=Cinv
 ;; Evaluates the likelihood function for a given set of
 ;; hyperparameters p and data (X,Y)
 ;; p[0] is the correlation function strength

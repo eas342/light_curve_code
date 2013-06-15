@@ -7,7 +7,8 @@ pro plot_tim_ser,fitcurve=fitcurve,fitpoly=fitpoly,usepoly=usepoly,makestops=mak
                  errorDistb=errorDistb,colorclip=colorclip,quadfit=quadfit,legorder=legorder,$
                  fixrad=fixrad,freelimblin=freelimblin,showDiffAirmass=showDiffairmass,$
                  nonormalize=nonormalize,showNomRad=showNomRad,fixoffset=fixoffset,$
-                 custresidYrange=custresidYrange,fitepoch=fitepoch,singleplot=singleplot
+                 custresidYrange=custresidYrange,fitepoch=fitepoch,singleplot=singleplot,$
+                 showmcmc=showmcmc
 ;; plots the binned data as a time series and can also fit the Rp/R* changes
 ;; apPlot -- this optional keyword allows one to choose the aperture
 ;;           to plot
@@ -56,6 +57,7 @@ pro plot_tim_ser,fitcurve=fitcurve,fitpoly=fitpoly,usepoly=usepoly,makestops=mak
 ;;                    specific value
 ;; fitepoch -- fits the transit center
 ;; singleplot -- Puts everything in a single plot
+;; showmcmc -- shows the MCMC results
 
 ;sigrejcrit = 6D  ;; sigma rejection criterion
 sigrejcrit = 5D  ;; sigma rejection criterion
@@ -89,7 +91,19 @@ TsigRejCrit = 2.5D ;; sigma rejection criterion for time bins
      planetdat = create_struct(planetdat,info[l],data[l])
   endfor
 
-  u1parm = 0.0E         ; one of my best fits for 1.14um
+  if keyword_set(showmcmc) then begin
+     ;; Read the MCMC parameters
+     restore,'data/compiled_model_params.sav' ;; mcmcPars has NxM array 
+     ;; N is the wavelength index and M is the parameter index
+     ;; get the model evaluation
+
+     modelExpr =''
+     openr,1,'data/model_expr.txt'
+     readf,1,modelExpr
+     close,1
+  endif
+
+  u1parm = 0.0E         
   u2parm = 0.0E
 
   tstart = date_conv(tepoch[0],'JULIAN')
@@ -493,6 +507,30 @@ TsigRejCrit = 2.5D ;; sigma rejection criterion for time bins
            ygaussian = gaussian(xgaussian,[totY/sqrt(2E * !DPI),0,1])
            oplot,xgaussian,ygaussian,color=mycol('red')
 
+        endif
+
+        if keyword_set(showmcmc) then begin
+           mcmcShowP = 350
+           phaseShow = findgen(mcmcshowP)/float(mcmcShowP) * (max(tplot)-min(tplot)) + min(tplot)
+           ;; First find the mean function with expression evaluation
+           meanfunctest = expression_eval(modelExpr,phaseShow,mcmcPars[k,0:8])
+           ;oplot,phaseShow,meanfunctest-offset,color=mycol('blue'),thick=2
+           ;; Find the residual vector
+           meanfuncdat = expression_eval(modelExpr,float(tplot),mcmcPars[k,0:8])
+           mcmcResid = y - meanfuncdat
+           ;; Find the inverse covariance matrix using the likelihood
+           ;; function which also needs the inverse covariance matrix
+           likeL = ev_leval([mcmcPars[k,9],mcmcPars[k,10],0],x=tplot,yin=y,yerr=yerr,Cinv=Cinv)
+           mcmcModel = fltarr(n_elements(phaseShow))
+           for m=0l,mcmcShowP-1l do begin
+              columnvec = fltarr(n_elements(tplot))
+              Argument = -0.5D * abs((phaseShow[m] - tplot)/mcmcPars[k,10])
+              evalpmcmc = where(Argument GT -15D) ;; ensure the argument of exponential doesn't cause overflow error
+              if evalpmcmc NE [-1] then $
+                 columnvec[evalpmcmc] = mcmcPars[k,9] * exp(Argument[evalpmcmc]) * mcmcPars[k,10]
+              mcmcModel[m] = meanfunctest[m] + columnvec ## Cinv ## transpose(mcmcResid)
+           endfor
+           oplot,phaseShow,mcmcModel-offset,color=mycol('blue'),thick=2
         endif
 
         if keyword_set(fitcurve) then begin

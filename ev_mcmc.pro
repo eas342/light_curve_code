@@ -23,7 +23,14 @@ function ev_mcmc,expr,X,Y,Yerr,start,chainL=chainL,parinfo=pi,maxp=maxp,$
   ;; array of parameter modifications uniform from -1 to +1
 ;  randUarray = 2E * randomu(0,nparams,maxP) - 1E
   randParray = randomn(0,nparams,maxP)
-  if n_elements(hyperparams) NE 0 then randHarray = randomn(1,nhypers,maxP)
+  if n_elements(hyperparams) NE 0 then begin
+     randHarray = fltarr(nhypers,maxP)
+     randHarray[0,*] = randomn(1,maxP)
+     ;; Here for the possibly exponentially distributed
+     ;; parameter, let's try an exponential jump distribution
+     randHarray[1,*] = -1E * (alog(randomu(2,maxp)) + 1E)
+     randHarray[2,*] = randomn(3,maxP)
+  endif
   randKeeparr = randomu(100,maxP) ;; Keep threshholds
 
   chisQarray = fltarr(chainL) ;; chi-squared parameters
@@ -33,7 +40,10 @@ function ev_mcmc,expr,X,Y,Yerr,start,chainL=chainL,parinfo=pi,maxp=maxp,$
   dof = float(n_elements(X) - nfree) ;; degrees of freedom
 
   ;; Start by doing a Levenberg-Marquardt minimum
-  result = mpfitexpr(expr,X,Y,Yerr,start,parinfo=pi,perr=punct)
+  if total(pi[*].fixed) EQ nparams then begin
+     result = start
+     punct = fltarr(nparams)
+  endif else result = mpfitexpr(expr,X,Y,Yerr,start,parinfo=pi,perr=punct)
   lmfit = result
   lmunct = punct
 
@@ -62,8 +72,6 @@ function ev_mcmc,expr,X,Y,Yerr,start,chainL=chainL,parinfo=pi,maxp=maxp,$
      jumps[5:8,*] = jumps[5:8,*] * 70E
   endif
 ;  jumps = rebin(punct,nparams,maxP) * randParray * 1.5E
-
-
 
   for i=0l,maxP-1l do begin
 ;     modelY = expression_eval(expr,X,chainparams[*,j-1])
@@ -99,6 +107,24 @@ function ev_mcmc,expr,X,Y,Yerr,start,chainL=chainL,parinfo=pi,maxp=maxp,$
         j++
         if j GE chainL then break
      endif else chainparams[*,j] = chainparams[*,j-1] ;;return to old point
+
+     if j mod 100 EQ 0 and j LE 902 then begin
+        ;; Adjust step sizes on hyper-parameters to be roughly 1 sigma
+        for k=0,nhypers-1l do begin
+           sighyper = stddev(chainHypers[k,0:j-1])
+           if sighyper NE 0 then begin
+              hyperjumps[k,*] = hyperjumps[k,*]/stddev(hyperjumps[k,*]) * sighyper
+           endif
+        endfor
+        ;; Adjust the step size on all regular parameters to be
+        ;; roughly 1 sigma
+        for k=0l,nparams-1l do begin
+           sigreg = stddev(chainparams[k,0:j-1])
+           if sigreg NE 0 then begin
+              jumps[k,*] = jumps[k,*]/stddev(jumps[k,*]) * sigreg
+           endif
+        endfor
+     endif
 
      if i mod updatept EQ updatept-1l GT 0 then begin
         ;; Show a plot every now and then to show progress
