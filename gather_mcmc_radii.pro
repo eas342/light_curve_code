@@ -5,8 +5,7 @@ pro gather_mcmc_radii
   cd,c=currentd
   fileopt = file_search(currentd+'/data/mcmc/param_unc/param_unc*um.txt')
   nfile = n_elements(fileopt)
-
-  
+ 
   for i=0l,nfile-1l do begin
      readcol,fileopt[i],paramNames,lmfit,limfitErr,mcmcfit,mcmcfitErrP,mcmcfitErrM,$
              format='(A,F,F,F,F,F)',skipline=1,/silent
