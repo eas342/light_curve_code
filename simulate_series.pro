@@ -49,10 +49,10 @@ pro simulate_series,theta=theta,Npoints=Npoints,psplot=psplot,$
 
   for i=0l,Npoints-1l do begin
      for j=0l,Npoints-1l do begin
-        Argument = -0.5D * abs((x[i] - x[j])/theta[1])
+        Argument = -abs((x[i] - x[j]) * theta[1])
         if Argument LT -15D then C[i,j] = 0D else begin
            if keyword_set(modified) then C[i,j] = theta[0] * exp(Argument) * theta[1] else begin
-              C[i,j] = theta[0] * exp(Argument)
+              C[i,j] = theta[0]^2 * exp(Argument) * (1D + abs(x[i]-x[j]) * theta[1])
            endelse
         endelse
      endfor
