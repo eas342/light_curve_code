@@ -12,9 +12,10 @@ npts = n_elements(x)
 C = dblarr(npts,npts)
 for i=0,npts -1l do begin
    for j=0l,npts-1l do begin
-      Argument = -0.5D * abs((x[i] - x[j])/p[1])
+      Argument = -abs((x[i] - x[j])) * p[1]
       if Argument LT -15D then C[i,j] = 0D else begin
-         C[i,j] = p[0] * exp(Argument) * p[1]
+;         C[i,j] = p[0]^2 * exp(Argument) * (1D + abs(x[i] - x[j])*p[1])
+         C[i,j] = p[0] * exp(Argument) / p[1]
       endelse
    endfor
 endfor
@@ -45,7 +46,12 @@ endif else sigFact = p[2]
 ;; Find the log determinant from the method described by
 ;; http://blogs.sas.com/content/iml/2012/10/31/compute-the-log-determinant-of-a-matrix/
 CC = C
-la_choldc,CC,/double
+la_choldc,CC,/double,status=choldstatus
+if choldstatus GT 0 then begin
+   print,'Matrix not positive definite'
+   badlogLikelihood = -100
+   return,-badloglikelihood
+endif
 logdetermC = 2D * total(alog(diag_matrix(CC)))
 
 ;; 2 X Log Likelihood from Gibson et al. 2012, appendix A3
