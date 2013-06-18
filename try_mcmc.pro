@@ -1,9 +1,10 @@
-pro try_mcmc,psplot=psplot,simread=simread
+pro try_mcmc,psplot=psplot,simread=simread,noadjust=noadjust
 ;; Tests out my MCMC fit to a time series
 ;; psplot -- an outdated feature to plot the results, they are now
 ;;           saved by other routines
 ;; simread -- use simulated Gaussian Processes as the data input to
 ;;            check that it can recover hyper-parameters and errors
+;; noadjust -- don't update parameters
 
   ;; set the plot
   if keyword_set(psplot) then begin
@@ -70,8 +71,10 @@ pro try_mcmc,psplot=psplot,simread=simread
 ;  hyperpi[*].jumpsize = [0.0001,0.05,0]
 ;  hyperpi[*].start = [0.0005,0.05,0.002] ;; the set I used for modified abs exp kern
 ;  hyperpi[*].jumpsize = [0.0002,0.02,0]
-  hyperpi[*].start = [0.0006,0.1,0.002]
-  hyperpi[*].jumpsize = [0.0002,0,0]
+  hyperpi[*].start = [0.0005,5,0] ;; the set I'm trying for the second-modified kernel
+  hyperpi[*].jumpsize = [0.0002,1,0]
+;  hyperpi[*].start = [0.08,5,0.002]
+;  hyperpi[*].jumpsize = [0.04,1,0]
 
   ;; Go through the cleaned time series
   cd,c=currentd
@@ -88,10 +91,11 @@ pro try_mcmc,psplot=psplot,simread=simread
         readcol,'data/simulated_series/simser.txt',phase,fl
         flerr = fltarr(n_elements(phase)) + 1E
         start = replicate(0E,9)
-        hyperpi[*].start = [10,20,0.002]
-        hyperpi[*].jumpsize = [2,10,0]
+        hyperpi[*].start = [10,0.2,0]
+        hyperpi[*].jumpsize = [2,0.1,0]
         start = [0.01,replicate(0,8)]
-
+        pi = replicate({fixed:1, limited:[1,0], limits:[0.0E,0.0E]},9)
+        wavname = 'simseries_'
 ;        start=[0,0]
 ;        pi = replicate({fixed:1, limited:[1,0], limits:[0.0E,0.0E]},2)
 ;        ;; Model expression
@@ -105,7 +109,7 @@ pro try_mcmc,psplot=psplot,simread=simread
      discardPoints = 1000l
 ;     result = ev_mcmc(expr,phase,fl,flerr,start,parinfo=pi,chainL = 3000l,maxp=99000l)
      result = ev_mcmc(expr,phase,fl,flerr,start,parinfo=pi,chainL = chainPoints,maxp=99000l,$
-                      hyperparams=hyperpi)
+                      hyperparams=hyperpi,noadjust=noadjust)
 ;     result = ev_mcmc(expr,phase,fl,flerr,start,parinfo=pi,chainL = 200l,maxp=99000l,$
 ;                      hyperparams=hyperpi)
 ;     result = ev_mcmc(expr,phase,fl,flerr,start,parinfo=pi,chainL = 3000l,maxp=90l)
@@ -127,6 +131,7 @@ pro try_mcmc,psplot=psplot,simread=simread
      ;; Save the parameter covariance plot
      spawn,'cp plots/mcmc/covar_plot.png plots/mcmc/individual_wavs/cov_plots_png/cov_plot_'+wavname+'.png'
      spawn,'cp plots/mcmc/covar_plot.eps plots/mcmc/individual_wavs/cov_plots_eps/cov_plot_'+wavname+'.eps'
+     if keyword_set(simread) then return
   endfor
 
 
