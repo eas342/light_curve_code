@@ -45,6 +45,9 @@ pro twotick_labels,xtickvals,ytickvals,$
                alignment=xalign,orientation=xorient
         xyouts,xright,xbottom,string(xtickvals[pt2],format='(G0)'),$
                alignment=xalign,orientation=xorient
+        ;; Extend the tick marks
+;        plots,replicate(xtickvals[0],2),!y.crange[0] + [-1E,1E] * dataperYpix * !D.y_CH_SIZE * 0.8,thick=2
+;        plots,replicate(xtickvals[pt2],2),!y.crange[0] + [-1E,1E] * dataperYpix * !D.y_CH_SIZE * 0.8,thick=2
      endif
 
      if not keyword_set(noY) then begin
@@ -63,6 +66,9 @@ pro twotick_labels,xtickvals,ytickvals,$
                alignment=yalign,orientation=yorient
         xyouts,yleft,ybottom,string(ytickvals[pt2],format='(G0)'),$
                alignment=yalign,orientation=yorient
+        ;; Extend the tick marks
+;        plots,!x.crange[0] + [-0.3E,1E] * dataperXpix * !D.y_CH_SIZE * 0.8,thick=2,replicate(ytickvals[0],2)
+;        plots,!x.crange[0] + [-0.3E,1E] * dataperXpix * !D.y_CH_SIZE * 0.8,thick=2,replicate(ytickvals[pt2],2)
      endif
 
      if n_elements(ytitle) NE 0 then begin ;; Y title
