@@ -1,5 +1,5 @@
 function ev_mcmc,expr,X,Y,Yerr,start,chainL=chainL,parinfo=pi,maxp=maxp,$
-                 hyperparams=hyperparams
+                 hyperparams=hyperparams,noadjust=noadjust
 ;; Calculates the Light curve for a time series X and data Y using an
 ;; MCMC approach
 ;; Tried to use the same input as mpfit, X is independent variable,
@@ -24,11 +24,12 @@ function ev_mcmc,expr,X,Y,Yerr,start,chainL=chainL,parinfo=pi,maxp=maxp,$
 ;  randUarray = 2E * randomu(0,nparams,maxP) - 1E
   randParray = randomn(0,nparams,maxP)
   if n_elements(hyperparams) NE 0 then begin
-     randHarray = fltarr(nhypers,maxP)
+     randHarray = randomn(1,nhypers,maxP)
      randHarray[0,*] = randomn(1,maxP)
      ;; Here for the possibly exponentially distributed
      ;; parameter, let's try an exponential jump distribution
-     randHarray[1,*] = -1E * (alog(randomu(2,maxp)) + 1E)
+;     randHarray[1,*] = -1E * (alog(randomu(2,maxp)) + 1E)
+     randHarray[1,*] = randomn(2,maxP)
      randHarray[2,*] = randomn(3,maxP)
   endif
   randKeeparr = randomu(100,maxP) ;; Keep threshholds
@@ -108,20 +109,20 @@ function ev_mcmc,expr,X,Y,Yerr,start,chainL=chainL,parinfo=pi,maxp=maxp,$
         if j GE chainL then break
      endif else chainparams[*,j] = chainparams[*,j-1] ;;return to old point
 
-     if j mod 100 EQ 0 and j LE 902 then begin
+     if j mod 100 EQ 0 and j LE 902 and not keyword_set(noadjust) then begin
         ;; Adjust step sizes on hyper-parameters to be roughly 1 sigma
         for k=0,nhypers-1l do begin
-           sighyper = stddev(chainHypers[k,0:j-1])
-           if sighyper NE 0 then begin
-              hyperjumps[k,*] = hyperjumps[k,*]/stddev(hyperjumps[k,*]) * sighyper
+           madhyper = stddev(chainHypers[k,0:j-1])
+           if madhyper NE 0 then begin
+              hyperjumps[k,*] = hyperjumps[k,*]/mad(hyperjumps[k,*]) * madhyper * 0.5
            endif
         endfor
         ;; Adjust the step size on all regular parameters to be
         ;; roughly 1 sigma
         for k=0l,nparams-1l do begin
-           sigreg = stddev(chainparams[k,0:j-1])
-           if sigreg NE 0 then begin
-              jumps[k,*] = jumps[k,*]/stddev(jumps[k,*]) * sigreg
+           madreg = stddev(chainparams[k,0:j-1])
+           if madreg NE 0 then begin
+              jumps[k,*] = jumps[k,*]/mad(jumps[k,*]) * madreg * 0.5
            endif
         endfor
      endif
