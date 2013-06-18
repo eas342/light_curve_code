@@ -33,13 +33,15 @@ pro analyze_mcmc,psplot=psplot,nohyper=nohyper,extend2lm=extend2lm,$
   if n_elements(chainhypers) NE 0 AND not keyword_set(nohyper) then begin
      nparams = nregular + 2
 
-     freep = [freep,1] ; make 2 hyperparametsr free
      parnames = [parnames,cgGreek('Theta')+['!D0!N','!D1!N']]
      fullchain = fltarr(nregular+2,sizePchain[2])
      fullchain[0:nregular-1,*] = chainparams
      fullchain[nregular:nparams-1l,*] = chainhypers[0:1,*]
      chainparams = fullchain
      medparams = [lmfit,mean(chainhypers[0,*]),mean(chainhypers[1,*])]
+     if stddev(chainhypers[1,*]) EQ 0 then freep = [freep,1,0] else begin
+        freep = [freep,1,1] ;; make 2 hyper-parameters free
+     endelse
   endif else begin
      nparams = n_elements(lmfit)
      ;; Returned parameters and uncertainties

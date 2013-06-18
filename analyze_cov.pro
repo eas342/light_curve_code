@@ -1,5 +1,5 @@
 pro analyze_cov,psplot=psplot,nocontour=nocontour,nohyper=nohyper,$
-                discard=discard
+                discard=discard,bigfont=bigfont
 ;; Make a plot of the co-variance of the MCMC parameters
 ;; psplot - make postscript & png files
 ;; nocontours -- skips the 68% and 95% contours
@@ -17,9 +17,14 @@ pro analyze_cov,psplot=psplot,nocontour=nocontour,nohyper=nohyper,$
      set_plot,'ps'
      !p.font=0
      plotprenm = 'plots/mcmc/covar_plot'
+     if keyword_set(bigfont) then begin
+        pxsize=11.3 & pysize=8
+     endif else begin
+        pxsize=17 & pysize=12
+     endelse
      device,encapsulated=1, /helvetica,$
             filename=plotprenm+'.eps'
-           device,xsize=17, ysize=12,decomposed=1,/color
+           device,xsize=pxsize, ysize=pysize,decomposed=1,/color
   endif
 
 
@@ -38,13 +43,15 @@ pro analyze_cov,psplot=psplot,nocontour=nocontour,nohyper=nohyper,$
 
   if n_elements(chainhypers) NE 0 AND not keyword_set(nohyper) then begin
      nparams = nregular + 2
-     freep = [freep,1] ; make 2 hyperparametsr free
      parnames = [parnames,cgGreek('Theta')+['!D0!N','!D1!N']]
      fullchain = fltarr(nregular+2,sizePchain[2])
      fullchain[0:nregular-1,*] = chainparams
      fullchain[nregular:nparams-1l,*] = chainhypers[0:1,*]
      chainparams = fullchain
      medparams = [fitpars,0,0]
+     if stddev(chainhypers[1,*]) EQ 0 then freep = [freep,1,0] else begin
+        freep = [freep,1,1] ;; make 2 hyper-parameters free
+     endelse
   endif else begin
      nparams = n_elements(fitpars)
      ;; Returned parameters and uncertainties
