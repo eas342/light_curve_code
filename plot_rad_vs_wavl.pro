@@ -3,7 +3,8 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
                      showtheospec=showtheospec,choosefile=choosefile,$
                      totsets=totsets,wavnum=wavnum,custXrange=custXrange,$
                      showOptical=showOptical,custYrange=custYrange,$
-                     powerErr=powerErr,multErr=multErr,medianbin=medianbin
+                     powerErr=powerErr,multErr=multErr,medianbin=medianbin,$
+                     nolit=nolit
 ;;psplot -- saves a postscript plot
 ;;showstarspec -- shows a star spectrum on the same plot
 ;;nbins -- number of points bo bin in Rp/R*
@@ -20,6 +21,7 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
 ;;multErr -- takes all radius errors and multiples by a specified constant
 ;;medianbin -- bins the points by the median value instead of the
 ;;             weighted average
+;;nolit -- no literature value for the planet radius
 
   !x.margin = [9,9]
   ;; set the plot
@@ -105,23 +107,25 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
 
   plot,wavl,rad,$
        xtitle=myxtitle,$
-       ytitle='Rp/R*',$
+       ytitle='R!Dp!N/R!D*!N',$
 ;       ystyle=16,xstyle=1,$
        ystyle=ytempstyle,xstyle=1,xrange=myxrange,$
        yrange=custYrange,/nodata
 ;       yrange=[0.12,0.16],/nodata
 ;  oploterror,wavl,rad,rade
 
-  oploterror,wavl,rad,wavlwidth,rade,psym=3
+  oploterror,wavl,rad,wavlwidth,rade,psym=3,thick=2
 ;                color=mycol('yellow') 
   
   ;; As in Gibson et al. 2012, show 3 scale heights around the
   ;; adopted Rp/R* from Jacob Bean et al. 2012
   scaleH = 0.00115E
 ;  scaleH = 0.00115E * 2E
-  plots,[!x.crange[0],!x.crange[1]],[0.1433,0.1433],color=mycol(['red'])
-  plots,[!x.crange[0],!x.crange[1]],[0.1433,0.1433]+3E*scaleH,color=mycol(['red']),linestyle=2
-  plots,[!x.crange[0],!x.crange[1]],[0.1433,0.1433]-3E*scaleH,color=mycol(['red']),linestyle=2
+  if not keyword_set(nolit) then begin
+     plots,[!x.crange[0],!x.crange[1]],[0.1433,0.1433],color=mycol(['red'])
+     plots,[!x.crange[0],!x.crange[1]],[0.1433,0.1433]+3E*scaleH,color=mycol(['red']),linestyle=2
+     plots,[!x.crange[0],!x.crange[1]],[0.1433,0.1433]-3E*scaleH,color=mycol(['red']),linestyle=2
+  endif
         
      
   prevXrange = !x.crange
@@ -144,7 +148,7 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
         CorWid = 0.20 ;; microns, approx
         binModel2 = avg_series(theowav,theorad*radToPlanet,fltarr(ntheo)+0.2E,CorWav-CorWid/2E,CorWid,weighted=0)
         oplot,[CorWav],[binModel2],psym=2,color=mycol('blue'),symsize=2
-        oploterror,CorWav,CorRad,CorWid,CorErr,color=mycol('red'),psym=3
+        oploterror,CorWav,CorRad,CorWid,CorErr,color=mycol('red'),psym=3,thick=2
      endif
   endif
 
@@ -176,14 +180,15 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
      endif
 
      oploterror,wavl2,rad2,wavlwidth2,rade2,psym=3,$
-                color=colorchoices[i-1l]
+                color=colorchoices[i-1l],thick=2
      print,'Legend Name for data from file '+file2+' ?'
      tempnm = ''
      read,tempnm,format='(A)'
      legnamearr[i-1l] = tempnm
   endfor
   if totsets GT 1l then begin
-     al_legend,legnamearr,psym=1l+lonarr(totsets),color=colorarr,/clear,/right
+     if keyword_set(psplot) then legcharsize = 0.6 else legcharsize=1
+     al_legend,legnamearr,psym=1l+lonarr(totsets),color=colorarr,/clear,/right,charsize=legcharsize
   endif
 
   if keyword_set(showstarspec) then begin
