@@ -72,7 +72,7 @@ pro try_mcmc,psplot=psplot,simread=simread,noadjust=noadjust
 ;  hyperpi[*].start = [0.0005,0.05,0.002] ;; the set I used for modified abs exp kern
 ;  hyperpi[*].jumpsize = [0.0002,0.02,0]
   hyperpi[*].start = [0.0005,5,0] ;; the set I'm trying for the second-modified kernel
-  hyperpi[*].jumpsize = [0.0002,1,0]
+  hyperpi[*].jumpsize = [0.0001,1,0]
 ;  hyperpi[*].start = [0.08,5,0.002]
 ;  hyperpi[*].jumpsize = [0.04,1,0]
 

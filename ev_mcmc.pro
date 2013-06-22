@@ -70,7 +70,7 @@ function ev_mcmc,expr,X,Y,Yerr,start,chainL=chainL,parinfo=pi,maxp=maxp,$
      freeParams = where(pi.fixed NE 1)
      print,['Param 0'+strtrim(freeParams,1),'Hyper'+strtrim([0,1,2],1),'Chi-Sq']
      ;; Make the offset parameters jumps much larger when including hyper-parameters
-     jumps[5:8,*] = jumps[5:8,*] * 70E
+     jumps[5:8,*] = jumps[5:8,*] * 40E
   endif
 ;  jumps = rebin(punct,nparams,maxP) * randParray * 1.5E
 
