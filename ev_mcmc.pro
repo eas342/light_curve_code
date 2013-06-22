@@ -25,12 +25,12 @@ function ev_mcmc,expr,X,Y,Yerr,start,chainL=chainL,parinfo=pi,maxp=maxp,$
   randParray = randomn(0,nparams,maxP)
   if n_elements(hyperparams) NE 0 then begin
      randHarray = randomn(1,nhypers,maxP)
-     randHarray[3,*] = randomn(1,maxP)
+     randHarray[0,*] = randomn(4,maxP)
      ;; Here for the possibly exponentially distributed
      ;; parameter, let's try an exponential jump distribution
 ;     randHarray[1,*] = -1E * (alog(randomu(2,maxp)) + 1E)
-     randHarray[4,*] = randomn(2,maxP)
-     randHarray[5,*] = randomn(3,maxP)
+     randHarray[1,*] = randomn(5,maxP)
+     randHarray[2,*] = randomn(6,maxP)
   endif
   randKeeparr = randomu(100,maxP) ;; Keep threshholds
 
