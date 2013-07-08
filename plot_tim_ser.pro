@@ -8,7 +8,7 @@ pro plot_tim_ser,fitcurve=fitcurve,fitpoly=fitpoly,usepoly=usepoly,makestops=mak
                  fixrad=fixrad,freelimblin=freelimblin,showDiffAirmass=showDiffairmass,$
                  nonormalize=nonormalize,showNomRad=showNomRad,fixoffset=fixoffset,$
                  custresidYrange=custresidYrange,fitepoch=fitepoch,singleplot=singleplot,$
-                 showmcmc=showmcmc
+                 showmcmc=showmcmc,deletePS=deletePS
 ;; plots the binned data as a time series and can also fit the Rp/R* changes
 ;; apPlot -- this optional keyword allows one to choose the aperture
 ;;           to plot
@@ -58,12 +58,15 @@ pro plot_tim_ser,fitcurve=fitcurve,fitpoly=fitpoly,usepoly=usepoly,makestops=mak
 ;; fitepoch -- fits the transit center
 ;; singleplot -- Puts everything in a single plot
 ;; showmcmc -- shows the MCMC results
+;; deletePS -- specified whether or not to delete the
+;;             postscript file, default is true
 
 ;sigrejcrit = 6D  ;; sigma rejection criterion
 sigrejcrit = 5D  ;; sigma rejection criterion
 ;TsigRejCrit = 3D ;; sigma rejection criterion for time bins
 TsigRejCrit = 2.5D ;; sigma rejection criterion for time bins
 
+if n_elements(deletePS) EQ 0 then deletePS = 1
   ;; set the plot
   if keyword_set(psplot) then begin
      set_plot,'ps'
@@ -487,7 +490,7 @@ TsigRejCrit = 2.5D ;; sigma rejection criterion for time bins
               device,/close
               device,decomposed=0
               cgPS2PDF,plotnmpre+'.eps',$
-                       /delete_ps
+                       delete_ps=deletePS
               if keyword_set(pngcopy) then begin
                  spawn,'convert -density 160% '+plotnmpre+'.pdf '+plotnmpre+'.png'
               endif
@@ -651,7 +654,7 @@ TsigRejCrit = 2.5D ;; sigma rejection criterion for time bins
                  device,/close
                  device,decomposed=0
                  cgPS2PDF,plotnmpre+'.eps',$
-                          /delete_ps
+                          delete_ps=deletePS
                  if keyword_set(pngcopy) then begin
                     spawn,'convert -density 160% '+plotnmpre+'.pdf '+plotnmpre+'.png'                 
                  endif
@@ -708,7 +711,7 @@ TsigRejCrit = 2.5D ;; sigma rejection criterion for time bins
            device, /close
            device,decomposed=0
            cgPS2PDF,plotnmpre+'.eps',$
-                    /delete_ps
+                    delete_ps=deletePS
            if keyword_set(pngcopy) then begin
               if keyword_set(singleplot) then begin
                  spawn,'convert -density 300% '+plotnmpre+'.pdf '+plotnmpre+'.png'
