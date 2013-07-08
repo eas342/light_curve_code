@@ -4,7 +4,7 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
                      totsets=totsets,wavnum=wavnum,custXrange=custXrange,$
                      showOptical=showOptical,custYrange=custYrange,$
                      powerErr=powerErr,multErr=multErr,medianbin=medianbin,$
-                     nolit=nolit
+                     nolit=nolit,showtext=showtext
 ;;psplot -- saves a postscript plot
 ;;showstarspec -- shows a star spectrum on the same plot
 ;;nbins -- number of points bo bin in Rp/R*
@@ -22,8 +22,9 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
 ;;medianbin -- bins the points by the median value instead of the
 ;;             weighted average
 ;;nolit -- no literature value for the planet radius
+;;showtext -- explanatory text
 
-  !x.margin = [9,9]
+  if keyword_set(showstar) then !x.margin = [9,9] else !x.margin=[9,3]
   ;; set the plot
   if keyword_set(psplot) then begin
      set_plot,'ps'
@@ -133,11 +134,12 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
      readcol,'../models/fortney_g10mps_2500K_isothermal.csv',theowav,theorad,$
              skipline=6,format='(F,F)'
      radToPlanet = 0.10185E ;; found by eye to get the approximate Corot bandpass correctly
-     oplot,theowav,theorad *radToPlanet,color=mycol('blue')
+     mult2 = 1.025
+     oplot,theowav,theorad *radToPlanet * mult2,color=mycol('blue')
 
      ntheo=n_elements(theorad)
      ;; Bin model over wavelenght ranges
-     binModel = avg_series(theowav,theorad*radToPlanet,fltarr(ntheo)+0.2E,wavl-wavlwidth/2E,wavlwidth,weighted=0)
+     binModel = avg_series(theowav,theorad*radToPlanet *mult2,fltarr(ntheo)+0.2E,wavl-wavlwidth/2E,wavlwidth,weighted=0)
      oplot,wavl,binModel,psym=2,color=mycol('blue'),symsize=2
 
      if keyword_set(showOptical) then begin
@@ -146,7 +148,7 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
         CorErr = 0.0010
         CorWav = 0.65 ;; microns, approximately
         CorWid = 0.20 ;; microns, approx
-        binModel2 = avg_series(theowav,theorad*radToPlanet,fltarr(ntheo)+0.2E,CorWav-CorWid/2E,CorWid,weighted=0)
+        binModel2 = avg_series(theowav,theorad*radToPlanet*mult2,fltarr(ntheo)+0.2E,CorWav-CorWid/2E,CorWid,weighted=0)
         oplot,[CorWav],[binModel2],psym=2,color=mycol('blue'),symsize=2
         oploterror,CorWav,CorRad,CorWid,CorErr,color=mycol('red'),psym=3,thick=2
      endif
@@ -186,9 +188,15 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
      read,tempnm,format='(A)'
      legnamearr[i-1l] = tempnm
   endfor
+  if keyword_set(psplot) then legcharsize = 0.75 else legcharsize=1
+
   if totsets GT 1l then begin
-     if keyword_set(psplot) then legcharsize = 0.6 else legcharsize=1
      al_legend,legnamearr,psym=1l+lonarr(totsets),color=colorarr,/clear,/right,charsize=legcharsize
+  endif
+
+  if keyword_set(showtext) then begin
+     legend,['Bean 2009','This Work','Binned Model Value'],psym=[1,1,2],/bottom,charsize=legcharsize,$
+            color=[mycol('red'),!P.color,mycol('blue')]
   endif
 
   if keyword_set(showstarspec) then begin
