@@ -9,9 +9,9 @@ pro multiple_mcmc_nights
 
   for i=0l,2l do begin
      case i of
-        0: compile_spec,/dec23,nwavbins=9,/nyquist
-        1: compile_spec,nwavbins=9,/nyquist ;; Jan 04
-        2: compile_spec,/dec29,nwavbins=9,/nyquist
+        0: compile_spec,/dec23,nwavbins=9
+        1: compile_spec,nwavbins=9 ;; Jan 04
+        2: compile_spec,/dec29,nwavbins=9
      endcase
      if i LE 1 then Npoints = 100 else Npoints = 50
      plot_tim_ser,timebin=Npoints,/offtranserr
