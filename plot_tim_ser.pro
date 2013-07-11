@@ -378,7 +378,9 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
            plotnmpre = 'plots/spec_t_series/tser_'+wavname
            device,encapsulated=1, /helvetica,$
                   filename=plotnmpre+'.eps'
-           device,xsize=14, ysize=10,decomposed=1,/color
+           if keyword_set(singleplot) then begin
+              device,xsize=14, ysize=18,decomposed=1,/color
+           endif else device,xsize=14, ysize=10,decomposed=1,/color
         endif
 ;        plot,tplot,y,psym=2,$
         custXrange=[-0.1,0.1]
