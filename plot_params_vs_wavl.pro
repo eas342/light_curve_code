@@ -1,7 +1,8 @@
 pro plot_params_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
                      nbins=nbins,custfile=custfile,$
                      showtheospec=showtheospec,choosefile=choosefile,$
-                     totsets=totsets,wavnum=wavnum,custYrange=custYrange
+                     totsets=totsets,wavnum=wavnum,custYrange=custYrange,$
+                        mcmc=mcmc
 ;;psplot -- saves a postscript plot
 ;;showstarspec -- shows a star spectrum on the same plot
 ;;nbins -- number of points bo bin in Rp/R*
@@ -11,6 +12,8 @@ pro plot_params_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
 ;;totsets -- optional keyword to specify the number of total sets of
 ;;           data to over-plot (eliminates the old additionalfile keyword)
 ;;wavnum -- changes the units on wavelength to wavenumber
+;;mcmc -- looks at the mcmc parameters (instead of just the
+;;        Levenberg-Marquardt parameters)
 
   !x.margin = [13,14]
   ;; set the plot
@@ -31,7 +34,9 @@ pro plot_params_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
   case 1 of
      keyword_set(custfile): radfile=custfile
      keyword_set(choosefile): begin
-        radfile = choose_file(searchDir='radius_vs_wavelength/fit_data',$
+        fitDir = 'radius_vs_wavelength/fit_data'
+        if keyword_set(mcmc) then fitDir = fitDir + '_mcmc'
+        radfile = choose_file(searchDir=fitDir,$
                               filetype='.txt')
         ;; Search the radius_vs_wavlength directory for .txt files
      end
@@ -154,7 +159,7 @@ pro plot_params_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
   for i=2l,totsets do begin
      ;; If asked to, overplot another Rad/vs wavlength file
      print,'Choose Additional file ',strtrim(i-1l,1)
-     file2 = choose_file(searchDir='radius_vs_wavelength/fit_data',filetype='.txt')
+     file2 = choose_file(searchDir=fitDir,filetype='.txt')
      readcol,file2,wavl2,wavl2size,rad2,rade2,skipline=1,format='(F,F,F)'
      ;; find the bin width
      wavlwidth2 = wavl2size/2E
