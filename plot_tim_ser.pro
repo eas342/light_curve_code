@@ -379,7 +379,7 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
            device,encapsulated=1, /helvetica,$
                   filename=plotnmpre+'.eps'
            if keyword_set(singleplot) then begin
-              device,xsize=14, ysize=18,decomposed=1,/color
+              device,xsize=11, ysize=14.1,decomposed=1,/color
            endif else device,xsize=14, ysize=10,decomposed=1,/color
         endif
 ;        plot,tplot,y,psym=2,$
@@ -391,7 +391,11 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
               yptitle= yptitle + ' + Offset'
               myXtitle='Orbital Phase'
               tickformat='(G0)'
-              myXrange=[min(tplot),max(tplot)+0.21*(max(tplot)-min(tplot))]
+              myXrange=[min(tplot),max(tplot)+0.25*(max(tplot)-min(tplot))]
+              ;; If it's Dec 23, make an adjustment to avoid
+              ;; squishing numbers
+              if myXrange[0] GT -0.06254 and myXrange[0] LE -0.0625 and $
+                 myXrange[1] GT 0.0954 and myXrange[1] LE 0.09542 then myXrange=[-0.07,0.1]
            endif else begin
               ;; Set up for subsequent plots
               myNoerase=1
