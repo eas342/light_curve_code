@@ -32,14 +32,19 @@ pro twotick_labels,xtickvals,ytickvals,$
 
      ;; Do the X axis
      if not keyword_set(noX) then begin
-        if n_elements(xorient) EQ 0 then begin
-           xorient=0
-           xalign=0.5
-        endif else xalign=1
         if keyword_set(xmid) then pt2 = floor(numxticks/2E) else pt2 = numxticks-1l
         xleft = xtickvals[0]
         xright = xtickvals[pt2]
-        xbottom = !y.crange[0]- 1.2 * dataperYpix * !D.Y_CH_SIZE
+
+        if n_elements(xorient) EQ 0 then begin
+           xorient=0
+           xalign=0.5
+        endif else begin
+           xalign=1
+           xleft = xleft + dataperXpix * !D.Y_CH_SIZE * 0.4E
+           xright = xright + dataperXpix * !D.Y_CH_SIZE * 0.4E
+        endelse
+        xbottom = !y.crange[0]- 1.2 * dataperYpix * !D.Y_CH_SIZE * cos(!PI * xorient/180E)
         
         xyouts,xleft, xbottom,string(xtickvals[0],format='(G0)'),$
                alignment=xalign,orientation=xorient
