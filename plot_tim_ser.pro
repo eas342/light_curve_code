@@ -83,7 +83,7 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
   nbin = Nwavbins
 
   ;; get the transit times
-  readcol,'transit_info/jan_04_t_time.txt',epoch,tepoch,format='(A,A)',$
+  readcol,'transit_info/transit_epoch.txt',epoch,tepoch,format='(A,A)',$
           skipline=1
 
   ;; get the planet info
