@@ -1,11 +1,16 @@
-pro rerun_multiple_mcmc
+pro rerun_multiple_mcmc,docov=docov
 ;; Takes the MCMC chain data and re-runs portions of it
   ;; Make light curves, and do MCMC fitting for multiple nights
   ;; Make sure to empty the Cleaned_tim_ser folder first
 
+;; docov -- makes covariance plots for the parameters and saves the
+;;          eps files
+
   read,'Have you emptied the cleaned_time_ser folder?',junk
 
   read,'Have you emptied the param_unc folder?',junk
+
+  discardpoints = 1000
 
   for i=0l,2l do begin
      case i of
@@ -32,11 +37,15 @@ pro rerun_multiple_mcmc
         wavname = namespl[n_elements(namespl)-2l]
         spawn,'cp data/mcmc/chains_'+datename+'/mcmc_chains_'+wavname+'.sav data/mcmc/mcmc_chains.sav'
         analyze_mcmc,discard=discardPoints
-;        analyze_cov,/psplot,discard=discardPoints
         spawn,'cp data/mcmc/param_unc/param_unc.txt data/mcmc/param_unc/param_unc_'+wavname+'.txt'
         if j EQ 0 then begin
            firstwav = strsplit(wavname,'um',/extract)
            firstwav = firstwav[0]
+        endif
+        if keyword_set(docov) then begin
+           analyze_cov,/psplot,discard=discardPoints
+           spawn,'cp plots/mcmc/covar_plot.eps '+$
+                 'plots/mcmc/individual_wavs/cov_plots_eps/'+datename+'/cov_plot_'+wavname+'.eps'
         endif
      endfor
      gather_mcmc_radii

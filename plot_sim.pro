@@ -104,7 +104,7 @@ lineOpt = [0,2,3,4,5]
 
 
 readcol,'../IRTF_UT2012Jan04/raw/spectrograph_ut_and_exp_list.txt',$
-        specfilen,t,explist,format='(A,D,F)'
+        specfilen,t,explist,format='(A,D,F)',stringskip='#'
 nrows = n_elements(t) ;; number of spectra files
 
 assert,nrows,'=',n_elements(explist),$
