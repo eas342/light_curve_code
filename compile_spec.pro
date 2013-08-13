@@ -3,7 +3,7 @@ pro compile_spec,extraction2=extraction2,sum=sum,nwavbins=nwavbins,$
                  maskwater=maskwater,custRange=custRange,widewatermask=widewatermask,$
                  cleanbyeye=cleanbyeye,specshift=specshift,starshift=starshift,$
                  custmask=custmask,molecbin=molecbin,trycurved=trycurved,$
-                 matchgrid=matchgrid
+                 matchgrid=matchgrid,readCurrent=readCurrent
 ;; Compiles the spectra into a few simple arrays to look at the spectrophotometry
 ;; extraction2 -- uses whatever spectra are in the data directory
 ;; sum -- uses the variance weighted (optimal) extraction by
@@ -11,6 +11,7 @@ pro compile_spec,extraction2=extraction2,sum=sum,nwavbins=nwavbins,$
 ;;            standard sum extraction from the IRAF reduction
 ;; nwavbins -- sets the number of wavelength bins to create
 ;; dec23 -- look at the dec23 data set (default is jan04)
+;; readCurrent - reads from file_lists/current_speclist.txt
 ;; nyquist -- sample the wavelength bands at 2X bandwidth for Nyquist sampling
 ;; extremeRange -- chooses the minimum to maximum wavelength bins
 ;; custRange -- allows for a custom wavelength range
@@ -74,6 +75,9 @@ if keyword_set(trycurved) then begin
    endif else begin
       readcol,'file_lists/full_speclist.txt',filen,format='(A)'
    endelse
+endif
+if keyword_set(readCurrent) then begin
+   readcol,'file_lists/current_speclist.txt',filen,format='(A)'
 endif
 nfile = n_elements(filen)
 
