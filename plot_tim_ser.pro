@@ -8,7 +8,7 @@ pro plot_tim_ser,fitcurve=fitcurve,fitpoly=fitpoly,usepoly=usepoly,makestops=mak
                  fixrad=fixrad,freelimblin=freelimblin,showDiffAirmass=showDiffairmass,$
                  nonormalize=nonormalize,showNomRad=showNomRad,fixoffset=fixoffset,$
                  custresidYrange=custresidYrange,fitepoch=fitepoch,singleplot=singleplot,$
-                 showmcmc=showmcmc,deletePS=deletePS
+                 showmcmc=showmcmc,deletePS=deletePS,showKep=showKep
 ;; plots the binned data as a time series and can also fit the Rp/R* changes
 ;; apPlot -- this optional keyword allows one to choose the aperture
 ;;           to plot
@@ -60,6 +60,7 @@ pro plot_tim_ser,fitcurve=fitcurve,fitpoly=fitpoly,usepoly=usepoly,makestops=mak
 ;; showmcmc -- shows the MCMC results
 ;; deletePS -- specified whether or not to delete the
 ;;             postscript file, default is true
+;; showKep -- shows the Kepler light curve for KIC 12557548
 
 ;sigrejcrit = 6D  ;; sigma rejection criterion
 sigrejcrit = 5D  ;; sigma rejection criterion
@@ -541,6 +542,17 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
               mcmcModel[m] = meanfunctest[m] + columnvec ## Cinv ## transpose(mcmcResid)
            endfor
            oplot,phaseShow,mcmcModel-offset,color=mycol('blue'),thick=2
+        endif
+
+        if keyword_set(showKep) then begin
+           ;; Show the Kepler Light Curve
+           readcol,'data/phase_folded_kepler_deep_kic1255.csv',kphaseD,kfluxD,skipline=6,$
+                   format='(F,F)',/silent
+           readcol,'data/phase_folded_kepler_shallow_kic1255.csv',kphaseS,kfluxS,skipline=6,$
+                   format='(F,F)',/silent
+           oplot,kphaseD,kfluxD-offset,color=mycol('red')
+           oplot,kphaseS,kfluxS-offset,color=mycol('red')
+
         endif
 
         if keyword_set(fitcurve) then begin

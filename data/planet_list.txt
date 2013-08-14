@@ -1,0 +1,3 @@
+# List of planets with stored data
+kic1255
+corot1

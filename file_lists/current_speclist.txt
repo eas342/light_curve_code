@@ -51,7 +51,6 @@
 ../../../Documents/kic1255/UT2013.08.13_data/proc/run01_0074.a.ms.d.fits
 ../../../Documents/kic1255/UT2013.08.13_data/proc/run01_0075.a.ms.d.fits
 ../../../Documents/kic1255/UT2013.08.13_data/proc/run01_0076.a.ms.d.fits
-../../../Documents/kic1255/UT2013.08.13_data/proc/run01_0077.a.ms.d.fits
 ../../../Documents/kic1255/UT2013.08.13_data/proc/run01_0078.a.ms.d.fits
 ../../../Documents/kic1255/UT2013.08.13_data/proc/run01_0079.a.ms.d.fits
 ../../../Documents/kic1255/UT2013.08.13_data/proc/run01_0080.a.ms.d.fits
