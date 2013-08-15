@@ -94,7 +94,8 @@ pro plot_specphot,divbymodel=divbymodel,usebin=usebin,removelin=removelin,$
 
   if keyword_set(divbymodel) then begin
      ColorRange = [0.995E,1.005E]
-  endif else ColorRange = [0.95E,1.01E]
+  endif else ColorRange = [0.98E,1.005E]
+;  endif else ColorRange = [0.95E,1.01E]
 
   if keyword_set(psplot) then begin
      set_plot,'ps'

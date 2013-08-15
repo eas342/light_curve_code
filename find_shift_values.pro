@@ -1,13 +1,18 @@
 pro find_shift_values,discreet=discreet,showfits=showfits,psplot=psplot,$
-                      dec23=dec23
+                      dec23=dec23,custarc=custarc,custshiftFile=custshiftFile,$
+                      Arcshift=Arcshift
 ;; Straightens A Spectrum so that the X direction is wavelength
 ;; discreet - only move by discreet steps
 ;; showfits -- shows the fits to cross-correlations
 ;; dec23 -- looks at the Dec 23 data
 
-if keyword_set(dec23) then begin
-   img = mrdfits('../IRTF_UT2011Dec23/proc/bigdog/masterarc.fits',0,origHeade)
-endif else img = mrdfits('../IRTF_UT2012Jan04/proc/bigdog/masterarc.fits',0,origHeader)
+case 1 of 
+   n_elements(custarc) NE 0: arcnm=custarc
+   keyword_set(dec23): arcnm = '../IRTF_UT2011Dec23/proc/bigdog/masterarc.fits'
+   else: arcnm = '../IRTF_UT2012Jan04/proc/bigdog/masterarc.fits'
+endcase
+
+img = mrdfits(arcnm,0,origHeader)
 
 imgSize = size(img)
 NX = imgSize[1]
@@ -103,8 +108,9 @@ endif
 
 
 ;; Save the spectral shift parameters
+if n_elements(custshiftFile) EQ 0 then custshiftFile='data/shift_data/shift_vals_from_arc.txt'
 forprint,Pos,PolyMod,comment='#Y Position (row)   Shift (px)',$
-         textout='data/shift_data/shift_vals_from_arc.txt'
+         textout=custshiftFile
 
 
 if keyword_set(psplot) then begin
@@ -116,9 +122,11 @@ if keyword_set(psplot) then begin
    !p.font=-1
 endif
 
-if keyword_set(dec23) then begin
-   outFitsNm = '../IRTF_UT2011Dec23/proc/bigdog_rectified/masterarc.fits'
-endif else outFitsNm = '../IRTF_UT2012Jan04/proc/bigdog_rectified/masterarc_cross_shift.fits'
+case 1 of
+   n_elements(Arcshift) NE 0: outFitsNm=Arcshift
+   keyword_set(dec23): outFitsNm = '../IRTF_UT2011Dec23/proc/bigdog_rectified/masterarc.fits'
+   else: outFitsNm = '../IRTF_UT2012Jan04/proc/bigdog_rectified/masterarc_cross_shift.fits'
+endcase
 writefits,outFitsNm,recimg,origHeader
 
 end

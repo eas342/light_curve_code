@@ -8,7 +8,7 @@ pro plot_tim_ser,fitcurve=fitcurve,fitpoly=fitpoly,usepoly=usepoly,makestops=mak
                  fixrad=fixrad,freelimblin=freelimblin,showDiffAirmass=showDiffairmass,$
                  nonormalize=nonormalize,showNomRad=showNomRad,fixoffset=fixoffset,$
                  custresidYrange=custresidYrange,fitepoch=fitepoch,singleplot=singleplot,$
-                 showmcmc=showmcmc,deletePS=deletePS,showKep=showKep
+                 showmcmc=showmcmc,deletePS=deletePS,showKep=showKep,lindetrend=lindetrend
 ;; plots the binned data as a time series and can also fit the Rp/R* changes
 ;; apPlot -- this optional keyword allows one to choose the aperture
 ;;           to plot
@@ -112,7 +112,7 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
 
   tstart = date_conv(tepoch[0],'JULIAN')
   tend = date_conv(tepoch[1],'JULIAN')
-  tmid = (tend + tstart)/2D
+  tmid = date_conv(tepoch[2],'JULIAN')
 
   ;; radius of a planet as a function of wavelength
   plrad = fltarr(nbin)*!values.f_nan
@@ -284,7 +284,7 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
            maxval = max(yflat,maxp)
            minval = min(yflat,minp)
            nombysigma = (yflat - mean(yflat))/rsigma
-           
+           if keyword_set(lindetrend) then y = y/yfit
 ;           secondCutsig = 4.0E
            secondCutsig = 3.5E
 
