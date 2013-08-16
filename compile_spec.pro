@@ -130,6 +130,7 @@ for i=0l,nfile-1l do begin
       backgrid[*,j,i] = a2[*,j,2] * Gain ;; multiply by gain
    endfor
    utgrid[i] = double(fxpar(header2,'MJD_OBS'))
+   utgrid[i] = utgrid[i] + double(fxpar(header2,'ITIME'))/(3600D * 24D)
 
    airmass[i] = double(fxpar(header2,'AIRMASS'))
    ;; find the differential airmass between the two stars
