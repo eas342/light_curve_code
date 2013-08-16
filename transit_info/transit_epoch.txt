@@ -1,4 +1,0 @@
-# UT Times from exoplantes.org duration and my exo_eph_gen center
-First_Contact	2013-08-13T09:17:00.00
-Fourth_Cont	2013-08-13T10:57:00.00
-Tmid		2013-08-13T09:52:00.00

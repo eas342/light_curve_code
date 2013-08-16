@@ -20,6 +20,10 @@ transit_info/jdutc2jdtdb.pro
 transit_info/print_times.pro
 transit_info/tai_utc.pro
 transit_info/utc2bjd.pro
+transit_info/transit_epoch.txt
+transit_info/transit_epoch_corot1_oldUTbackup.txt
+transit_info/transit_epoch_kic1255_next.txt
+transit_info/transit_epoch_kic1255_previous.txt
 data/cleaned_tim_ser/*.txt
 data/mcmc/*/*.txt
 data/mcmc/*/*/*.txt
