@@ -1,4 +1,4 @@
 # UT Times from Sauls' reference epoch & folded light curve 8.15.13
-First_Contact	2454833.01
+First_Contact	2454833.015
 Fourth_Cont	2454833.07
 Tmid		2454833.00
