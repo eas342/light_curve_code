@@ -3,7 +3,7 @@ pro compile_spec,extraction2=extraction2,sum=sum,nwavbins=nwavbins,$
                  maskwater=maskwater,custRange=custRange,widewatermask=widewatermask,$
                  cleanbyeye=cleanbyeye,specshift=specshift,starshift=starshift,$
                  custmask=custmask,molecbin=molecbin,trycurved=trycurved,$
-                 matchgrid=matchgrid,readCurrent=readCurrent
+                 matchgrid=matchgrid,readCurrent=readCurrent,skipBJD=skipBJD
 ;; Compiles the spectra into a few simple arrays to look at the spectrophotometry
 ;; extraction2 -- uses whatever spectra are in the data directory
 ;; sum -- uses the variance weighted (optimal) extraction by
@@ -30,6 +30,7 @@ pro compile_spec,extraction2=extraction2,sum=sum,nwavbins=nwavbins,$
 ;;                dispersed images instead of straightened data
 ;; matchgrid -- matches the output grid to the original grid (no
 ;;              wavelength binning)
+;; skipBJD -- skips the conversion from JD_UTC to BJD_TDB
 
 ;Nwavbins = 35 ;; number of wavelength bins
 ;Nwavbins = 9 ;; number of wavelength bins
@@ -129,6 +130,7 @@ for i=0l,nfile-1l do begin
       backgrid[*,j,i] = a2[*,j,2] * Gain ;; multiply by gain
    endfor
    utgrid[i] = double(fxpar(header2,'MJD_OBS'))
+
    airmass[i] = double(fxpar(header2,'AIRMASS'))
    ;; find the differential airmass between the two stars
    utarray = dblarr(Nap) + utgrid[i]
@@ -351,6 +353,14 @@ if keyword_set(psplot) then begin
    device,decomposed=0
    set_plot,'x'
    !p.font=-1
+endif
+
+if not keyword_set(skipBJD) then begin
+   ;; Convert the JD data to Barycentric coordinates
+
+   BJD_TDB = UTC2BJD(utgrid,raDeg[0],decDeg[0],earthobs=obscode[0])
+   utgrid = BJD_TDB
+
 endif
 
 ; Save all data

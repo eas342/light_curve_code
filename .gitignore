@@ -36,4 +36,5 @@ molec_inputs/*.png
 molec_inputs/*.pdf
 data/shift_data/shift_vals_from_arc.txt
 data/telluric/mktrans_zm_16_15.dat
+data/object_coordinates.txt
 file_lists/current_speclist.txt

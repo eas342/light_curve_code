@@ -11,5 +11,6 @@ pro change_planets
 
   spawn,'cp transit_info/transit_epoch_'+pname+'.txt transit_info/transit_epoch.txt'
   spawn,'cp transit_info/planet_info_'+pname+'.txt transit_info/planet_info.txt'
+  spawn,'cp data/object_coordinates_'+pname+'.txt data/object_coordinates.txt'
 
 end
