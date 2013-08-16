@@ -84,7 +84,7 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
   nbin = Nwavbins
 
   ;; get the transit times
-  readcol,'transit_info/transit_epoch.txt',epoch,tepoch,format='(A,A)',$
+  readcol,'transit_info/transit_epoch.txt',epoch,tepoch,format='(A,D)',$
           skipline=1
 
   ;; get the planet info
@@ -110,9 +110,9 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
   u1parm = 0.0E         
   u2parm = 0.0E
 
-  tstart = date_conv(tepoch[0],'JULIAN')
-  tend = date_conv(tepoch[1],'JULIAN')
-  tmid = date_conv(tepoch[2],'JULIAN')
+  tstart = tepoch[0]
+  tend = tepoch[1]
+  tmid = tepoch[2]
 
   ;; radius of a planet as a function of wavelength
   plrad = fltarr(nbin)*!values.f_nan
@@ -284,7 +284,7 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
            maxval = max(yflat,maxp)
            minval = min(yflat,minp)
            nombysigma = (yflat - mean(yflat))/rsigma
-           if keyword_set(lindetrend) then y = y/yfit
+
 ;           secondCutsig = 4.0E
            secondCutsig = 3.5E
 
@@ -344,6 +344,11 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
         endif
 
      endif
+     ;; Linearly detrend
+     if keyword_set(lindetrend) then begin
+        fitY = linfit(tplot[offp],y[offp])
+        y = y/(fitY[0] + fitY[1]*tplot)
+     endif
 
      if total(finite(y)) GT 0 and total(finite(yerr)) GT 0.0 then begin
         ;; if keyword set, replace the error w/ the off transit stddev
@@ -361,7 +366,7 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
            ylength = n_elements(y)
            case 1 of
               keyword_set(fullrange): ydynam = [0,0]
-              keyword_set(oneprange): ydynam = [0,1]
+              keyword_set(oneprange): ydynam = [0.98,1.005]
               keyword_set(differential): begin
                  ylowerL = y[sorty[ceil(5E/100E*float(ylength))]] * 0.999
                  yUpperL = y[sorty[floor(95E/100E*float(ylength))]] * 1.002
@@ -460,6 +465,7 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
         print,'Frac lin corr robust sigma for ',wavname,': ',fracRMSarr[k]
         ;; Show the off transit fit
 ;        oplot,tplot,fity[0] + fity[1]*tplot,color=mycol('red')
+
         if keyword_set(offtranserr) then begin
            rstdevOff = robust_sigma(Offresid)
            yerr = fltarr(n_elements(goodp)) + rstdevOff
@@ -546,11 +552,15 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
 
         if keyword_set(showKep) then begin
            ;; Show the Kepler Light Curve
-           readcol,'data/phase_folded_kepler_deep_kic1255.csv',kphaseD,kfluxD,skipline=6,$
-                   format='(F,F)',/silent
-           readcol,'data/phase_folded_kepler_shallow_kic1255.csv',kphaseS,kfluxS,skipline=6,$
-                   format='(F,F)',/silent
-           oplot,kphaseD,kfluxD-offset,color=mycol('red')
+;           readcol,'data/phase_folded_kepler_deep_kic1255.csv',kphaseD,kfluxD,skipline=6,$
+;                   format='(F,F)',/silent
+;           readcol,'data/phase_folded_kepler_shallow_kic1255.csv',kphaseS,kfluxS,skipline=6,$
+;                   format='(F,F)',/silent
+           readcol,'data/phase_folded_kepler_all_kic1255.txt',kbinnum,kphaseS,kfluxS,$
+                   format='(F,F,F)',/silent
+           ;; Subtract 1 from the LC since it actually is centered on 1.0
+           kphaseS = kphaseS - 1.0D
+;           oplot,kphaseD,kfluxD-offset,color=mycol('red')
            oplot,kphaseS,kfluxS-offset,color=mycol('red')
 
         endif

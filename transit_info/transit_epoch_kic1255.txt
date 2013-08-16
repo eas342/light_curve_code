@@ -1,4 +1,4 @@
-# UT Times from exoplantes.org duration and my exo_eph_gen center
-First_Contact	2013-08-13T09:17:00.00
-Fourth_Cont	2013-08-13T11:05:00.00
-Tmid		2013-08-13T09:52:00.00
+# UT Times from Sauls' reference epoch & folded light curve 8.15.13
+First_Contact	2454833.01
+Fourth_Cont	2454833.07
+Tmid		2454833.00
