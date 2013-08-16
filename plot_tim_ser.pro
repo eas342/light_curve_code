@@ -8,7 +8,8 @@ pro plot_tim_ser,fitcurve=fitcurve,fitpoly=fitpoly,usepoly=usepoly,makestops=mak
                  fixrad=fixrad,freelimblin=freelimblin,showDiffAirmass=showDiffairmass,$
                  nonormalize=nonormalize,showNomRad=showNomRad,fixoffset=fixoffset,$
                  custresidYrange=custresidYrange,fitepoch=fitepoch,singleplot=singleplot,$
-                 showmcmc=showmcmc,deletePS=deletePS,showKep=showKep,lindetrend=lindetrend
+                 showmcmc=showmcmc,deletePS=deletePS,showKep=showKep,lindetrend=lindetrend,$
+                 longwavname=longwavname
 ;; plots the binned data as a time series and can also fit the Rp/R* changes
 ;; apPlot -- this optional keyword allows one to choose the aperture
 ;;           to plot
@@ -61,6 +62,8 @@ pro plot_tim_ser,fitcurve=fitcurve,fitpoly=fitpoly,usepoly=usepoly,makestops=mak
 ;; deletePS -- specified whether or not to delete the
 ;;             postscript file, default is true
 ;; showKep -- shows the Kepler light curve for KIC 12557548
+;; longwavname -- shows the wavelength ranges from start to finish
+;;                instead of the middle
 
 ;sigrejcrit = 6D  ;; sigma rejection criterion
 sigrejcrit = 5D  ;; sigma rejection criterion
@@ -311,7 +314,10 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
 
      endif
 
-     wavname = string(bingridmiddle[k],format='(F4.2)')
+     if keyword_set(longwavname) then begin
+        wavname = string(bingrid[k],format='(F4.2)')+'-'+$
+                  string(bingrid[k]+binsizes[k],format='(F4.2)')
+     endif else wavname = string(bingridmiddle[k],format='(F4.2)')
 
      if n_elements(timebin) NE 0 then begin
         ;; Bin the series in time
