@@ -9,7 +9,7 @@ pro plot_tim_ser,fitcurve=fitcurve,fitpoly=fitpoly,usepoly=usepoly,makestops=mak
                  nonormalize=nonormalize,showNomRad=showNomRad,fixoffset=fixoffset,$
                  custresidYrange=custresidYrange,fitepoch=fitepoch,singleplot=singleplot,$
                  showmcmc=showmcmc,deletePS=deletePS,showKep=showKep,lindetrend=lindetrend,$
-                 longwavname=longwavname
+                 longwavname=longwavname,showjump=showjump
 ;; plots the binned data as a time series and can also fit the Rp/R* changes
 ;; apPlot -- this optional keyword allows one to choose the aperture
 ;;           to plot
@@ -64,6 +64,7 @@ pro plot_tim_ser,fitcurve=fitcurve,fitpoly=fitpoly,usepoly=usepoly,makestops=mak
 ;; showKep -- shows the Kepler light curve for KIC 12557548
 ;; longwavname -- shows the wavelength ranges from start to finish
 ;;                instead of the middle
+;; showjump -- show where the telescope tracking jump occured
 
 ;sigrejcrit = 6D  ;; sigma rejection criterion
 sigrejcrit = 5D  ;; sigma rejection criterion
@@ -372,7 +373,7 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
            ylength = n_elements(y)
            case 1 of
               keyword_set(fullrange): ydynam = [0,0]
-              keyword_set(oneprange): ydynam = [0.98,1.005]
+              keyword_set(oneprange): ydynam = [0.975,1.01]
               keyword_set(differential): begin
                  ylowerL = y[sorty[ceil(5E/100E*float(ylength))]] * 0.999
                  yUpperL = y[sorty[floor(95E/100E*float(ylength))]] * 1.002
@@ -481,6 +482,14 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
         drawy = [!y.crange[0],!y.crange[1]]
         plots,[hstart,hstart],drawy,color=mycol('brown'),linestyle=2
         plots,[hend,hend],drawy,color=mycol('brown'),linestyle=2
+
+        ;; Show the jump point
+        if keyword_set(showjump) then begin
+           tjumpJD = date_conv('2013-08-15T09:39.00','J')
+           tjump = (tjumpJD - tmid)/planetdat.period
+           tjump = tjump mod 1D
+           plots,[tjump,tjump],drawy,color=mycol('red'),thick=2,linestyle=2
+        endif
 
         ;; show the off-transit fit for differential measurements (as
         if keyword_set(differential) then begin
