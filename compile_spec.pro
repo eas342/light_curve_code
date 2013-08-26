@@ -3,7 +3,8 @@ pro compile_spec,extraction2=extraction2,sum=sum,nwavbins=nwavbins,$
                  maskwater=maskwater,custRange=custRange,widewatermask=widewatermask,$
                  cleanbyeye=cleanbyeye,specshift=specshift,starshift=starshift,$
                  custmask=custmask,molecbin=molecbin,trycurved=trycurved,$
-                 matchgrid=matchgrid,readCurrent=readCurrent,skipBJD=skipBJD
+                 matchgrid=matchgrid,readCurrent=readCurrent,skipBJD=skipBJD,$
+                 masktelluric=masktelluric
 ;; Compiles the spectra into a few simple arrays to look at the spectrophotometry
 ;; extraction2 -- uses whatever spectra are in the data directory
 ;; sum -- uses the variance weighted (optimal) extraction by
@@ -31,6 +32,7 @@ pro compile_spec,extraction2=extraction2,sum=sum,nwavbins=nwavbins,$
 ;; matchgrid -- matches the output grid to the original grid (no
 ;;              wavelength binning)
 ;; skipBJD -- skips the conversion from JD_UTC to BJD_TDB
+;; masktelluric -- masks all telluric features
 
 ;Nwavbins = 35 ;; number of wavelength bins
 ;Nwavbins = 9 ;; number of wavelength bins
@@ -171,6 +173,21 @@ if keyword_set(maskwater) then begin
    for i=0l,nfile-1l do begin
       for j=0,Nap-1 do begin
          flgrid[watermask,j,i] = !values.f_nan
+      endfor
+   endfor
+endif
+
+;; Mask all telluric features
+if keyword_set(masktelluric) then begin
+   Ntelluric = 4
+   telluricW = [[1.1,1.15],[1.3,1.48],[1.78,1.95],[1.97,2.05]]
+   for k=0,Ntelluric-1 do begin
+      feature = telluricW[*,k]
+      featuremask = where(lamgrid GT feature[0] and lamgrid LE feature[1])
+      for i=0l,nfile-1l do begin
+         for j=0,Nap-1 do begin
+            flgrid[featuremask,j,i] = !values.f_nan
+         endfor
       endfor
    endfor
 endif
