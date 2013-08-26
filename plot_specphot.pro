@@ -1,13 +1,14 @@
 pro plot_specphot,divbymodel=divbymodel,usebin=usebin,removelin=removelin,$
                   psplot=psplot,individual=individual,skipInitialize=skipInitialize,$
-                  timebin=timebin
+                  timebin=timebin,backg=backg
 ;; Makes an image of the spectrophotometry to get a visual sense of
 ;; the transit
 ;; divbymodel -- divide the image by the nominal transit model
 ;; usebin -- use the wavelength bins
+;; individual -- specifies which of the inidividual spectra to look at
+;; backg -- use the background instead of the star flux
 ;; removelin -- remove the linear trend in each time series
 ;; psplot -- makes a postscript plot
-;; individual -- specifies which of the inidividual spectra to look at
 ;; skipInitialize -- skips running plot_tim_ser to run faster
 ;; timebin -- uses time-binned data
 
@@ -22,21 +23,28 @@ pro plot_specphot,divbymodel=divbymodel,usebin=usebin,removelin=removelin,$
 
   ntime = n_elements(tplot)
 
-  if n_elements(individual) NE 0 then begin
-     nwavs = n_elements(lamgrid)
-     xydivspec = transpose(flgrid[*,individual-1,*],[0,2,1])
-     wavrange = [lamgrid[0],lamgrid[nwavs-1l]]
-  endif else begin
-     if keyword_set(usebin) then begin
+  case 1 of
+     n_elements(individual) NE 0: begin
+        nwavs = n_elements(lamgrid)
+        xydivspec = transpose(flgrid[*,individual-1,*],[0,2,1])
+        wavrange = [lamgrid[0],lamgrid[nwavs-1l]]
+     end
+     keyword_set(usebin): begin
         nwavs = n_elements(bingrid)
         xydivspec = binfl
         wavrange = [bingrid[0],bingrid[nwavs-1]]
-     endif else begin
+     end
+     keyword_set(backg): begin
+        nwavs = n_elements(lamgrid)
+        xydivspec = transpose(backdiv[*,0,*],[0,2,1])
+        wavrange = [lamgrid[0],lamgrid[nwavs-1l]]
+     end
+     else: begin
         nwavs = n_elements(lamgrid)
         xydivspec = transpose(divspec[*,0,*],[0,2,1])
         wavrange = [lamgrid[0],lamgrid[nwavs-1l]]
-     endelse
-  endelse
+     end
+  endcase
   ;; Make a median spectrum to divide out
   meddivspec = fltarr(nwavs)
   for i=0l,nwavs-1l do begin

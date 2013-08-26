@@ -147,6 +147,9 @@ endfor
 badp = where(flgrid LE 0)
 flgrid[badp] = !values.f_nan
 
+badback = where(backgrid LE 0)
+backgrid[badback] = !values.f_nan
+
 ;; Mask water if asked to
 if keyword_set(maskwater) or keyword_set(widewatermask) or n_elements(custmask) NE 0 then begin
    if keyword_set(maskwater) then begin
@@ -248,6 +251,9 @@ fracE = nansqrt((ErrGrid[*,0,*]/flgrid[*,0,*])^2 + $
              (ErrGrid[*,1,*]/flgrid[*,1,*])^2 )
 DivspecE = fracE * Divspec
 SNR = Divspec / DivspecE
+
+;; Divide the two backgrounds
+backdiv = backgrid[*,0,*] / backgrid[*,1,*]
 
 ;; Do the wavelength binning for the divided spec
 if keyword_set(extremeRange) then begin
@@ -382,7 +388,7 @@ if not keyword_set(skipBJD) then begin
 endif
 
 ; Save all data
-save,flgrid,lamgrid,utgrid,bingrid,binfl,binflE,$
+save,flgrid,lamgrid,utgrid,bingrid,binfl,binflE,backdiv,$
      ErrGrid,SNR,Divspec,DivspecE,backgrid,$
      Nwavbins,binsizes,binind,binindE,filen,$
      airmass,altitude,backgrid,header,$
