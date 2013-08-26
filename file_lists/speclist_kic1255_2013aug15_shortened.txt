@@ -91,4 +91,3 @@
 ../../../Documents/kic1255/UT2013.08.15_data/proc/run02_0120.a.ms.d.fits
 ../../../Documents/kic1255/UT2013.08.15_data/proc/run02_0121.a.ms.d.fits
 ../../../Documents/kic1255/UT2013.08.15_data/proc/run02_0122.a.ms.d.fits
-../../../Documents/kic1255/UT2013.08.15_data/proc/run02_0123.a.ms.d.fits
