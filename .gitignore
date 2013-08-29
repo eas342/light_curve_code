@@ -38,3 +38,4 @@ data/shift_data/shift_vals_from_arc.txt
 data/telluric/mktrans_zm_16_15.dat
 data/object_coordinates.txt
 file_lists/current_speclist.txt
+transit_info/planet_info.txt
