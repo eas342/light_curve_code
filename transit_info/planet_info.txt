@@ -1,5 +1,0 @@
-# KIC 12557548, p, a_R* and b_impact are just guesses, Period from Saul Rappaport in e-mail showing full Kepler time series
-p		0.01
-a_o_Rstar	4.35
-b_impact	0.0
-Period	   	0.6535556
