@@ -9,13 +9,14 @@ pro plot_tim_ser,fitcurve=fitcurve,fitpoly=fitpoly,usepoly=usepoly,makestops=mak
                  nonormalize=nonormalize,showNomRad=showNomRad,fixoffset=fixoffset,$
                  custresidYrange=custresidYrange,fitepoch=fitepoch,singleplot=singleplot,$
                  showmcmc=showmcmc,deletePS=deletePS,showKep=showKep,lindetrend=lindetrend,$
-                 longwavname=longwavname,showjump=showjump
+                 longwavname=longwavname,showjump=showjump,kepfit=kepfit
 ;; plots the binned data as a time series and can also fit the Rp/R* changes
 ;; apPlot -- this optional keyword allows one to choose the aperture
 ;;           to plot
 ;; fitcurve -- this fitting procedure ueses
 ;;            planet transit information to fit Rp/R* as a
 ;;            function of wavelength
+;; fitkep -- fit the KIC 1255 light curve using Kepler curves
 ;; fitpoly -- this fits a polynomial to the data to take out long term
 ;;           trends
 ;; usepoly -- this uses the polynomial fit from other sources
@@ -590,24 +591,33 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
 
 
 ;           if keyword_set(quadfit) then begin
-           if keyword_set(differential) then begin
-              quadlcArg ='X'
-              for m=0l,4 do begin
-                 quadlcArg=quadlcArg+','+strtrim(start[m],1)
-              endfor
-              expr = 'quadlc(X,P[0],P[1],P[2],P[3],P[4])* (P[5] + X * P[6] + X^2 * P[7] + X^3'+$
-                     ' * P[8])/quadlc('+quadlcArg+')'
-
-           endif else begin
-              expr = 'quadlc(X-P[11],P[0],P[1],P[2],P[3],P[4])* ( P[5] + '+$
-                     'Legendre((2D * X - Max(X) - Min(X))/(Max(X) - Min(X) + 3D-16),1) * P[6] + '+$
-                     'Legendre((2D * X - Max(X) - Min(X))/(Max(X) - Min(X) + 3D-16),2) * P[7] + '+$
-                     'Legendre((2D * X - Max(X) - Min(X))/(Max(X) - Min(X) + 3D-16),3) * P[8] + '+$
-                     'Legendre((2D * X - Max(X) - Min(X))/(Max(X) - Min(X) + 3D-16),4) * P[9] + '+$
-                     'Legendre((2D * X - Max(X) - Min(X))/(Max(X) - Min(X) + 3D-16),5) * P[10])'
-              
-              ;expr = 'quadlc(X,P[0],P[1],P[2],P[3],P[4])* (P[5] + X * P[6] + X^2 * P[7] + X^3 * P[8])'
-           endelse
+           case 1 of
+              keyword_set(differential): begin
+                 quadlcArg ='X'
+                 for m=0l,4 do begin
+                    quadlcArg=quadlcArg+','+strtrim(start[m],1)
+                 endfor
+                 expr = 'quadlc(X,P[0],P[1],P[2],P[3],P[4])* (P[5] + X * P[6] + X^2 * P[7] + X^3'+$
+                        ' * P[8])/quadlc('+quadlcArg+')'
+                 
+              end
+              keyword_set(kepfit): begin
+                 expr = 'parameterized_kep(X,P[0]) *  (P[5] + X * P[6])'                 
+              end
+              else: begin
+                 expr = 'quadlc(X-P[11],P[0],P[1],P[2],P[3],P[4])* ( P[5] + '+$
+                        'Legendre((2D * X - Max(X) - Min(X))/(Max(X) - Min(X) + 3D-16),1) * P[6] + '+$
+                        'Legendre((2D * X - Max(X) - Min(X))/(Max(X) - Min(X) + 3D-16),2) * P[7] + '+$
+                        'Legendre((2D * X - Max(X) - Min(X))/(Max(X) - Min(X) + 3D-16),3) * P[8] + '+$
+                        'Legendre((2D * X - Max(X) - Min(X))/(Max(X) - Min(X) + 3D-16),4) * P[9] + '+$
+                        'Legendre((2D * X - Max(X) - Min(X))/(Max(X) - Min(X) + 3D-16),5) * P[10])'
+                 
+                                ;expr =
+                                ;'quadlc(X,P[0],P[1],P[2],P[3],P[4])*
+                                ;(P[5] + X * P[6] + X^2 * P[7] + X^3 *
+                                ;P[8])'
+              end
+           endcase
 ;              pi = replicate({fixed:1, limited:[1,0], limits:[0.0E,0.0E]},8)
 ;           endif else begin
 ;              expr = 'quadlc(X,P[0],P[1],P[2],P[3],P[4])* (P[5] + X * P[6])'
@@ -633,8 +643,10 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
            if keyword_set(fixall) then begin
               pi[*].fixed = 1
            endif
-           pi[0].limited = [1,1] ;; make sure Rp/R* is limited
-           pi[0].limits = [0D,1D] ;; Keep Rp/R* between 0 and 1
+           if not keyword_set(kepfit) then begin
+              pi[0].limited = [1,1] ;; make sure Rp/R* is limited
+              pi[0].limits = [0D,1D] ;; Keep Rp/R* between 0 and 1
+           endif
            ;; make sure the flux ratio offset is free
            if keyword_set(fitepoch) then begin
               pi[11].fixed = 0
