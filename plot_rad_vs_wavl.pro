@@ -4,7 +4,8 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
                      totsets=totsets,wavnum=wavnum,custXrange=custXrange,$
                      showOptical=showOptical,custYrange=custYrange,$
                      powerErr=powerErr,multErr=multErr,medianbin=medianbin,$
-                     nolit=nolit,showtext=showtext
+                     nolit=nolit,showtext=showtext,depthkep=depthkep,$
+                     kepMORIS=kepMORIS
 ;;psplot -- saves a postscript plot
 ;;showstarspec -- shows a star spectrum on the same plot
 ;;nbins -- number of points bo bin in Rp/R*
@@ -23,6 +24,8 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
 ;;             weighted average
 ;;nolit -- no literature value for the planet radius
 ;;showtext -- explanatory text
+;;depthkep - labels the Y axis as Kepler transit depth instead of Rp/R*
+;;kepMORIS - shows the MORIS transit depth
 
   if keyword_set(showstar) then !x.margin = [9,9] else !x.margin=[9,3]
   ;; set the plot
@@ -105,10 +108,13 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
 
   if n_elements(custXrange) NE 0 then myXrange=custXrange
   if n_elements(custYrange) EQ 0 then custYrange=[0.12,0.17]
+  if n_elements(depthkep) NE 0 then begin
+     myYtitle='Transit Depth / Mean Kepler'
+  endif else myYtitle = 'R!Dp!N/R!D*!N'
 
   plot,wavl,rad,$
        xtitle=myxtitle,$
-       ytitle='R!Dp!N/R!D*!N',$
+       ytitle=myYtitle,$
 ;       ystyle=16,xstyle=1,$
        ystyle=ytempstyle,xstyle=1,xrange=myxrange,$
        yrange=custYrange,/nodata
@@ -122,7 +128,7 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
   ;; adopted Rp/R* from Jacob Bean et al. 2012
   scaleH = 0.00115E
 ;  scaleH = 0.00115E * 2E
-  if not keyword_set(nolit) then begin
+  if not keyword_set(nolit) and not keyword_set(depthkep) then begin
      plots,[!x.crange[0],!x.crange[1]],[0.1433,0.1433],color=mycol(['red'])
      plots,[!x.crange[0],!x.crange[1]],[0.1433,0.1433]+3E*scaleH,color=mycol(['red']),linestyle=2
      plots,[!x.crange[0],!x.crange[1]],[0.1433,0.1433]-3E*scaleH,color=mycol(['red']),linestyle=2
@@ -152,6 +158,14 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
         oplot,[CorWav],[binModel2],psym=2,color=mycol('blue'),symsize=2
         oploterror,CorWav,CorRad,CorWid,CorErr,color=mycol('red'),psym=3,thick=2
      endif
+  endif
+
+  if keyword_set(kepMORIS) then begin
+     morisRad = 0.5
+     morisRadE = 0
+     morisWav = 0.626
+     morisWid = 0.1342
+     oploterror,morisWav,morisRad,morisWid,morisRadE,color=mycol('red'),psym=3,thick=2
   endif
 
   ;; if undefined, only show one set of data
