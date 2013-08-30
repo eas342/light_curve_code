@@ -1,7 +1,8 @@
-pro get_profile_widths,showplot=showplot,corot1=corot1
+pro get_profile_widths,showplot=showplot,jan04corot1=jan04corot1,$
+                       dec23corot1=dec23corot1,dec29corot1=dec29corot1
 ;; Fits Gaussians to to the spatial profeils in the spectrum
 ;; showplot -- show a plot, otherwise it just records the numbers
-;; corot1 -- works for Corot-1 where I have different file name conventions
+;; jan04/dec23/dec29corot1 -- works for Corot-1 where I have different file name conventions
 
   readcol,'file_lists/current_speclist.txt',fileL,format='(A)',/silent
 
@@ -9,14 +10,31 @@ pro get_profile_widths,showplot=showplot,corot1=corot1
 
   Widths = fltarr(nfile,2)
 
+  case 1 of 
+     keyword_set(jan04corot1): begin
+        searchKey = '.ms.fits'
+        imageName = '.a.fits'
+     end
+     keyword_set(dec23corot1): begin
+        searchKey = '.d.fits'
+        imageName = '.a.fits'
+     end
+     keyword_set(dec29corot1): begin
+        searchKey = '.a.ms.d.fits'
+        imageName = '.a.fits'
+     end
+     else: begin
+        searchKey = '.ms.d.fits'
+        imageName = '_straight.fits'
+     end
+  endcase
+
   for j=0l,nfile-1l do begin
 
      ;; Find the original file name
-     endS = strpos(fileL[j],'.ms.d.fits')
-     if keyword_set(corot1) then begin
-        imageName = '.a.fits'
-     endif else imageName = '_straight.fits'
+     endS = strpos(fileL[j],searchKey)
      origNm = strmid(fileL[j],0,endS)+imageName
+
      print,origNm
      a = mrdfits(origNm,0,header,/silent)
      b = total(a,1)
@@ -45,6 +63,7 @@ pro get_profile_widths,showplot=showplot,corot1=corot1
 ;     oplot,subarrayX,A[0] * exp(-((subarrayX - A[1])/A[2])^2) + A[3]
 ;                                               + A[4] *
 ;                                               SubarrayX,thick=2,color=mycol('yellow')
+           stop
         endif
      endfor
   endfor
