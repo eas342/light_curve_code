@@ -1,6 +1,7 @@
-pro get_profile_widths,showplot=showplot
+pro get_profile_widths,showplot=showplot,corot1=corot1
 ;; Fits Gaussians to to the spatial profeils in the spectrum
 ;; showplot -- show a plot, otherwise it just records the numbers
+;; corot1 -- works for Corot-1 where I have different file name conventions
 
   readcol,'file_lists/current_speclist.txt',fileL,format='(A)',/silent
 
@@ -12,7 +13,10 @@ pro get_profile_widths,showplot=showplot
 
      ;; Find the original file name
      endS = strpos(fileL[j],'.ms.d.fits')
-     origNm = strmid(fileL[j],0,endS)+'_straight.fits'
+     if keyword_set(corot1) then begin
+        imageName = '.a.fits'
+     endif else imageName = '_straight.fits'
+     origNm = strmid(fileL[j],0,endS)+imageName
      print,origNm
      a = mrdfits(origNm,0,header,/silent)
      b = total(a,1)
@@ -39,7 +43,8 @@ pro get_profile_widths,showplot=showplot
            plot,indices,b
            oplot,subarrayX,result,color=mycol('yellow'),thick=2
 ;     oplot,subarrayX,A[0] * exp(-((subarrayX - A[1])/A[2])^2) + A[3]
-;                                               + A[4] * SubarrayX,thick=2,color=mycol('yellow')
+;                                               + A[4] *
+;                                               SubarrayX,thick=2,color=mycol('yellow')
         endif
      endfor
   endfor
