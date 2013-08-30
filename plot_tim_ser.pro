@@ -481,8 +481,8 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
 
         ;; show the transit epochs
         drawy = [!y.crange[0],!y.crange[1]]
-        plots,[hstart,hstart],drawy,color=mycol('brown'),linestyle=2
-        plots,[hend,hend],drawy,color=mycol('brown'),linestyle=2
+        oplot,[hstart,hstart],drawy,color=mycol('brown'),linestyle=2
+        oplot,[hend,hend],drawy,color=mycol('brown'),linestyle=2
 
         ;; Show the jump point
         if keyword_set(showjump) then begin
@@ -548,7 +548,7 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
            meanfunctest = expression_eval(modelExpr,phaseShow,mcmcPars[k,0:8])
            ;oplot,phaseShow,meanfunctest-offset,color=mycol('blue'),thick=2
            ;; Find the residual vector
-           meanfuncdat = expression_eval(modelExpr,float(tplot),mcmcPars[k,0:8])
+           meanfuncdat = expression_eval(modelExpr,tplot,mcmcPars[k,0:8])
            mcmcResid = y - meanfuncdat
            ;; Find the inverse covariance matrix using the likelihood
            ;; function which also needs the inverse covariance matrix
