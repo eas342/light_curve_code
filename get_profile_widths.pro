@@ -63,7 +63,8 @@ pro get_profile_widths,showplot=showplot,jan04corot1=jan04corot1,$
 ;     oplot,subarrayX,A[0] * exp(-((subarrayX - A[1])/A[2])^2) + A[3]
 ;                                               + A[4] *
 ;                                               SubarrayX,thick=2,color=mycol('yellow')
-           stop
+           ;; stop
+           if j EQ 50 then stop
         endif
      endfor
   endfor
