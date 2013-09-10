@@ -1,4 +1,4 @@
 # UT Times from exoplantes.org duration and my exo_eph_gen center
-First_Contact	2454159.405500
-Fourth_Cont	2454159.509500
-Tmid		2454159.457500
+First_Contact	2454159.404700
+Fourth_Cont	2454159.508700
+Tmid		2454159.456700
