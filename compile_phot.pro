@@ -18,11 +18,11 @@ endcase
 
 
 Nwavbins = 1 ;; photometry!
-bingrid = [0.9134] ;; Z band photometry (microns)
-binsizes = [0.078] * 2E
+bingrid = [0.872] ;; Z band photometry from curve
+binsizes = [0.076]
 
 npoints = n_elements(bjd)
-utgrid = bjd + 2400000.5D - 0.0055D
+utgrid = bjd + 2400000.5D ;- 0.0055D
 
 binfl = fltarr(Nwavbins,npoints) ;; binned flux ratio
 binflE = fltarr(Nwavbins,npoints)
