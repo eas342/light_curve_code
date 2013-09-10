@@ -4,7 +4,7 @@ pro compile_spec,extraction2=extraction2,sum=sum,nwavbins=nwavbins,$
                  cleanbyeye=cleanbyeye,specshift=specshift,starshift=starshift,$
                  custmask=custmask,molecbin=molecbin,trycurved=trycurved,$
                  matchgrid=matchgrid,readCurrent=readCurrent,skipBJD=skipBJD,$
-                 masktelluric=masktelluric
+                 masktelluric=masktelluric,showall=showall
 ;; Compiles the spectra into a few simple arrays to look at the spectrophotometry
 ;; extraction2 -- uses whatever spectra are in the data directory
 ;; sum -- uses the variance weighted (optimal) extraction by
@@ -33,6 +33,7 @@ pro compile_spec,extraction2=extraction2,sum=sum,nwavbins=nwavbins,$
 ;;              wavelength binning)
 ;; skipBJD -- skips the conversion from JD_UTC to BJD_TDB
 ;; masktelluric -- masks all telluric features
+;; showall - show all spectral info
 
 ;Nwavbins = 35 ;; number of wavelength bins
 ;Nwavbins = 9 ;; number of wavelength bins
@@ -89,6 +90,7 @@ readcol,'data/detector_info.txt',skipline=1,$
        descrip,detectdata,format='(A,F)'
 Gain = detectdata[0]
 ReadN = detectdata[1]
+Npix = 14E ;; 14 pixel aperture
 
 ;;Get the coordinate info for the stars on the slit
 readcol,'data/object_coordinates.txt',skipline=1,$
@@ -113,6 +115,7 @@ lamgrid = (DLam * findgen(Ngpts) + lamstart)/1E4 ;; in microns
 Nap = sizea[2] ;; number of apertures
 flgrid = fltarr(Ngpts,Nap,nfile)
 backgrid = fltarr(Ngpts,Nap,nfile)
+errgrid = fltarr(Ngpts,Nap,nfile)
 utgrid = dblarr(nfile)
 airmass = dblarr(nfile)
 Altitude = dblarr(nfile,Nap) ;; Altitude of each star
@@ -127,9 +130,37 @@ for i=0l,nfile-1l do begin
    ;; Check that the number of points is corrrect
    sizea2 = size(a2)
 
+   if keyword_set(showall) then begin
+      allcolors=mycol(['white','blue','green','yellow','white'])
+      nalllines = 4
+      allstyles=[0,2,3,4]
+
+      for j=0l,Nap-1l do begin
+         for k=0l,nalllines-1l do begin
+            if k EQ 0 and j EQ 0 then begin
+               plot,lamgrid,a2[*,j,k],color=allcolors[k],linestyle=allstyles[j],$
+                    xtitle='Wavelength (um)',ytitle='Flux (DN)',$
+                    xrange=[0.6,2.5],xstyle=1,$
+                    yrange=[0,1E5]
+            endif else oplot,lamgrid,a2[*,j,k],color=allcolors[k],linestyle=allstyles[j]
+         endfor
+      endfor
+      legend,[fxpar(header2,'BANDID1'),$
+              fxpar(header2,'BANDID2'),$
+              fxpar(header2,'BANDID3'),$
+              fxpar(header2,'BANDID4'),$
+              'Aperture 2'],color=allcolors,linestyle=[0,0,0,0,2]
+   endif
+
+   ;; Get the divisor keyword IMPORTANT b/c flux must be divided by NDR
+;   divisor = double(fxpar(header2,'DIVISOR'))
+;   divisor = divisor / 1.5E ;; b/c of fowler sampling w/ n_max reads
+   divisor = 1.0E
+
    for j=0,Nap-1 do begin
-      flgrid[*,j,i] = a2[*,j,SpecKey] * Gain
-      backgrid[*,j,i] = a2[*,j,2] * Gain ;; multiply by gain
+      flgrid[*,j,i] = a2[*,j,SpecKey] * Gain / divisor
+      backgrid[*,j,i] = a2[*,j,2] * Gain / divisor;; multiply by gain divide by divisor
+      errgrid[*,j,i] = a2[*,j,3] * Gain / divisor
    endfor
    utgrid[i] = double(fxpar(header2,'MJD_OBS'))
    utgrid[i] = utgrid[i] + double(fxpar(header2,'ITIME'))/(3600D * 24D)
@@ -142,6 +173,7 @@ for i=0l,nfile-1l do begin
       altitude[i,j] = alt[j]
    endfor
 endfor
+
 
 ;; Reset all zeros and negative flux values
 badp = where(flgrid LE 0)
@@ -197,7 +229,11 @@ endif
 
 ;; Find the photon erros
 ReadNarr = replicate(ReadN,Ngpts,Nap,Nfile)
-ErrGrid = nansqrt( flgrid + backgrid + readnarr^2 )
+
+;; Factor for Fowler sampling
+FowFac = 1.0E ;; from Garnett & Forrest http://adsabs.harvard.edu/abs/1993SPIE.1946..395G
+;; In the terminology of Garnett & Forrest, eta = 1
+;ErrGrid = nansqrt( FowFac * flgrid + FowFac * backgrid + readnarr^2 * npix)
 
 ;; Star Shift, the default is to move the reference star by -1 pixel
 if n_elements(starshift) EQ 0 then starshift = -1
