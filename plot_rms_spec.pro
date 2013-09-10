@@ -37,6 +37,8 @@ pro plot_rms_spec,psplot=psplot,tryclean=tryclean,saveclean=saveclean,$
   nwavs = n_elements(lamgrid)
   ntime = n_elements(tplot)
   sigarray = fltarr(nwavs)
+  photArray = fltarr(nwavs) ;; Photon Error
+
   ;; go through each wavelength and find robust sigma in percentage
   cleanedcurve = fltarr(nwavs,ntime)
   cleanfactor = 4E
@@ -45,6 +47,7 @@ pro plot_rms_spec,psplot=psplot,tryclean=tryclean,saveclean=saveclean,$
      if ngoodp GE 10 then begin
         sigarray[i] = robust_sigma(divbycurve[i,0,*])/median(divbycurve[i,0,*])
      endif else sigarray[i] = !values.f_nan
+     photarray[i] = median(divspecE[i,0,*])/median(divspec[i,0,*])
   endfor
 
   if keyword_set(tryclean) or keyword_set(removelinear) then begin
@@ -81,7 +84,7 @@ pro plot_rms_spec,psplot=psplot,tryclean=tryclean,saveclean=saveclean,$
   plot,lamgrid,sigarray*100E,$
        xtitle='Wavelength (um)',$
        ytitle='Fractional Error (%)',yrange=[0,10]
-  oplot,lamgrid,divspecE[*,0,0]/divspec[*,0,0]*100E,color=mycol('blue'),$
+  oplot,lamgrid,photarray*100E,color=mycol('blue'),$
         linestyle=2
 
   
