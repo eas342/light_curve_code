@@ -29,13 +29,24 @@ pro compare_width_and_flux,fast=fast
 
 
   for j=0,nwavbins-1l do begin
-     plot,binfl[j,offp],widths[offp,1],$
-          xrange=[0.95,1.05],$
-          yrange=[2,6],$
+     wavname = string(bingrid[j],format='(F4.2)')+'-'+$
+               string(bingrid[j]+binsizes[j],format='(F4.2)')+'um'
+     ;; Ignore all points that are exactly 2.194
+     goodp = where((widths[offp,1] LT 2.19 OR widths[offp,1] GE 2.20) and $
+                  finite(binfl[j,offp]) and finite(binfl[j,offp]))
+     xp = binfl[j,offp[goodp]]
+     yp = widths[offp[goodp],1]
+     plot,xp,yp,$
+          xrange=[0.99,1.02],$
+          yrange=[1,6],$
           xtitle='Flux Ratio',$
           ytitle='Spatial Width',$
-          psym=4
+          psym=4,title=wavname
+     linefit = robust_linefit(xp,yp,yfit)
+     oplot,xp,yfit,color=mycol('yellow')
+
      wait,0.5
+
   endfor
 
 end
