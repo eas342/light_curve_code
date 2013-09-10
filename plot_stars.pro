@@ -2,7 +2,7 @@ pro plot_stars,psplot=psplot,tryclean=tryclean,saveclean=saveclean,$
                   removelinear=removelinear,scalephoton=scalephoton,$
                flatten=flatten,smoothtemp=smoothtemp,choose1=choose1,$
                divide=divide,wavenum=wavenum,custXrange=custXrange,$
-               showTelluric=showTelluric
+               showTelluric=showTelluric,custYrange=custYrange
 ;; Plots the reference star and planet host
 ;; spectrum
 ;; psplot -- makes a postscript plot of the RMS spectrum
@@ -16,7 +16,7 @@ pro plot_stars,psplot=psplot,tryclean=tryclean,saveclean=saveclean,$
 ;; choose1 -- plots a single spectrum (instead of the median)
 ;; divide -- divides the stellar host by reference star
 ;; wavnum -- converts wavelength to wave number (cm^-1)
-;; custXrange -- allows you to input a custom X range instead of the
+;; custX/Yrange -- allows you to input a custom X range instead of the
 ;;               full
 
   ;; set the plot
@@ -26,7 +26,7 @@ pro plot_stars,psplot=psplot,tryclean=tryclean,saveclean=saveclean,$
      plotprenm = 'plots/individual_spectra/indspec'
      device,encapsulated=1, /helvetica,$
             filename=plotprenm+'.eps'
-           device,xsize=14, ysize=10,decomposed=1,/color
+           device,xsize=9, ysize=5,decomposed=1,/color
   endif
 
 
@@ -99,7 +99,7 @@ pro plot_stars,psplot=psplot,tryclean=tryclean,saveclean=saveclean,$
      photname = 'Photon Error x '+string(scalefact,format='(F8.2)')
   endif else photname = 'Photon Error'
 
-  multfac = 0.42E
+  multfac = 1E
 ;; Only show finite data, skip NANs
   goodp = where(finite(hostspec) EQ 1 and finite(refspec) EQ 1 and lamgrid LT 2.47)
 
@@ -115,20 +115,25 @@ pro plot_stars,psplot=psplot,tryclean=tryclean,saveclean=saveclean,$
      myYrange = [0.4,1.5]
      myYtitle='Normalized Flux + Offset'
   endif else begin
-     myYrange=[0,max(yhost)*1.3]
-     myYtitle='Flux (e!E-!N)'
+     myYrange=[0,1]
+     myYtitle='Normalized Flux'
   endelse
 
-  if n_elements(custXrange) EQ 0 then custXrange = [0,0]
+  if n_elements(custXrange) EQ 0 then begin
+     custXrange = [0,0]
+     myXstyle=0
+  endif else myXstyle=1
+  if n_elements(custYrange) NE 0 then myYrange = custYrange
 
-  plot,lamgrid[goodp],yhost,$
+
+  plot,lamgrid[goodp],yhost/max(yref),$
        xtitle='Wavelength (um)',$
        ytitle=myYtitle,$
-       yrange=myYrange,xrange=custXrange
+       yrange=myYrange,xrange=custXrange,xstyle=myXstyle
 ;,xrange=[5600,6600],xstyle=1
 ;,ystyle=16;,xrange=[1.15,1.35]
 ;,xrange=[1.45,1.75]
-  oplot,lamgrid[goodp],yref - 0.2,color=mycol('blue'),linestyle=3
+  oplot,lamgrid[goodp],yref/max(yref),color=mycol('blue'),linestyle=3
   
 ;  Show the smoothed spec
 ;  oplot,lamgrid[goodp],smooth(yhost,smoothsize),color=mycol('red')
@@ -141,11 +146,14 @@ pro plot_stars,psplot=psplot,tryclean=tryclean,saveclean=saveclean,$
   reftext = 'Ref Star'
   if not keyword_set(flatten) then reftext = reftext + ' * '+string(multfac,format='(F8.4)')
   if keyword_set(showtelluric) then begin
-     name3 = 'Library Telluric Transmission'
+     name3 = 'Telluric Model'
   endif else name3 = 'G0 V Template'
 
-  legend,['Host Star',reftext,name3],$
-         color=mycol(['black','blue','red']),/right,linestyle=[0,3,4]
+;  legend,['Host Star',reftext,name3],$
+;         color=mycol(['black','blue','red']),/right,linestyle=[0,3,4]
+  legend,['Corot-1','Reference Star',name3],$
+         color=mycol(['black','blue','red']),/right,linestyle=[0,3,4],$
+         charsize=0.7
 
   ;; Read in a stellar template and over-plot
   readcol,'star_templates/g0v_template_irtf.txt',tempwavl,tempfl,tempflerr,$
@@ -169,7 +177,6 @@ pro plot_stars,psplot=psplot,tryclean=tryclean,saveclean=saveclean,$
   if not keyword_set(showtelluric) then begin
      oplot,tempwavl[goodp],ytemp,color=mycol('red'),linestyle=4 ;* tempwavl^(1/2)
   endif
-
   
 
 
@@ -183,8 +190,7 @@ pro plot_stars,psplot=psplot,tryclean=tryclean,saveclean=saveclean,$
   if keyword_set(showTelluric) then begin
      restore,'data/telluric/mauna_kea_trans_gemini.sav'
      ;; Interpolate the 
-     plot,wavlt,smooth(trans,2000),/noerase,xstyle=4+1,ystyle=4,color=mycol('red'),xrange=!x.crange,$
-          yrange=[0,2]
+     oplot,wavlt,smooth(trans,2000)/max(smooth(trans,2000)),color=mycol('red')
   endif
 
   if keyword_set(psplot) then begin
