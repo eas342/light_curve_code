@@ -228,7 +228,7 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
 
      if not keyword_set(nonormalize) then begin
         y = y / median(y[offp])
-        yerr = y / median(y[offp])
+        yerr = yerr / median(y[offp])
      endif
 
      if not keyword_set(noreject) then begin
@@ -374,7 +374,7 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
            ylength = n_elements(y)
            case 1 of
               keyword_set(fullrange): ydynam = [0,0]
-              keyword_set(oneprange): ydynam = [0.975,1.01]
+              keyword_set(oneprange): ydynam = [0.99,1.005]
               keyword_set(differential): begin
                  ylowerL = y[sorty[ceil(5E/100E*float(ylength))]] * 0.999
                  yUpperL = y[sorty[floor(95E/100E*float(ylength))]] * 1.002
