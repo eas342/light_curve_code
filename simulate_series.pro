@@ -1,7 +1,7 @@
 pro simulate_series,theta=theta,Npoints=Npoints,psplot=psplot,$
                     custYrange=custYrange,sigma=sigma,$
                     Nrealizations=Nrealizations,autoc=autoc,$
-                    modified=modified
+                    modified=modified,residplot=residplot
 ;; Makes a random time series with correlated noise
 ;; theta - is the set of hyperparameters that govern the correlated
 ;;         noise - theta[0] is the maximum correlation coefficient and
@@ -13,6 +13,7 @@ pro simulate_series,theta=theta,Npoints=Npoints,psplot=psplot,$
 ;; Nrealizations -- specifies the number of realizations
 ;; autoc -- show the autocorrelation functions instead of the time series
 ;; modified -- multiplies the kernel by parameter theta1
+;; residplot -- shows a plot much like the residual plots from data anlaysis
 
   ;; set the plot
   if keyword_set(psplot) then begin
@@ -24,9 +25,9 @@ pro simulate_series,theta=theta,Npoints=Npoints,psplot=psplot,$
            device,xsize=10, ysize=7,decomposed=1,/color
   endif
 
-  if n_elements(Npoints) EQ 0 then Npoints=80l
+  if n_elements(Npoints) EQ 0 then Npoints=100l
 
-  X = dindgen(Npoints)
+  X = dindgen(Npoints)/double(Npoints-1l) * 0.2D - 0.1D
 
   if n_elements(Nrealizations) EQ 0 then Nrealizations= 5l
   
@@ -42,7 +43,7 @@ pro simulate_series,theta=theta,Npoints=Npoints,psplot=psplot,$
   ;; Try a squared exponential kernel from Danielski 2013
   ;; theta[0] is the maximum covariance
   ;; theta[1] is the inverse length scale
-  if n_elements(theta) EQ 0 then theta = [15, 20]
+  if n_elements(theta) EQ 0 then theta = [0.0002, 5]
 
   ;; ensure that's it's double precision
   theta= double(theta)
@@ -52,14 +53,14 @@ pro simulate_series,theta=theta,Npoints=Npoints,psplot=psplot,$
         Argument = -abs((x[i] - x[j]) * theta[1])
         if Argument LT -15D then C[i,j] = 0D else begin
            if keyword_set(modified) then C[i,j] = theta[0] * exp(Argument) * theta[1] else begin
-              C[i,j] = theta[0]^2 * exp(Argument) * (1D + abs(x[i]-x[j]) * theta[1])
+              C[i,j] = theta[0] * exp(Argument) / theta[1]
            endelse
         endelse
      endfor
   endfor
 
   ;; Add sigma to all diagonal elements
-  if n_elements(sigma) EQ 0 then sigma = 1E
+  if n_elements(sigma) EQ 0 then sigma = 0.002E
   sigma = double(sigma)
   for i=0l,Npoints-1l do begin
      C[i,i] = C[i,i] + sigma^2
@@ -84,7 +85,12 @@ pro simulate_series,theta=theta,Npoints=Npoints,psplot=psplot,$
   U = transpose(U)
   autoArray = fltarr(Npoints,Nrealizations)
 
-  if n_elements(custYrange) EQ 0 then custYrange = [-10,10]
+  if n_elements(custYrange) EQ 0 then begin
+     if keyword_set(autoC) then custYrange = [-1,1] else begin
+        custYrange = [-0.02,0.02]
+     endelse
+  endif
+        
   custYtitle=cgGreek('sigma')+'= '+string(sigma,format='(G6.2)')+',  '+cgGreek('theta')+'!D0!N= '+$
              string(Theta[0],format='(G7.2)')+',  '+cgGreek('theta')+'!D1!N= '+$
              string(Theta[1],format='(G7.2)')
@@ -99,45 +105,60 @@ pro simulate_series,theta=theta,Npoints=Npoints,psplot=psplot,$
      ;; Multiply by matrix from correlation matrix
      Y = RandomSer ## U
 
-     if keyword_set(autoC) then begin
-        autoArray[*,j] = a_correlate(y,steparray,/cov)
-        if j EQ 0l then begin
-           plot,steparray,autoArray[*,j],$
-                ytitle='ACF',$
-                xtitle='Lag',yrange=custYrange,$
-                title=custYtitle
-        endif else begin
-           oplot,steparray,autoArray[*,j],color=colorarray[j]
-        endelse
-        ;; Show the initial covariance
-        if j EQ Nrealizations-1l then begin
-           oplot,C[0,*],linestyle=0,colo=mycol('black'),thick=10
-           oplot,C[0,*],linestyle=0,colo=mycol('blue'),thick=6
-           ;; Find the average auto-correlation function
-           avgAuto = fltarr(Npoints)
-           for l=0l,Npoints-1l do begin
-              avgAuto[l] = mean(autoArray[l,*])
-           endfor
-           oplot,avgAuto,color=mycol('black'),linestyle=2,thick=6
-           oplot,avgAuto,color=mycol('yellow'),linestyle=2,thick=3
-
-           al_legend,['Individual ACF','Input Kernel','Ensemble Avg ACF'],$
-                  color=mycol(['purple','black','black']),$
-                  thick=[1,10,6],/right,linestyle=[0,0,2],/clear
-           al_legend,['Individual ACF','Input Kernel','Ensemble Avg ACF'],$
-                  color=mycol(['purple','blue','yellow']),$
-                  thick=[1,6,3],/right,linestyle=[0,0,2],/clear
-        endif
-     endif else begin
-        if j EQ 0l then begin
-           plot,x,y,yrange=custYrange,$
-                xtitle='Time (steps)',$
-                ytitle='Flux',$
-                title=custYtitle,xmargin=[7,7]
-        endif else begin
-           oplot,x,y,linestyle=stylearr[j],color=colorarray[j]
-        endelse
-     endelse
+     case 1 of
+        keyword_set(autoC): begin
+           autoArray[*,j] = a_correlate(y,steparray)
+           if j EQ 0l then begin
+              plot,steparray,autoArray[*,j],$
+                   ytitle='ACF',$
+                   xtitle='Lag',yrange=custYrange,$
+                   title=custYtitle
+           endif else begin
+              oplot,steparray,autoArray[*,j],color=colorarray[j]
+           endelse
+           ;; Show the initial covariance
+           if j EQ Nrealizations-1l then begin
+              oplot,C[0,*]/sigma^2,linestyle=0,colo=mycol('black'),thick=10
+              oplot,C[0,*]/sigma^2,linestyle=0,colo=mycol('blue'),thick=6
+              ;; Find the average auto-correlation function
+              avgAuto = fltarr(Npoints)
+              for l=0l,Npoints-1l do begin
+                 avgAuto[l] = mean(autoArray[l,*])
+              endfor
+              oplot,avgAuto,color=mycol('black'),linestyle=2,thick=6
+              oplot,avgAuto,color=mycol('yellow'),linestyle=2,thick=3
+              
+              al_legend,['Individual ACF','Input Kernel','Ensemble Avg ACF'],$
+                        color=mycol(['purple','black','black']),$
+                        thick=[1,10,6],/right,linestyle=[0,0,2],/clear
+              al_legend,['Individual ACF','Input Kernel','Ensemble Avg ACF'],$
+                        color=mycol(['purple','blue','yellow']),$
+                        thick=[1,6,3],/right,linestyle=[0,0,2],/clear
+           endif
+        end
+        keyword_set(residplot): begin
+           if j EQ 0l then begin
+              plot,x,y * 100E,xtitle='Orbital phase',$
+                   ytitle='Relative Flux (%)',/nodata,$
+                   yrange=custYrange * 100E,$
+                   title=custYtitle
+              dx = (x[1] - x[0])/2E
+              oploterror,x,y*100E,$
+                         fltarr(Npoints)+dx,(fltarr(Npoints)+sigma)*100E,$
+                         psym=3,/nohat
+           endif
+        end
+        else: begin
+           if j EQ 0l then begin
+              plot,x,y,yrange=custYrange,$
+                   xtitle='Orbital Phase',$
+                   ytitle='Flux',$
+                   title=custYtitle,xmargin=[7,7]
+           endif else begin
+              oplot,x,y,linestyle=stylearr[j],color=colorarray[j]
+           endelse
+        end
+     endcase
 
   endfor
 

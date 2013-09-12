@@ -12,9 +12,14 @@ pro analyze_resids,psplot=psplot
 
 ;; Looks at the residuals of the model fit to analyze red noise
 
-  readcol,'data/cleaned_tim_ser/timeser_1.43um_.txt',$
+  cd,c=currentd
+  fileopt = file_search(currentd+'/data/cleaned_tim_ser/*.txt')
+  totfiles = n_elements(fileopt)
+;  for i=0l,n_elements(fileopt)-1l do begin
+  readcol,fileopt[0],phase,fl,flerr,modelfl,resid,format='(F)',skipline=1,/silent
+;     readcol,'data/cleaned_tim_ser/timeser_1.43um_.txt',$
 ;  readcol,'data/cleaned_tim_ser/timeser_0.91um_.txt',$
-          phase,fl,flerr,modelfl,resid
+;          phase,fl,flerr,modelfl,resid
 
   ;; get the planet info
   readcol,'transit_info/planet_info.txt',info,data,format='(A,D)',$
@@ -28,13 +33,22 @@ pro analyze_resids,psplot=psplot
 
   ;; Find autocorrelation function
   np = n_elements(phase)
-  steparray = lindgen(np/2l)
+  steparray = lindgen(np)
   autoC = a_correlate(resid,steparray)
-  plot,steparray * (t[1] - t[0]),autoC,$
-       xtitle='Delay (min)',$
+  if keyword_set(min) then begin
+     autoX = steparray * (t[1] - t[0])
+     autoXtitle = 'Delay (min)'
+     autoXrange = [0.4,200]
+  endif else begin
+     autoX = steparray
+     autoXtitle = 'Lag (steps)'
+     autoXrange = [1,n_elements(steparray)-1l]
+  endelse
+  plot,autoX,autoC,$
+       xtitle=autoXtitle,$
        ytitle='Autocorrelation',$
        title='1.43um Time Series',$
-       xrange=[0.4,200]
+       xrange=autoXrange
 
   if keyword_set(psplot) then begin
      device, /close
