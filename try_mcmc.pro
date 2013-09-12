@@ -1,10 +1,11 @@
-pro try_mcmc,psplot=psplot,simread=simread,noadjust=noadjust
+pro try_mcmc,psplot=psplot,simread=simread,noadjust=noadjust,custjump=custjump
 ;; Tests out my MCMC fit to a time series
 ;; psplot -- an outdated feature to plot the results, they are now
 ;;           saved by other routines
 ;; simread -- use simulated Gaussian Processes as the data input to
 ;;            check that it can recover hyper-parameters and errors
 ;; noadjust -- don't update parameters
+;; custjump -- custom jump sizes
 
   ;; set the plot
   if keyword_set(psplot) then begin
@@ -65,16 +66,23 @@ pro try_mcmc,psplot=psplot,simread=simread,noadjust=noadjust
   ;; set up the hyperparameters
   hyperpi = replicate({fixed:0, limited:[1,0], limits:[0.0E,0.0E],$
                       start:0E,jumpsize:0E},3)
+
+
+  if keyword_set(custjump) then begin
+     hyperpi[*].start = [0.0005,5,0] ;; the set I'm trying for the second-modified kernel
+     hyperpi[*].jumpsize = custjump
+  endif else begin
 ;  hyperpi[*].start = [0.0028,1D-5,0.0024]
 ;  hyperpi[*].jumpsize = [0.0001,1E-6,0]
 ;  hyperpi[*].start = [0.0005,0.2,0.002] ;; old set I used for absolute exponential kernel
 ;  hyperpi[*].jumpsize = [0.0001,0.05,0]
 ;  hyperpi[*].start = [0.0005,0.05,0.002] ;; the set I used for modified abs exp kern
 ;  hyperpi[*].jumpsize = [0.0002,0.02,0]
-  hyperpi[*].start = [0.0005,5,0] ;; the set I'm trying for the second-modified kernel
-  hyperpi[*].jumpsize = [0.0001,1,0]
+     hyperpi[*].start = [0.0005,5,0] ;; the set I'm trying for the second-modified kernel
+     hyperpi[*].jumpsize = [0.0001,1,0]
 ;  hyperpi[*].start = [0.08,5,0.002]
 ;  hyperpi[*].jumpsize = [0.04,1,0]
+  endelse
 
   ;; Go through the cleaned time series
   cd,c=currentd
@@ -108,6 +116,11 @@ pro try_mcmc,psplot=psplot,simread=simread,noadjust=noadjust
      chainPoints=6000l
      discardPoints = 1000l
 ;     result = ev_mcmc(expr,phase,fl,flerr,start,parinfo=pi,chainL = 3000l,maxp=99000l)
+     ;; Put in the limit that the maximum inverse time-scale parameter is smaller
+     ;; than 1/(time step size)
+     hyperpi[1].limited = [1,1]
+     hyperpi[1].limits = [0E,1E/(phase[1] - phase[0])]
+
      result = ev_mcmc(expr,phase,fl,flerr,start,parinfo=pi,chainL = chainPoints,maxp=99000l,$
                       hyperparams=hyperpi,noadjust=noadjust)
 ;     result = ev_mcmc(expr,phase,fl,flerr,start,parinfo=pi,chainL = 200l,maxp=99000l,$
