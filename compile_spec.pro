@@ -4,7 +4,7 @@ pro compile_spec,extraction2=extraction2,sum=sum,nwavbins=nwavbins,$
                  cleanbyeye=cleanbyeye,specshift=specshift,starshift=starshift,$
                  custmask=custmask,molecbin=molecbin,trycurved=trycurved,$
                  matchgrid=matchgrid,readCurrent=readCurrent,skipBJD=skipBJD,$
-                 masktelluric=masktelluric,showall=showall
+                 masktelluric=masktelluric,showall=showall,irafnoise=irafnoise
 ;; Compiles the spectra into a few simple arrays to look at the spectrophotometry
 ;; extraction2 -- uses whatever spectra are in the data directory
 ;; sum -- uses the variance weighted (optimal) extraction by
@@ -34,6 +34,7 @@ pro compile_spec,extraction2=extraction2,sum=sum,nwavbins=nwavbins,$
 ;; skipBJD -- skips the conversion from JD_UTC to BJD_TDB
 ;; masktelluric -- masks all telluric features
 ;; showall - show all spectral info
+;; irafnoise -- use IRAF to calculate noise instead of my own method
 
 ;Nwavbins = 35 ;; number of wavelength bins
 ;Nwavbins = 9 ;; number of wavelength bins
@@ -90,7 +91,7 @@ readcol,'data/detector_info.txt',skipline=1,$
        descrip,detectdata,format='(A,F)'
 Gain = detectdata[0]
 ReadN = detectdata[1]
-Npix = 14E ;; 14 pixel aperture
+;Npix = 14E ;; 14 pixel aperture
 
 ;;Get the coordinate info for the stars on the slit
 readcol,'data/object_coordinates.txt',skipline=1,$
@@ -152,16 +153,58 @@ for i=0l,nfile-1l do begin
               'Aperture 2'],color=allcolors,linestyle=[0,0,0,0,2]
    endif
 
-   ;; Get the divisor keyword IMPORTANT b/c flux must be divided by NDR
-;   divisor = double(fxpar(header2,'DIVISOR'))
+   ;; Get the # non-destructive reads IMPORTANT b/c flux must be divided by NDR
+   NDR = double(fxpar(header2,'NDR'))
+   if keyword_set(irafnoise) then divisor=1.0E else divisor = NDR
+
 ;   divisor = divisor / 1.5E ;; b/c of fowler sampling w/ n_max reads
-   divisor = 1.0E
+;   divisor = 1.0E
 
    for j=0,Nap-1 do begin
       flgrid[*,j,i] = a2[*,j,SpecKey] * Gain / divisor
       backgrid[*,j,i] = a2[*,j,2] * Gain / divisor;; multiply by gain divide by divisor
       errgrid[*,j,i] = a2[*,j,3] * Gain / divisor
    endfor
+
+;; CORRECTION FACTOR - the errors must be scaled for a variety of
+;;                     reasons:
+;; 1) The actual # of photons is smaller because SpeX gives the sum of
+;; non-destructive reads, not the average of reads
+;; 2) There are subtleties to the Fowler read process where the reads
+;; are correlated with each other
+;; see Reasearch Notes XII, page 52 for details
+   Teff = double(fxpar(header2,'ITIME')) ;; (sec)
+   rtime = double(fxpar(header2,'TABLE_MS'))/1000E;; read time (sec)
+   Tint = Teff + NDR * rtime
+   aparray = double(strsplit(fxpar(header2,'APNUM1'),' ',/extract)) ;; array
+   npix = aparray[3] - aparray[2] ;; number of pixels extracted
+   nmax = (Tint)/(2E * rtime) ;; max read possible
+   eta = NDR / nmax ;;read time duty cycle
+   ReadN = 12E * sqrt(32E/NDR)
+
+;   CorFac = sqrt(NDR * Lparam) * sqrt(flgrid[*,*,i] + backgrid[*,*,i] + readN^2 * npix/Lparam)/$
+;            (alpha * (1E - eta/2E) * $
+;             sqrt(flgrid[*,*,i] + backgrid[*,*,i] + readN^2 * npix/NDR))
+;   errgrid[*,*,i] = CorFac * errgrid[*,*,i]
+   ;; Terminology straight from Garnett & Forrest 1993
+   FluxGF = flGrid[*,*,i] / Teff
+   BackGF = backGrid[*,*,i] / Teff
+   Signal = FluxGF * Teff
+   NoisePhoton = sqrt((FluxGF + BackGF) * Tint * (1E - 2E * eta/3E + 1E/(6E * eta * nmax^2)))
+
+   NoiseRead = sqrt(ReadN^2 * npix)
+   TotNoise = sqrt(NoisePhoton^2 + NoiseRead^2)
+   SignalNaive = FluxGF * NDR * Teff
+   NoiseNaive = sqrt((FluxGF + BackGF) * Teff * NDR + npix * readN^2) ;; doesn't know about NDRs
+;   CorFac = (TotNoise/Signal)/(NoiseNaive/SignalNaive)
+;   flgrid[*,*,i] = fluxGF * Tint
+;   backgrid[*,*,i] = backGF * Tint
+   NoiseTry = sqrt((FluxGF + BackGF)* Tint + npix * ReadN^2 )
+
+   if not keyword_set(irafnoise) then begin
+      errGrid[*,*,i] = TotNoise
+   endif
+
    utgrid[i] = double(fxpar(header2,'MJD_OBS'))
    utgrid[i] = utgrid[i] + double(fxpar(header2,'ITIME'))/(3600D * 24D)
 
@@ -231,9 +274,12 @@ endif
 ReadNarr = replicate(ReadN,Ngpts,Nap,Nfile)
 
 ;; Factor for Fowler sampling
-FowFac = 1.0E ;; from Garnett & Forrest http://adsabs.harvard.edu/abs/1993SPIE.1946..395G
+;FowFac = 1.0E ;; from Garnett & Forrest http://adsabs.harvard.edu/abs/1993SPIE.1946..395G
 ;; In the terminology of Garnett & Forrest, eta = 1
 ;ErrGrid = nansqrt( FowFac * flgrid + FowFac * backgrid + readnarr^2 * npix)
+
+
+
 
 ;; Star Shift, the default is to move the reference star by -1 pixel
 if n_elements(starshift) EQ 0 then starshift = -1
@@ -285,6 +331,7 @@ endif
 Divspec = flgrid[*,0,*] / flgrid[*,1,*]
 fracE = nansqrt((ErrGrid[*,0,*]/flgrid[*,0,*])^2 + $
              (ErrGrid[*,1,*]/flgrid[*,1,*])^2 )
+
 DivspecE = fracE * Divspec
 SNR = Divspec / DivspecE
 
