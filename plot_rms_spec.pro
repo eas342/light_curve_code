@@ -1,5 +1,6 @@
 pro plot_rms_spec,psplot=psplot,tryclean=tryclean,saveclean=saveclean,$
-                  removelinear=removelinear,scalephoton=scalephoton
+                  removelinear=removelinear,scalephoton=scalephoton,$
+                  showhist=showhist
 ;; Plots the RMS along the time series for each wavelength in the
 ;; spectrum
 ;; psplot -- makes a postscript plot of the RMS spectrum
@@ -47,7 +48,17 @@ pro plot_rms_spec,psplot=psplot,tryclean=tryclean,saveclean=saveclean,$
      if ngoodp GE 10 then begin
         sigarray[i] = robust_sigma(divbycurve[i,0,*])/median(divbycurve[i,0,*])
      endif else sigarray[i] = !values.f_nan
-     photarray[i] = median(divspecE[i,0,*])/median(divspec[i,0,*])
+     ;; Show the bottom quartile for the photon errors (these change
+     ;; in time)
+     photErrY = transpose(divspecE[i,0,*]/median(divspec[i,0,*]),[2,1,0])
+     sortInd = sort(photErrY)
+     bottomQInd = sortInd[round(0.25E * float(n_elements(sortInd)))]
+     photarray[i] = photErrY[bottomQInd]
+     if i EQ 100 and keyword_set(showhist) then begin
+        y = divbycurve[i,0,*]/median(divbycurve[i,0,*])
+        histocompare,y
+     endif
+;     if i EQ 100 then stop
   endfor
 
   if keyword_set(tryclean) or keyword_set(removelinear) then begin
