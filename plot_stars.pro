@@ -2,7 +2,10 @@ pro plot_stars,psplot=psplot,tryclean=tryclean,saveclean=saveclean,$
                   removelinear=removelinear,scalephoton=scalephoton,$
                flatten=flatten,smoothtemp=smoothtemp,choose1=choose1,$
                divide=divide,wavenum=wavenum,custXrange=custXrange,$
-               showTelluric=showTelluric,custYrange=custYrange
+               showTelluric=showTelluric,custYrange=custYrange,normall=normall,$
+               showback=showback,directText=directText,custXmargin=custXmargin,$
+               custYmargin=custYmargin,skipXtitle=skipXtitle
+               
 ;; Plots the reference star and planet host
 ;; spectrum
 ;; psplot -- makes a postscript plot of the RMS spectrum
@@ -18,6 +21,11 @@ pro plot_stars,psplot=psplot,tryclean=tryclean,saveclean=saveclean,$
 ;; wavnum -- converts wavelength to wave number (cm^-1)
 ;; custX/Yrange -- allows you to input a custom X range instead of the
 ;;               full
+;; normall -- normalize all spectra (both the host star and reference star)
+;; showback -- show a background spectra
+;; directText -- show the text directly instead of with a legend
+;; custX/Ymargin - used by double_spec to fine-tune margins
+;; skipXtitle - skips X title and tick labels, for use by double specphot
 
   ;; set the plot
   if keyword_set(psplot) then begin
@@ -50,6 +58,7 @@ pro plot_stars,psplot=psplot,tryclean=tryclean,saveclean=saveclean,$
   ntime = n_elements(tplot)
   hostspec = fltarr(nwavs)
   refspec = fltarr(nwavs)
+  backspec = fltarr(nwavs)
   ;; go through each wavelength and find the median
   cleanedcurve = fltarr(nwavs,ntime)
   cleanfactor = 4E
@@ -59,6 +68,7 @@ pro plot_stars,psplot=psplot,tryclean=tryclean,saveclean=saveclean,$
 ;        refspec[i] = median(flgrid[i,1,*])
         hostspec[i] = mean(flgrid[i,0,*],/nan)
         refspec[i] = mean(flgrid[i,1,*],/nan)
+        backspec[i] = mean(backgrid[i,0,*],/nan)
 ;     if i EQ 50l then stop
      endfor
   endif else begin
@@ -120,19 +130,33 @@ pro plot_stars,psplot=psplot,tryclean=tryclean,saveclean=saveclean,$
   endelse
 
   if n_elements(custXrange) EQ 0 then begin
-     custXrange = [0,0]
-     myXstyle=0
+     custXrange = [lamgrid[0],lamgrid[n_elements(lamgrid)-1l]]
+     myXstyle=1
   endif else myXstyle=1
   if n_elements(custYrange) NE 0 then myYrange = custYrange
+  if n_elements(custXmargin) EQ 0 then custXmargin = [10,4]
 
+  if keyword_set(normall) then ystarplot = yhost/max(yhost) else begin
+     ystarplot = yhost/max(yref)
+  endelse
+  
+  if keyword_set(skipXtitle) then begin
+     myXtitle=''
+     myXtickformat='(A1)'
+  endif else begin
+     myXtitle='Wavelength (um)'
+     myXtickformat='(G8.2)'
+  endelse
 
-  plot,lamgrid[goodp],yhost/max(yref),$
-       xtitle='Wavelength (um)',$
+  plot,lamgrid[goodp],ystarplot,$
+       xtitle=myXtitle,$
        ytitle=myYtitle,$
-       yrange=myYrange,xrange=custXrange,xstyle=myXstyle
+       yrange=myYrange,xrange=custXrange,xstyle=myXstyle,$
+       xmargin=custXmargin,xtickformat=myXtickformat
 ;,xrange=[5600,6600],xstyle=1
 ;,ystyle=16;,xrange=[1.15,1.35]
 ;,xrange=[1.45,1.75]
+
   oplot,lamgrid[goodp],yref/max(yref),color=mycol('blue'),linestyle=3
   
 ;  Show the smoothed spec
@@ -145,15 +169,35 @@ pro plot_stars,psplot=psplot,tryclean=tryclean,saveclean=saveclean,$
 
   reftext = 'Ref Star'
   if not keyword_set(flatten) then reftext = reftext + ' * '+string(multfac,format='(F8.4)')
-  if keyword_set(showtelluric) then begin
-     name3 = 'Telluric Model'
-  endif else name3 = 'G0 V Template'
+
+  case 1 of 
+     keyword_set(showtelluric): name3 = 'Telluric Model'
+     keyword_set(showback): name3 = 'Background'
+     else: name3 = 'G0 V Template'
+  endcase
 
 ;  legend,['Host Star',reftext,name3],$
 ;         color=mycol(['black','blue','red']),/right,linestyle=[0,3,4]
-  legend,['Corot-1','Reference Star',name3],$
-         color=mycol(['black','blue','red']),/right,linestyle=[0,3,4],$
-         charsize=0.7
+  if keyword_set(directText) then begin
+     xsize = !x.crange[1] - !x.crange[0]
+     ysize = !y.crange[1] - !y.crange[0]
+     xrefText = 0.55E * xsize+!x.crange[0]
+     yrefText = 0.55E * ysize + !y.crange[0]
+     xyouts,0.4E * xsize+!x.crange[0],0.85E * ysize + !y.crange[0],$
+            'CoRoT-1',color=!p.color,charsize=0.7
+     xyouts,xrefText,yrefText,$
+            'Reference Star',color=mycol('blue'),charsize=0.7
+     xyouts,0.07E * xsize+!x.crange[0],0.2E * ysize + !y.crange[0],$
+            name3,color=mycol('red'),charsize=0.7
+     midpt = n_elements(lamgrid)/2
+     dataperYpix = (!y.crange[1] - !y.crange[0]) /((!y.window[1] - !y.window[0]) * !d.y_vsize)
+     ybump = !D.Y_CH_SIZE * 0.5E * dataperYpix * 0.7E
+     oplot,[lamgrid[goodp[midpt]],xrefText],[yref[midpt]/max(yref),yrefText + ybump],color=mycol('blue')
+  endif else begin
+     legend,['Corot-1','Reference Star',name3],$
+            color=mycol(['black','blue','red']),/right,linestyle=[0,3,4],$
+            charsize=0.7
+  endelse
 
   ;; Read in a stellar template and over-plot
   readcol,'star_templates/g0v_template_irtf.txt',tempwavl,tempfl,tempflerr,$
@@ -191,6 +235,10 @@ pro plot_stars,psplot=psplot,tryclean=tryclean,saveclean=saveclean,$
      restore,'data/telluric/mauna_kea_trans_gemini.sav'
      ;; Interpolate the 
      oplot,wavlt,smooth(trans,2000)/max(smooth(trans,2000)),color=mycol('red')
+  endif
+
+  if keyword_set(showback) then begin
+     oplot,lamgrid,backspec/(10E * median(backspec)),color=mycol('red')
   endif
 
   if keyword_set(psplot) then begin
