@@ -117,9 +117,9 @@ pro try_mcmc,psplot=psplot,simread=simread,noadjust=noadjust,custjump=custjump
      discardPoints = 1000l
 ;     result = ev_mcmc(expr,phase,fl,flerr,start,parinfo=pi,chainL = 3000l,maxp=99000l)
      ;; Put in the limit that the maximum inverse time-scale parameter is smaller
-     ;; than 1/(time step size)
+     ;; than 1/(5 * time step size), otherwise it's pourly constrained
      hyperpi[1].limited = [1,1]
-     hyperpi[1].limits = [0E,1E/(phase[1] - phase[0])]
+     hyperpi[1].limits = [0E,1E/(5E * (phase[1] - phase[0]))]
 
      result = ev_mcmc(expr,phase,fl,flerr,start,parinfo=pi,chainL = chainPoints,maxp=99000l,$
                       hyperparams=hyperpi,noadjust=noadjust)
