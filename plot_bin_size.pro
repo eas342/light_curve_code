@@ -4,7 +4,8 @@ pro plot_bin_size,psplot=psplot,scalephoton=scalephoton
 ;; scalephoton -- scales the photon errors up to the measured RMS
 
 
-bintarr = [200,150,100,80,60,50,40,35,30,25,20,15,13,10,8]
+bintarr = [300,200,180,150,130,100,90,80,70,60,55,50,45,40,37,$
+           35,33,30,27,25,23,20,18,15,14,13,12,10,9,8]
 ;bintarr = [200,6]
 ntbin = n_elements(bintarr)
 
@@ -50,21 +51,21 @@ endelse
 
 plot,bintmin,rmstbinfun[*,0]*100E,$
      xtitle='Time bin size (min)',$
-     ytitle='Off Transit, Linearly-Detrended RMS (%)',$;/xlog,$
+     ytitle='Out of Transit RMS (%)',$;/xlog,$
      yrang=[-0.2,0.4],ystyle=1
 oplot,bintmin,photonfun[*,0]*100E,linestyle=2
 
-wavbinnames = string(bingrid[wavInd],format='(F7.3)') + 'um to'+$
-              string(bingrid[wavInd]+ binsizes[wavInd],format='(F7.3)')+$
-              'um RMS'
+wavbinnames = string(bingrid[wavInd],format='(F7.2)') + 'um to'+$
+              string(bingrid[wavInd]+ binsizes[wavInd],format='(F7.2)')+$
+              'um'
 
 oplot,bintmin,rmstbinfun[*,1]*100E,color=mycol('red')
 oplot,bintmin,photonfun[*,1]*100E,color=mycol('red'),linestyle=2
 oplot,bintmin,rmstbinfun[*,2]*100E,color=mycol('blue')
 oplot,bintmin,photonfun[*,2]*100E,color=mycol('blue'),linestyle=2
 
-legend,wavbinnames,color=mycol(['black','red','blue']),linestyle=[0,0,0]
-legend,color=mycol(['black','red','blue']),replicate(photonName,3),$
+legend,wavbinnames+' Std Dev',color=mycol(['black','red','blue']),linestyle=[0,0,0],/right
+legend,color=mycol(['black','red','blue']),replicate(photonName,3)+wavbinnames,$
        linestyle=replicate(2,3),/bottom,/left
 
 if keyword_set(psplot) then begin
