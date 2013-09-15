@@ -334,22 +334,41 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
            endif
         endif
 
+
+
         airbin = avg_series(tplot,airmass,fltarr(n_elements(airmass)),timeGrid,tsizes,$
                             weighted=0,/silent)
         tplot = tmiddle
 
         y = ybin
+
         fracPhotonarr[k] = yerrOut[0] / ybin[0]
 ;        yerr = yerrOut
         yerr = stdevArr
         airmass = airbin
         offp = where(tplot LT hstart OR tplot GT hend)
+
+        ;; For any binned flux or error that are NAN, remove
+        goodp = where(finite(y) EQ 1 and yerr GT 0)
+        if goodp NE [-1] then begin
+           y = y[goodp]
+           yerr = yerr[goodp]
+           if keyword_set(individual) then begin
+              y2 = y2[goodp]
+              y2err = y2err[goodp]
+           endif
+           tplot = tplot[goodp]
+           airmass = airmass[goodp]
+           offp = where(tplot LT hstart OR tplot GT hend)
+        endif
+
         if keyword_set(offtranserr) then begin
            fitY2 = linfit(tplot[offp],y[offp])
            Offresid2 = y[offp] - (fitY2[0] + fitY2[1]*tplot[offp])
            rstdevOff2 = robust_sigma(Offresid2)
            yerr = fltarr(n_elements(yerr)) + rstdevOff2
         endif
+
 
      endif
      ;; Linearly detrend
