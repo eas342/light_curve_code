@@ -9,16 +9,7 @@ if min(p) LT 0 then return,!values.d_nan ;; parameters can't be less than 0
 npts = n_elements(x)
 
 ;; Generate the correlation function
-C = dblarr(npts,npts)
-for i=0,npts -1l do begin
-   for j=0l,npts-1l do begin
-      Argument = -abs((x[i] - x[j])) * p[1]
-      if Argument LT -15D then C[i,j] = 0D else begin
-;         C[i,j] = p[0]^2 * exp(Argument) * (1D + abs(x[i] - x[j])*p[1])
-         C[i,j] = p[0] * exp(Argument) / p[1]
-      endelse
-   endfor
-endfor
+C = cov_kernel(npts,x,p[0],p[1])
 
 ;; add sigma to the correlation matrix
 if n_elements(yerr) NE 0 then begin
