@@ -37,9 +37,6 @@ pro simulate_series,theta=theta,Npoints=Npoints,psplot=psplot,$
   stychoices = [0,2,3,5,7]
   stylearr = stychoices[lindgen(Nrealizations) mod n_elements(stychoices)]
 
-  ;; Make a correlation matrix, C
-  C = dblarr(Npoints,Npoints)
-
   ;; Try a squared exponential kernel from Danielski 2013
   ;; theta[0] is the maximum covariance
   ;; theta[1] is the inverse length scale
@@ -48,16 +45,8 @@ pro simulate_series,theta=theta,Npoints=Npoints,psplot=psplot,$
   ;; ensure that's it's double precision
   theta= double(theta)
 
-  for i=0l,Npoints-1l do begin
-     for j=0l,Npoints-1l do begin
-        Argument = -abs((x[i] - x[j]) * theta[1])
-        if Argument LT -15D then C[i,j] = 0D else begin
-           if keyword_set(modified) then C[i,j] = theta[0] * exp(Argument) * theta[1] else begin
-              C[i,j] = theta[0] * exp(Argument) / theta[1]
-           endelse
-        endelse
-     endfor
-  endfor
+  C = cov_matrix(Npoints,x,theta[0],theta[1])
+
 
   ;; Add sigma to all diagonal elements
   if n_elements(sigma) EQ 0 then sigma = 0.002E

@@ -574,14 +574,10 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
            likeL = ev_leval([mcmcPars[k,9],mcmcPars[k,10],0],x=tplot,yin=y,yerr=yerr,Cinv=Cinv)
            mcmcModel = fltarr(n_elements(phaseShow))
            for m=0l,mcmcShowP-1l do begin
-              columnvec = fltarr(n_elements(tplot))
-              Argument = -abs((phaseShow[m] - tplot))*mcmcPars[k,10]
-              evalpmcmc = where(Argument GT -15D) ;; ensure the argument of exponential doesn't cause overflow error
-              if evalpmcmc NE [-1] then $
-;                 columnvec[evalpmcmc] = mcmcPars[k,9]^2 * exp(Argument[evalpmcmc]) * (1E + abs(phaseShow[m] -  tplot) * mcmcPars[k,10])
-                 columnvec[evalpmcmc] = mcmcPars[k,9] * exp(Argument[evalpmcmc]) / mcmcPars[k,10]
+              columnvec = cov_kernel(phaseShow[m] - tplot,mcmcpars[k,9],mcmcpars[k,10])
               mcmcModel[m] = meanfunctest[m] + columnvec ## Cinv ## transpose(mcmcResid)
            endfor
+
            oplot,phaseShow,mcmcModel-offset,color=mycol('blue'),thick=2
         endif
 

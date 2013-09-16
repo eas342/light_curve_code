@@ -9,7 +9,7 @@ if min(p) LT 0 then return,!values.d_nan ;; parameters can't be less than 0
 npts = n_elements(x)
 
 ;; Generate the correlation function
-C = cov_kernel(npts,x,p[0],p[1])
+C = cov_matrix(npts,x,p[0],p[1])
 
 ;; add sigma to the correlation matrix
 if n_elements(yerr) NE 0 then begin
