@@ -1,0 +1,10 @@
+function cov_kernel,x,theta0,theta1
+;; Covariance kernel used by likelihood evaluation, simulated series
+;; and plot_tim_ser
+
+;; create array identical to x argument
+f = theta0 * 1D / (abs(x) + 1D)^theta1
+
+return,f
+
+end
