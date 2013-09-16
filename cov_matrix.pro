@@ -11,8 +11,6 @@ return,cov_kernel(firstX - secondX,theta0,theta1)
 ;if bigNeg NE [-1] then C2[bigNeg] = 0D
 ;if smallNeg NE [-1] then C2[smallNeg] = theta0 * exp(Argument[smallNeg])/theta1^2
 
-return,C2
-
 ;seconds1 = systime(/seconds)
 ;
 ;C = fltarr(npts,npts)
