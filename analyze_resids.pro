@@ -21,6 +21,11 @@ pro analyze_resids,psplot=psplot
 ;  readcol,'data/cleaned_tim_ser/timeser_0.91um_.txt',$
 ;          phase,fl,flerr,modelfl,resid
 
+  startString = 'cleaned_tim_ser/timeser_'
+  wavnSt = strpos(fileopt[0],startString)
+  wavnSize = strpos(fileopt[0],'_.txt') - wavnSt - strlen(startString)
+  wavname = strmid(fileopt[0],wavnSt+strlen(startString),wavnSize)
+
   ;; get the planet info
   readcol,'transit_info/planet_info.txt',info,data,format='(A,D)',$
           skipline=1
@@ -47,7 +52,7 @@ pro analyze_resids,psplot=psplot
   plot,autoX,autoC,$
        xtitle=autoXtitle,$
        ytitle='Autocorrelation',$
-       title='1.43um Time Series',$
+       title=wavname+' Time Series',$
        xrange=autoXrange
 
   if keyword_set(psplot) then begin
@@ -66,7 +71,7 @@ pro analyze_resids,psplot=psplot
        xtitle='Frequency (1/min)',/xlog,$
 ;       ytitle='Power Spectral Density',yrange=[0,5],$
        ytitle='Power Spectral Density',/ylog,$
-       title='1.43um Time Series'
+       title=wavname+' Time Series'
 
 
   if keyword_set(psplot) then begin
@@ -81,7 +86,7 @@ pro analyze_resids,psplot=psplot
 
   plot,t,resid,xtitle='Time from transit center (s)',$
        ytitle='Flux Residuals (%)',$
-       title='1.43um Time Series'
+       title=wavname+' Time Series'
 ;  oploterr,t,resid,flerr*100E
 ;  stop
   if keyword_set(psplot) then begin
