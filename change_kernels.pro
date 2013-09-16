@@ -10,5 +10,6 @@ kernelfileN = currentd+'/cov_kernel.pro'
 
 spawn,'cp '+filen+' '+kernelfileN
 
+resolve_routine,'cov_kernel',/is_function
 
 end
