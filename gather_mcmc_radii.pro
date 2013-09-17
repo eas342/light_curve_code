@@ -3,10 +3,15 @@ pro gather_mcmc_radii
 ;; radius vs. wavelength file
 
   cd,c=currentd
-  fileopt = file_search(currentd+'/data/mcmc/param_unc/param_unc*um.txt')
-  nfile = n_elements(fileopt)
- 
+  ;; get the wavnames
+  restore,'data/specdata.sav'
+;  fileopt = file_search(currentd+'/data/mcmc/param_unc/param_unc*um.txt')
+;  nfile = n_elements(fileopt)
+  nfile = Nwavbins
+  fileopt = strarr(nfile)
+
   for i=0l,nfile-1l do begin
+     fileopt[i] = currentd+'/data/mcmc/param_unc/param_unc_'+wavname[i]+'um.txt'
      readcol,fileopt[i],paramNames,lmfit,limfitErr,mcmcfit,mcmcfitErrP,mcmcfitErrM,$
              format='(A,F,F,F,F,F)',skipline=1,/silent
      if i EQ 0l then begin

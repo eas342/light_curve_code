@@ -20,12 +20,14 @@ pro rerun_multiple_mcmc,docov=docov,both=both
            1: compile_both ;jan 04
            2: compile_both,/dec29
         endcase
+        radcode = 'both'
      endif else begin
         case i of
            0: compile_spec,/dec23,nwavbins=9
            1: compile_spec,nwavbins=9 ;; Jan 04
            2: compile_spec,/dec29,nwavbins=9
         endcase
+        radcode = 'speX'
      endelse
      if i LE 1 then Npoints = 100 else Npoints = 50
 
@@ -41,9 +43,9 @@ pro rerun_multiple_mcmc,docov=docov,both=both
      for j=0l,n_elements(fileopt)-1l do begin
         ;; get the wav name
         restore,'data/specdata.sav'
-        spawn,'cp data/mcmc/chains_'+datename+'/mcmc_chains_'+wavname[j]+'.sav data/mcmc/mcmc_chains.sav'
+        spawn,'cp data/mcmc/chains_'+datename+'/mcmc_chains_'+wavname[j]+'um.sav data/mcmc/mcmc_chains.sav'
         analyze_mcmc,discard=discardPoints
-        spawn,'cp data/mcmc/param_unc/param_unc.txt data/mcmc/param_unc/param_unc_'+wavname[j]+'.txt'
+        spawn,'cp data/mcmc/param_unc/param_unc.txt data/mcmc/param_unc/param_unc_'+wavname[j]+'um.txt'
         firstwav = wavname[0]
         if keyword_set(docov) then begin
            analyze_cov,/psplot,discard=discardPoints
@@ -68,6 +70,9 @@ pro rerun_multiple_mcmc,docov=docov,both=both
 ;           spawn,'cp plots/spec_t_series/tser_0.91.png plots/spec_t_series/all_t_series_dec23.png'
 ;           spawn,'cp plots/spec_t_series/tser_0.91.pdf plots/spec_t_series/all_t_series_dec23.pdf'
 ;           spawn,'cp data/mcmc/*um.sav data/mcmc/chains_dec23/'
+     spawn,'cp radius_vs_wavelength/mcmc_rad_vs_wavl.txt '+$
+           'radius_vs_wavelength/'+radcode+'_'+datename+'_leg00fit_freelimblin_mcmc_hypers_'+$
+           'free_fixed_offtrans_err_009pt_modexp_kern.txt'
   endfor
 
 
