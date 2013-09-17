@@ -348,8 +348,10 @@ if keyword_set(extremeRange) then begin
    EndWav = lamgrid[Ngpts-1]
 endif else begin
    if n_elements(custRange) EQ 0 then begin
-      StartWav = 0.82E
-      EndWav = 2.40E ;; wavelength range that has useful scientific information
+      readcol,'data/wavelength_ranges.txt',StartWavArr,EndWavArr,$
+              /silent,format='(F,F)',skipline=1
+      StartWav = StartWavArr[0]
+      EndWav = EndWavArr[0]
    endif else begin
       StartWav = custRange[0]
       EndWav = custRange[1]
