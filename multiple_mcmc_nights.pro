@@ -1,28 +1,40 @@
-pro multiple_mcmc_nights,phot=phot
+pro multiple_mcmc_nights,phot=phot,both=both
 ;; Make light curves, and do MCMC fitting for multiple nights
 ;; Make sure to empty the Cleaned_tim_ser folder first
 ;; phot - look at photometry data instead of spectroscopy
+;; both - look at both photometry & spectroscopy
 
   read,'Have you emptied the cleaned_time_ser folder?',junk
 
   read,'Have you emptied the param_unc folder?',junk
 
   for i=0l,2l do begin
-     if keyword_set(phot) then begin
-        case i of
-           0: compile_phot,/dec23
-           1: compile_phot
-           2: compile_phot,/dec29
-        endcase
-        radCode = 'moris' ;; describing photometry data
-     endif else begin
-        case i of
-           0: compile_spec,/dec23,nwavbins=9
-           1: compile_spec,nwavbins=9 ;; Jan 04
-           2: compile_spec,/dec29,nwavbins=9
-        endcase
-        radCode = 'sspeX' ;; describing the data as spectra, (straightened)
-     endelse
+     case 1 of
+        keyword_set(phot): begin
+           case i of
+              0: compile_phot,/dec23
+              1: compile_phot
+              2: compile_phot,/dec29
+           endcase
+           radCode = 'moris' ;; describing photometry data
+        end
+        keyword_set(both): begin
+           case i of
+              0: compile_both,/dec23
+              1: compile_both
+              2: compile_both,/dec29
+           endcase
+           radCode = 'both'
+        end
+        else: begin
+           case i of
+              0: compile_spec,/dec23,nwavbins=9
+              1: compile_spec,nwavbins=9 ;; Jan 04
+              2: compile_spec,/dec29,nwavbins=9
+           endcase
+           radCode = 'sspeX' ;; describing the data as spectra, (straightened)
+        end
+     endcase
 
      if i LE 1 then Npoints = 100 else Npoints = 50
      plot_tim_ser,timebin=Npoints,/offtranserr
