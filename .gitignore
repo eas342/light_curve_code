@@ -16,6 +16,7 @@ radius_vs_wavelength/old_rad_vs_wavl/*.txt
 radius_vs_wavelength/fit_data/*.txt
 radius_vs_wavelength/*/*.txt
 radius_vs_wavelength/*/*/*.txt
+radius_vs_wavelength/*/*/*/*.txt
 transit_info/bjd2utc.pro
 transit_info/jdutc2jdtdb.pro
 transit_info/print_times.pro
