@@ -383,11 +383,12 @@ if keyword_set(molecbin) then begin
    binNames = ['In '+molecule,'Out '+molecule]
 endif else begin
    if keyword_set(matchgrid) then begin
-      startIndmatch = 12
-      EndIndmatch = 478
+      tabinv,lamgrid,startWav,startIndmatch
+      startIndmatch = round(startIndMatch)
+      tabinv,lamgrid,endWav,EndIndmatch
       binGrid = lamgrid[startIndmatch:EndIndmatch]
       Nwavbins = n_elements(lamgrid[startIndmatch:EndIndmatch])
-      binsizes = Dlam
+      binsizes = Dlam * 1E-4
    endif
    binGrid = (EndWav - StartWav) * findgen(Nwavbins)/float(Nwavbins) + $
              StartWav
