@@ -4,7 +4,8 @@ pro compile_spec,extraction2=extraction2,sum=sum,nwavbins=nwavbins,$
                  cleanbyeye=cleanbyeye,specshift=specshift,starshift=starshift,$
                  custmask=custmask,molecbin=molecbin,trycurved=trycurved,$
                  matchgrid=matchgrid,readCurrent=readCurrent,skipBJD=skipBJD,$
-                 masktelluric=masktelluric,showall=showall,irafnoise=irafnoise
+                 masktelluric=masktelluric,showall=showall,irafnoise=irafnoise,$
+                 longwavname=longwavname
 ;; Compiles the spectra into a few simple arrays to look at the spectrophotometry
 ;; extraction2 -- uses whatever spectra are in the data directory
 ;; sum -- uses the variance weighted (optimal) extraction by
@@ -35,6 +36,7 @@ pro compile_spec,extraction2=extraction2,sum=sum,nwavbins=nwavbins,$
 ;; masktelluric -- masks all telluric features
 ;; showall - show all spectral info
 ;; irafnoise -- use IRAF to calculate noise instead of my own method
+;; longwavname -- use longer wavelength name (describe wavelength range)
 
 ;Nwavbins = 35 ;; number of wavelength bins
 ;Nwavbins = 9 ;; number of wavelength bins
@@ -472,9 +474,19 @@ if not keyword_set(skipBJD) then begin
 
 endif
 
+;; Describe the wavlengths
+bingridmiddle = bingrid + binsizes/2E
+wavname = strarr(Nwavbins)
+for k=0l,Nwavbins-1l do begin
+   if keyword_set(longwavname) then begin
+      wavname[k] = string(bingrid[k],format='(F4.2)')+'-'+$
+                string(bingrid[k]+binsizes[k],format='(F4.2)')
+   endif else wavname[k] = string(bingridmiddle[k],format='(F4.2)')
+endfor
+
 ; Save all data
 save,flgrid,lamgrid,bingrid,binfl,binflE,backdiv,$
-     utgrid,itimegrid,$
+     utgrid,itimegrid,wavname,$
      ErrGrid,SNR,Divspec,DivspecE,backgrid,$
      Nwavbins,binsizes,binind,binindE,filen,$
      airmass,altitude,backgrid,header,$

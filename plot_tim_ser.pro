@@ -9,7 +9,7 @@ pro plot_tim_ser,fitcurve=fitcurve,fitpoly=fitpoly,usepoly=usepoly,makestops=mak
                  nonormalize=nonormalize,showNomRad=showNomRad,fixoffset=fixoffset,$
                  custresidYrange=custresidYrange,fitepoch=fitepoch,singleplot=singleplot,$
                  showmcmc=showmcmc,deletePS=deletePS,showKep=showKep,lindetrend=lindetrend,$
-                 longwavname=longwavname,showjump=showjump,kepfit=kepfit
+                 showjump=showjump,kepfit=kepfit
 ;; plots the binned data as a time series and can also fit the Rp/R* changes
 ;; apPlot -- this optional keyword allows one to choose the aperture
 ;;           to plot
@@ -63,8 +63,6 @@ pro plot_tim_ser,fitcurve=fitcurve,fitpoly=fitpoly,usepoly=usepoly,makestops=mak
 ;; deletePS -- specified whether or not to delete the
 ;;             postscript file, default is true
 ;; showKep -- shows the Kepler light curve for KIC 12557548
-;; longwavname -- shows the wavelength ranges from start to finish
-;;                instead of the middle
 ;; showjump -- show where the telescope tracking jump occured
 
 ;sigrejcrit = 6D  ;; sigma rejection criterion
@@ -316,11 +314,6 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
 
      endif
 
-     if keyword_set(longwavname) then begin
-        wavname = string(bingrid[k],format='(F4.2)')+'-'+$
-                  string(bingrid[k]+binsizes[k],format='(F4.2)')
-     endif else wavname = string(bingridmiddle[k],format='(F4.2)')
-
      if n_elements(timebin) NE 0 then begin
         ;; Bin the series in time
         ybin = avg_series(tplot,y,y/yerr,timeGrid,tsizes,weighted=1,$
@@ -409,7 +402,7 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
         endelse
 
         if keyword_set(psplot) and (not keyword_set(singleplot) OR k EQ 0)  then begin
-           plotnmpre = 'plots/spec_t_series/tser_'+wavname
+           plotnmpre = 'plots/spec_t_series/tser_'+wavname[k]
            device,encapsulated=1, /helvetica,$
                   filename=plotnmpre+'.eps'
            if keyword_set(singleplot) then begin
@@ -444,7 +437,7 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
         endif else begin
            myNoErase=0
            offset = 0
-           myTitle=wavname+' um Flux'
+           myTitle=wavname[k]+' um Flux'
            tickformat='(G0)'
            myXtitle='Orbital Phase'
         endelse
@@ -474,9 +467,12 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
                   /right,/clear
         endif
         if keyword_set(singleplot) then begin
+           if strpos(wavname[k],'prime') NE -1 then wavelabel = wavname[k]+' um' else begin
+              wavelabel = wavname[k]
+           endelse
            xyouts,!x.crange[1]-0.1*(!x.crange[1]-!x.crange[0]),$
                   median(y)-offset,$
-                  [wavname+' um'],alignment=0.5
+                  [wavelabel],alignment=0.5
         endif
         ;; print the stdev for y for off points
 ;        print,'Fractional off transit Stdev in F for ',wavname,': ',stddev(y[offp])/mean(y[offp])
@@ -490,7 +486,7 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
            Offresid = y[offp] - (fitY[0] + fitY[1]*tplot[offp])
         endelse
         fracRMSarr[k] = robust_sigma(Offresid)/median(y[offp])
-        print,'Frac lin corr robust sigma for ',wavname,': ',fracRMSarr[k]
+        print,'Frac lin corr robust sigma for ',wavname[k],': ',fracRMSarr[k]
         ;; Show the off transit fit
 ;        oplot,tplot,fity[0] + fity[1]*tplot,color=mycol('red')
 
@@ -543,7 +539,7 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
               if keyword_set(pngcopy) then begin
                  spawn,'convert -density 160% '+plotnmpre+'.pdf '+plotnmpre+'.png'
               endif
-              plotnmpre = 'plots/error_distrib/error_hist_'+wavname
+              plotnmpre = 'plots/error_distrib/error_hist_'+wavname[k]
               device,encapsulated=1, /helvetica,$
                      filename=plotnmpre+'.eps'
               device,xsize=14, ysize=10,decomposed=1,/color
@@ -729,7 +725,7 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
                  if keyword_set(pngcopy) then begin
                     spawn,'convert -density 160% '+plotnmpre+'.pdf '+plotnmpre+'.png'                 
                  endif
-                 plotnmpre = 'plots/residual_series/residuals_'+wavname
+                 plotnmpre = 'plots/residual_series/residuals_'+wavname[k]
                  device,encapsulated=1, /helvetica,$
                         filename=plotnmpre+'.eps'
                  device,xsize=14, ysize=10,decomposed=1,/color
@@ -744,7 +740,7 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
               
               overplotMarg = [13,14]
               plot,tplot,resid,yrange=ydynam,$
-                   title='Residuals at '+wavname,$
+                   title='Residuals at '+wavname[k],$
                    xtitle='Orbital Phase',ytitle='Flux Residual (%)',$
                    psym=2,ystyle=8+1,xmargin=overplotMarg,/nodata,$
                    xrange=custXrange
@@ -765,7 +761,7 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
               drawy = [!y.crange[0],!y.crange[1]]
               plots,[hstart,hstart],drawy,color=mycol('blue'),linestyle=2,thick=2.5
               plots,[hend,hend],drawy,color=mycol('blue'),linestyle=2,thick=2.5
-              print,'RMS Residuals (%) for '+wavname,'um',(stddev(y - modelY))/median(y)*100E
+              print,'RMS Residuals (%) for '+wavname[k],'um',(stddev(y - modelY))/median(y)*100E
            endif
         endif
         if not keyword_set(fitcurve) then begin
@@ -774,8 +770,8 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
            resid = fltarr(ntplot)
         endif
         forprint,tplot,y,yerr,modelY,resid,$
-                 textout='data/cleaned_tim_ser/timeser_'+wavname+'um_.txt',$
-                 comment='#Phase  Flux  Fl_err  Model_fl   Residual for '+wavname+'um',$
+                 textout='data/cleaned_tim_ser/timeser_'+wavname[k]+'um_.txt',$
+                 comment='#Phase  Flux  Fl_err  Model_fl   Residual for '+wavname[k]+'um',$
                  /silent
 
         if keyword_set(psplot) and (not keyword_set(singleplot) OR k EQ Nwavbins-1l)  then begin
@@ -803,6 +799,8 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
            comment='#Wavelength(um) Binsize (um)  Rp/R*   Rp/R* Error',/silent
 
   ;; save the RMS of off transit fluxu
+  ;; If there's no wavelength binning
+  if n_elements(timebin) EQ 0 then tsizes = [0]
   save,bingrid,fracRMSarr,tsizes,bingridmiddle,binsizes,$
        planetdat,fracPhotonarr,$
        filename='data/rmsdata.sav'

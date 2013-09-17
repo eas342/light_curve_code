@@ -34,10 +34,12 @@ altitude = fltarr(npoints) + 90E
 
 morisPhase = phase
 
+wavname='z-prime'
+
 ; Save all data the same way as spec
 save,bingrid,binfl,binflE,$
      Nwavbins,binsizes,$
      airmass,altitude,$
-     utgrid,morisPhase,$
+     utgrid,morisPhase,wavname,$
      filename='data/specdata.sav'
 end

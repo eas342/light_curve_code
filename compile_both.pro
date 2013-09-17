@@ -17,6 +17,7 @@ restore,'data/specdata.sav'
 nbands = Nwavbins
 bandcenter = binGrid
 bandwidth = binsizes
+bandname = wavname
 nPhot = n_elements(utgrid)
 
 ;; get the epoch info
@@ -41,7 +42,7 @@ binflNew = fltarr(Nwavbins+nbands,nSpeX)
 binflENew = fltarr(Nwavbins+nbands,nSpeX)
 bingridNew = [bandcenter,bingrid]
 binsizesNew = [bandwidth,binsizes]
-
+wavnameNew = strarr(Nwavbins+nbands)
 
 expDays = itimeGrid/(24D * 3600D)
 
@@ -55,22 +56,24 @@ for i=0,nbands-1l do begin
                      oreject=5E,/silent,errIn=binPhotE[i,*],stdevArr=stdevArr)
    binflNew[i,*] = ybin
    binflENew[i,*] = replicate(median(stdevArr),nSpeX)
-
+   wavnameNew[i] = bandname[i]
 endfor
 
 for i=nbands,nbands+Nwavbins-1l do begin
    binflNew[i,*] = binfl[i-nbands,*]
    binflENew[i,*] = binfl[i-nbands,*]
+   wavnameNew[i] = wavname[i-nbands]
 endfor
 
 binfl = binflNew ;; binned flux ratio
 binflE = binflENew ;; standard error
 bingrid = bingridNew
 binsizes = binsizesNew
+wavname = wavnameNew
 
 ; Save all data
 save,flgrid,lamgrid,bingrid,binfl,binflE,backdiv,$
-     utgrid,itimegrid,$
+     utgrid,itimegrid,wavname,$
      ErrGrid,SNR,Divspec,DivspecE,backgrid,$
      Nwavbins,binsizes,binind,binindE,filen,$
      airmass,altitude,backgrid,header,$
