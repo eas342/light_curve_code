@@ -18,7 +18,7 @@ endcase
 
 
 Nwavbins = 1 ;; photometry!
-bingrid = [0.872] ;; Z band photometry from curve
+bingrid = [0.826] ;; Z band photometry from curve
 binsizes = [0.076]
 
 npoints = n_elements(bjd)

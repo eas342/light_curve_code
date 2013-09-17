@@ -5,7 +5,7 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
                      showOptical=showOptical,custYrange=custYrange,$
                      powerErr=powerErr,multErr=multErr,medianbin=medianbin,$
                      nolit=nolit,showtext=showtext,depthkep=depthkep,$
-                     kepMORIS=kepMORIS
+                     kepMORIS=kepMORIS,phot=phot
 ;;psplot -- saves a postscript plot
 ;;showstarspec -- shows a star spectrum on the same plot
 ;;nbins -- number of points bo bin in Rp/R*
@@ -26,6 +26,7 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
 ;;showtext -- explanatory text
 ;;depthkep - labels the Y axis as Kepler transit depth instead of Rp/R*
 ;;kepMORIS - shows the MORIS transit depth
+;; phot - shows the zprime data as different
 
   if keyword_set(showstar) then !x.margin = [9,9] else !x.margin=[9,3]
   ;; set the plot
@@ -115,13 +116,18 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
   plot,wavl,rad,$
        xtitle=myxtitle,$
        ytitle=myYtitle,$
-;       ystyle=16,xstyle=1,$
        ystyle=ytempstyle,xstyle=1,xrange=myxrange,$
        yrange=custYrange,/nodata
-;       yrange=[0.12,0.16],/nodata
-;  oploterror,wavl,rad,rade
 
-  oploterror,wavl,rad,wavlwidth,rade,psym=3,thick=2
+  if keyword_set(phot) then begin
+     oploterror,[wavl[0]],[rad[0]],[0],[rade[0]],thick=2,psym=3
+     nwavs = n_elements(wavl)
+     oploterror,wavl[1:nwavs-1l],rad[1:nwavs-1l],wavlwidth[1:nwavs-1],rade[1:nwavs-1],$
+                psym=3,thick=2
+  endif else begin
+     oploterror,wavl,rad,wavlwidth,rade,psym=3,thick=2
+  endelse
+
 ;                color=mycol('yellow') 
   
   ;; As in Gibson et al. 2012, show 3 scale heights around the
@@ -213,6 +219,13 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
             color=[mycol('red'),!P.color,mycol('blue')]
   endif
 
+  if keyword_set(phot) then begin
+     readcol,'../calculations/zprime_transmission/zprime_response.txt.csv',skipline=1,$
+             wavel,trans
+     oplot,wavel,trans / max(trans) * 0.1E * (!y.crange[1] - !y.crange[0]) + !y.crange[0],$
+           color=mycol('red')
+  endif
+
   if keyword_set(showstarspec) then begin
      ;; plot the source spectrum
      plot,lamgrid,flgrid(*,0,1),/noerase,xrange=prevXrange,ystyle=5,xstyle=1,$
@@ -223,6 +236,7 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
      
      !x.margin = [10.0,3.0]
   endif
+
 
   if keyword_set(psplot) then begin
      device, /close
