@@ -120,7 +120,8 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
        yrange=custYrange,/nodata
 
   if keyword_set(phot) then begin
-     oploterror,[wavl[0]],[rad[0]],[0],[rade[0]],thick=2,psym=3
+     oploterror,[wavl[0]],[rad[0]],[0],[rade[0]],thick=4,$
+                hatlength=!D.X_VSIZE / 30,errstyle=0,psym=4,symsize=0.7
      nwavs = n_elements(wavl)
      oploterror,wavl[1:nwavs-1l],rad[1:nwavs-1l],wavlwidth[1:nwavs-1],rade[1:nwavs-1],$
                 psym=3,thick=2
@@ -201,8 +202,17 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
         wavl = 1E4 / (wavl)
      endif
 
-     oploterror,wavl2,rad2,wavlwidth2,rade2,psym=3,$
-                color=colorchoices[i-1l],thick=2
+     if keyword_set(phot) then begin
+        oploterror,[wavl2[0]],[rad2[0]],[0],[rade2[0]],thick=4,psym=4,$
+                   color=colorchoices[i-1l],errstyle=0,hatlength=!D.X_VSIZE / 30,$
+                   symsize=0.7
+        nwavs = n_elements(wavl2)
+        oploterror,wavl2[1:nwavs-1l],rad2[1:nwavs-1l],wavlwidth2[1:nwavs-1],rade2[1:nwavs-1],$
+                   psym=3,thick=2,color=colorchoices[i-1l]
+     endif else begin
+        oploterror,wavl2,rad2,wavlwidth2,rade2,psym=3,thick=2,color=colorchoices[i-1l]
+     endelse
+
      print,'Legend Name for data from file '+file2+' ?'
      tempnm = ''
      read,tempnm,format='(A)'
@@ -216,7 +226,7 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
 
   if keyword_set(showtext) then begin
      legend,['Bean 2009','This Work','Binned Model Value'],psym=[1,1,2],/bottom,charsize=legcharsize,$
-            color=[mycol('red'),!P.color,mycol('blue')]
+            color=[mycol('red'),!P.color,mycol('blue')],/right
   endif
 
   if keyword_set(phot) then begin
