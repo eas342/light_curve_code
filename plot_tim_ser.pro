@@ -225,8 +225,8 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
      stdoff = stddev(y[offp])
 
      if not keyword_set(nonormalize) then begin
-        y = y / median(y[offp])
         yerr = yerr / median(y[offp])
+        y = y / median(y[offp])
      endif
 
      if not keyword_set(noreject) then begin
