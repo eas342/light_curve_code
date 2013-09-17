@@ -393,6 +393,7 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
            ylength = n_elements(y)
            case 1 of
               keyword_set(fullrange): ydynam = [0,0]
+;              keyword_set(oneprange): ydynam = [0.975,1.005]
               keyword_set(oneprange): ydynam = [0.99,1.005]
               keyword_set(differential): begin
                  ylowerL = y[sorty[ceil(5E/100E*float(ylength))]] * 0.999
