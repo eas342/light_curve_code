@@ -406,7 +406,7 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
            device,encapsulated=1, /helvetica,$
                   filename=plotnmpre+'.eps'
            if keyword_set(singleplot) then begin
-              device,xsize=11, ysize=14.1,decomposed=1,/color
+              device,xsize=12, ysize=14.5,decomposed=1,/color
            endif else device,xsize=14, ysize=10,decomposed=1,/color
         endif
 ;        plot,tplot,y,psym=2,$
@@ -467,7 +467,7 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
                   /right,/clear
         endif
         if keyword_set(singleplot) then begin
-           if strpos(wavname[k],'prime') NE -1 then wavelabel = wavname[k]+' um' else begin
+           if strpos(wavname[k],'prime') EQ -1 then wavelabel = wavname[k]+' um' else begin
               wavelabel = wavname[k]
            endelse
            xyouts,!x.crange[1]-0.1*(!x.crange[1]-!x.crange[0]),$

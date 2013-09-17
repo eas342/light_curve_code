@@ -70,6 +70,7 @@ binflE = binflENew ;; standard error
 bingrid = bingridNew
 binsizes = binsizesNew
 wavname = wavnameNew
+Nwavbins = nbands+Nwavbins
 
 ; Save all data
 save,flgrid,lamgrid,bingrid,binfl,binflE,backdiv,$

@@ -47,6 +47,9 @@ pro multiple_mcmc_nights,phot=phot,both=both
         2: nightname = 'dec29'
      endcase
      
+     ;; get the wavname so we know which time-ser file was created
+     restore,'data/specdata.sav'
+
      spawn,'cp radius_vs_wavelength/mcmc_rad_vs_wavl.txt '+$
            'radius_vs_wavelength/'+radcode+'_'+nightname+'_leg00fit_freelimblin_mcmc_hypers_'+$
            'free_free_offtrans_err_009pt_modexp_kern.txt'
@@ -54,8 +57,8 @@ pro multiple_mcmc_nights,phot=phot,both=both
      spawn,'cp plots/mcmc/individual_wavs/chain_plots_png/* plots/mcmc/individual_wavs/chain_plots_png_'+nightname
      spawn,'cp plots/mcmc/individual_wavs/cov_plots_png/* plots/mcmc/individual_wavs/cov_plots_png_'+nightname
      spawn,'cp -r radius_vs_wavelength/fit_data_mcmc/* radius_vs_wavelength/fit_data_mcmc_'+nightname+'/'
-     spawn,'cp plots/spec_t_series/tser_0.91.png plots/spec_t_series/all_t_series_'+nightname+'.png'
-     spawn,'cp plots/spec_t_series/tser_0.91.pdf plots/spec_t_series/all_t_series_'+nightname+'.pdf'
+     spawn,'cp plots/spec_t_series/tser_'+wavname[0]+'.png plots/spec_t_series/all_t_series_'+nightname+'.png'
+     spawn,'cp plots/spec_t_series/tser_'+wavname[0]+'.pdf plots/spec_t_series/all_t_series_'+nightname+'.pdf'
      spawn,'cp data/mcmc/*um.sav data/mcmc/chains_'+nightname+'/'
   endfor
 
