@@ -89,7 +89,7 @@ function ev_mcmc,expr,X,Y,Yerr,start,chainL=chainL,parinfo=pi,maxp=maxp,$
         ;; Hyper parameters less than zero should have -infinite
         ;; likelihood, so we will skip the ev_leval procedure for
         ;; those
-        if where(chainHypers[*,j] LT 0) EQ [-1] and chainHypers[1,j] LT hyperparams(1).limits[1] then begin
+        if where(chainHypers[*,j] LT hyperparams(*).limits[0]) EQ [-1] and chainHypers[1,j] LT hyperparams(1).limits[1] then begin
            newchisQ = ev_leval(chainHypers[*,j],x=x,yin=(Y - newModel),yerr=Yerr)
         endif else newchisQ =exp(50D)
      endif else newchisQ = total( ((Y - newModel)/Yerr)^2 )
