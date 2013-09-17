@@ -278,42 +278,42 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
               endif
               tplot = tplot[goodp]
               airmass = airmass[goodp]
-           endif
-           ;; fit result to a robust line
-           rlinefit = robust_linefit(tplot,divbycurveclip1,yfit)
-           ;; divide by the line to flatten out
-           yflat = divbycurveclip1 / yfit
-           rsigma = robust_sigma(yflat)
-           maxval = max(yflat,maxp)
-           minval = min(yflat,minp)
-           nombysigma = (yflat - mean(yflat))/rsigma
 
+              ;; fit result to a robust line
+              rlinefit = robust_linefit(tplot,divbycurveclip1,yfit)
+              ;; divide by the line to flatten out
+              yflat = divbycurveclip1 / yfit
+              rsigma = robust_sigma(yflat)
+              maxval = max(yflat,maxp)
+              minval = min(yflat,minp)
+              nombysigma = (yflat - mean(yflat))/rsigma
+              
 ;           secondCutsig = 4.0E
-           secondCutsig = 3.5E
-
-           goodp = where(abs(nombysigma) LE secondCutsig,complement=throwaways2)
-           if goodp NE [-1] then begin
-              if throwaways2 NE [-1] then begin
-                 yclip2 = y[throwaways2]
-                 tclip2 = tplot[throwaways2]
-              endif
-              y = y[goodp]
+              secondCutsig = 3.5E
+              
+              goodp = where(abs(nombysigma) LE secondCutsig,complement=throwaways2)
+              if goodp NE [-1] then begin
+                 if throwaways2 NE [-1] then begin
+                    yclip2 = y[throwaways2]
+                    tclip2 = tplot[throwaways2]
+                 endif
+                 y = y[goodp]
 ;              yerr = fltarr(n_elements(goodp)) + rsigma * rlinefit[0]
-              yerr = yerr[goodp]
-              if keyword_set(individual) then begin
-                 y2 = y2[goodp]
-                 y2err = y2err[goodp]
+                 yerr = yerr[goodp]
+                 if keyword_set(individual) then begin
+                    y2 = y2[goodp]
+                    y2err = y2err[goodp]
+                 endif
+                 tplot = tplot[goodp]
+                 airmass = airmass[goodp]
+                 offp = where(tplot LT hstart OR tplot GT hend)
               endif
-              tplot = tplot[goodp]
-              airmass = airmass[goodp]
-              offp = where(tplot LT hstart OR tplot GT hend)
            endif
-
         endelse
-
-
+        
+        
      endif
-
+     
      if n_elements(timebin) NE 0 then begin
         ;; Bin the series in time
         ybin = avg_series(tplot,y,y/yerr,timeGrid,tsizes,weighted=1,$
@@ -363,7 +363,8 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
         endif
 
 
-     endif
+     endif else fracPhotonArr[k] = median(yerr)/median(y)
+
      ;; Linearly detrend
      if keyword_set(lindetrend) then begin
         fitY = linfit(tplot[offp],y[offp])
