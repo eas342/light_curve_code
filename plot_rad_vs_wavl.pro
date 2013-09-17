@@ -146,13 +146,12 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
   if keyword_set(showtheospec) then begin ;; show the theoretical transmission spectrum
      readcol,'../models/fortney_g10mps_2500K_isothermal.csv',theowav,theorad,$
              skipline=6,format='(F,F)'
-     radToPlanet = 0.10185E ;; found by eye to get the approximate Corot bandpass correctly
-     mult2 = 1.025
-     oplot,theowav,theorad *radToPlanet * mult2,color=mycol('blue')
+     mult2 = 0.10379 ;; found from the minimum chi-squared
+     oplot,theowav,theorad * mult2,color=mycol('blue')
 
      ntheo=n_elements(theorad)
      ;; Bin model over wavelenght ranges
-     binModel = avg_series(theowav,theorad*radToPlanet *mult2,fltarr(ntheo)+0.2E,wavl-wavlwidth/2E,wavlwidth,weighted=0)
+     binModel = avg_series(theowav,theorad *mult2,fltarr(ntheo)+0.2E,wavl-wavlwidth,wavlwidth * 2E,weighted=0)
      oplot,wavl,binModel,psym=2,color=mycol('blue'),symsize=2
 
      if keyword_set(showOptical) then begin
@@ -161,7 +160,7 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
         CorErr = 0.0010
         CorWav = 0.65 ;; microns, approximately
         CorWid = 0.20 ;; microns, approx
-        binModel2 = avg_series(theowav,theorad*radToPlanet*mult2,fltarr(ntheo)+0.2E,CorWav-CorWid/2E,CorWid,weighted=0)
+        binModel2 = avg_series(theowav,theorad * mult2,fltarr(ntheo)+0.2E,CorWav-CorWid/2E,CorWid,weighted=0)
         oplot,[CorWav],[binModel2],psym=2,color=mycol('blue'),symsize=2
         oploterror,CorWav,CorRad,CorWid,CorErr,color=mycol('red'),psym=3,thick=2
      endif
