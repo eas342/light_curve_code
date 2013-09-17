@@ -118,6 +118,7 @@ flgrid = fltarr(Ngpts,Nap,nfile)
 backgrid = fltarr(Ngpts,Nap,nfile)
 errgrid = fltarr(Ngpts,Nap,nfile)
 utgrid = dblarr(nfile)
+itimegrid = dblarr(nfile)
 airmass = dblarr(nfile)
 Altitude = dblarr(nfile,Nap) ;; Altitude of each star
 
@@ -173,7 +174,8 @@ for i=0l,nfile-1l do begin
 ;; 2) There are subtleties to the Fowler read process where the reads
 ;; are correlated with each other
 ;; see Reasearch Notes XII, page 52 for details
-   Teff = double(fxpar(header2,'ITIME')) ;; (sec)
+   itimeGrid[i] = double(fxpar(header2,'ITIME')) ;; (sec)
+   Teff = itimeGrid[i]
    rtime = double(fxpar(header2,'TABLE_MS'))/1000E;; read time (sec)
    Tint = Teff + NDR * rtime
    aparray = double(strsplit(fxpar(header2,'APNUM1'),' ',/extract)) ;; array
@@ -206,7 +208,7 @@ for i=0l,nfile-1l do begin
    endif
 
    utgrid[i] = double(fxpar(header2,'MJD_OBS'))
-   utgrid[i] = utgrid[i] + double(fxpar(header2,'ITIME'))/(3600D * 24D)
+   utgrid[i] = utgrid[i] + itimeGrid[i]/(3600D * 24D)
 
    airmass[i] = double(fxpar(header2,'AIRMASS'))
    ;; find the differential airmass between the two stars
@@ -471,7 +473,8 @@ if not keyword_set(skipBJD) then begin
 endif
 
 ; Save all data
-save,flgrid,lamgrid,utgrid,bingrid,binfl,binflE,backdiv,$
+save,flgrid,lamgrid,bingrid,binfl,binflE,backdiv,$
+     utgrid,itimegrid,$
      ErrGrid,SNR,Divspec,DivspecE,backgrid,$
      Nwavbins,binsizes,binind,binindE,filen,$
      airmass,altitude,backgrid,header,$
