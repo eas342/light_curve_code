@@ -1,21 +1,35 @@
-pro plot_bin_size,psplot=psplot,scalephoton=scalephoton
+pro plot_bin_size,psplot=psplot,scalephoton=scalephoton,$
+                  wavlmode=wavlmode
 ;; plots the rms as a function of bin size
 ;; psplot -- makes eps, pdf and png plots
 ;; scalephoton -- scales the photon errors up to the measured RMS
+;; wavlmode -- looks at binning as a function of wavelength, instead
+;;             of time
 
+if keyword_set(wavlmode) then begin
+   bintarr = [5,7,9,12,15,25,30,60,100]
+;   bintarr = [5,7,0]
+endif else begin
+   bintarr = [300,200,180,150,130,100,90,80,70,60,55,50,45,40,37,$
+              35,33,30,27,25,23,20,18,15,14,13,12,10,9,8]
+endelse
 
-bintarr = [300,200,180,150,130,100,90,80,70,60,55,50,45,40,37,$
-           35,33,30,27,25,23,20,18,15,14,13,12,10,9,8]
-;bintarr = [200,6]
 ntbin = n_elements(bintarr)
 
-selectwav = [2.27,1.48,1.22] ;; microns
+selectwav = [1.26,1.43,2.14] ;; microns
 nselectwav = n_elements(selectwav)
 rmstbinfun = fltarr(ntbin,nselectwav)
 bintsizeArr = fltarr(ntbin)
 photonfun = fltarr(ntbin,nselectwav)
 for i=0l,ntbin-1l do begin
-   plot_tim_ser,timebin=bintarr[i]
+   if keyword_set(wavlmode) then begin
+      if bintarr[i] EQ 0 then begin
+         compile_spec,/matchgrid,/readCurrent,/irafnoise
+         restore,'data/specdata.sav'
+         bintarr[i] = float(n_elements(lamgrid))
+      endif else compile_spec,nwavbins=bintarr[i],/readCurrent,/irafnoise
+      plot_tim_ser
+   endif else plot_tim_ser,timebin=bintarr[i]
    restore,'data/rmsdata.sav'
    ;; get the wavelength bin starts bingrid
    ;; get the wavelength bin middle bingridmiddle
@@ -26,10 +40,21 @@ for i=0l,ntbin-1l do begin
    tabinv,bingridmiddle,selectwav,wavInd
    rmstbinfun[i,*] = fracRMSarr[round(wavInd)]
    photonfun[i,*] = fracPhotonarr[round(wavInd)]
-   bintsizeArr[i] = tsizes[0]
+
+   if not keyword_set(wavl) then begin
+      bintsizeArr[i] = tsizes[0]
+   endif
 endfor
 
-bintmin = (bintsizeArr * planetdat.period) * (24D * 60D)
+if keyword_set(wavlmode) then begin
+   readcol,'data/wavelength_ranges.txt',StartWavArr,EndWavArr,$
+           /silent,format='(F,F)',skipline=1
+   myXtitle = 'Wavelength bin size (um)'
+   bintdescrip = (EndWavArr[0] - StartWavArr[0]) / bintarr
+endif else begin
+   bintdescrip = (bintsizeArr * planetdat.period) * (24D * 60D)
+   myXtitle = 'Time bin size (min)'
+endelse 
 
 ;; set the plot
 if keyword_set(psplot) then begin
@@ -44,34 +69,42 @@ endif
 if keyword_set(scalephoton) then begin
    scaleFact = 10E
    photonfun = photonfun * scaleFact
-   photonName = 'Photon Noise x '+string(scaleFact,format='(F8.3)')
+   photonName = 'Photon Noise x '+string(scaleFact,format='(F8.3)'+' ')
 endif else begin
-   photonName = 'Photon Noise'
+   photonName = 'Photon Noise '
+endelse
+myYrange=[min(photonfun) - max(rmstbinfun) * 0.4E,max(rmstbinfun) * 1.2E]*100E
+
+plot,bintdescrip,rmstbinfun[*,0]*100E,$
+     xtitle=myXtitle,$
+     ytitle='Out of Transit RMS (%)',$;/xlog,$
+     yrange=myYrange,ystyle=1
+oplot,bintdescrip,photonfun[*,0]*100E,linestyle=2
+
+if keyword_set(wavlmode) then begin
+   wavbinnames = 'Near '+$
+                 strtrim(string(bingrid[wavInd]+ binsizes[wavInd]/2E,format='(F8.2)'),1) +$
+                 ' um'
+endif else begin
+   
+   wavbinnames = string(bingrid[wavInd],format='(F7.2)') + 'um to'+$
+                 string(bingrid[wavInd]+ binsizes[wavInd],format='(F7.2)')+$
+                 'um'
 endelse
 
-plot,bintmin,rmstbinfun[*,0]*100E,$
-     xtitle='Time bin size (min)',$
-     ytitle='Out of Transit RMS (%)',$;/xlog,$
-     yrang=[-0.2,0.4],ystyle=1
-oplot,bintmin,photonfun[*,0]*100E,linestyle=2
+oplot,bintdescrip,rmstbinfun[*,1]*100E,color=mycol('red')
+oplot,bintdescrip,photonfun[*,1]*100E,color=mycol('red'),linestyle=2
+oplot,bintdescrip,rmstbinfun[*,2]*100E,color=mycol('blue')
+oplot,bintdescrip,photonfun[*,2]*100E,color=mycol('blue'),linestyle=2
 
-wavbinnames = string(bingrid[wavInd],format='(F7.2)') + 'um to'+$
-              string(bingrid[wavInd]+ binsizes[wavInd],format='(F7.2)')+$
-              'um'
-
-oplot,bintmin,rmstbinfun[*,1]*100E,color=mycol('red')
-oplot,bintmin,photonfun[*,1]*100E,color=mycol('red'),linestyle=2
-oplot,bintmin,rmstbinfun[*,2]*100E,color=mycol('blue')
-oplot,bintmin,photonfun[*,2]*100E,color=mycol('blue'),linestyle=2
-
-legend,wavbinnames+' Std Dev',color=mycol(['black','red','blue']),linestyle=[0,0,0],/right
+legend,'Std Dev '+wavbinnames,color=mycol(['black','red','blue']),linestyle=[0,0,0],/right
 legend,color=mycol(['black','red','blue']),replicate(photonName,3)+wavbinnames,$
        linestyle=replicate(2,3),/bottom,/left
 
 if keyword_set(psplot) then begin
    device, /close
    cgPS2PDF,plotprenm+'.eps'
-   spawn,'convert -density 160% '+plotprenm+'.pdf '+plotprenm+'.png'
+   spawn,'convert -density 250% '+plotprenm+'.pdf '+plotprenm+'.png'
    device,decomposed=0
    set_plot,'x'
    !p.font=-1
