@@ -144,9 +144,14 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
      
   prevXrange = !x.crange
   if keyword_set(showtheospec) then begin ;; show the theoretical transmission spectrum
-     readcol,'../models/fortney_g10mps_2500K_isothermal.csv',theowav,theorad,$
-             skipline=6,format='(F,F)'
-     mult2 = 0.10379 ;; found from the minimum chi-squared
+;     readcol,'../models/fortney_g10mps_2500K_isothermal.csv',theowav,theorad,$
+;             skipline=6,format='(F,F)'
+      readcol,'../models/transit_models/transit_t2250g10_noTiO.dat',theowav,theorad,$
+              format='(F,F)'
+;     mult2 = 0.10418 ;; found from the minimum chi-squared
+     mult2 = 1.5647E-6 ;; found from the minimum chi-squared
+
+     theorad = smooth(theorad,5)
      oplot,theowav,theorad * mult2,color=mycol('blue')
 
      ntheo=n_elements(theorad)
