@@ -3,7 +3,7 @@ pro change_kernels,option
 
 if n_elements(option) EQ 0 then begin
    filen = choose_file(searchDir='data/kernels',filetype='.txt')
-endif
+endif else filen=option
 
 cd,c=currentd
 kernelfileN = currentd+'/cov_kernel.pro'

@@ -104,6 +104,7 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
      ;; N is the wavelength index and M is the parameter index
      ;; get the model evaluation
 
+
      modelExpr =''
      openr,1,'data/model_expr.txt'
      readf,1,modelExpr
@@ -559,6 +560,12 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
         endif
 
         if keyword_set(showmcmc) then begin
+           if wavname[k] EQ 'z-prime' then begin
+              change_kernels,'data/kernels/sinc.txt'
+           endif else begin
+              change_kernels,'data/kernels/abs_exp.txt'
+           endelse
+
            mcmcShowP = 350
            phaseShow = findgen(mcmcshowP)/float(mcmcShowP) * (max(tplot)-min(tplot)) + min(tplot)
            ;; First find the mean function with expression evaluation

@@ -69,17 +69,17 @@ pro try_mcmc,psplot=psplot,simread=simread,noadjust=noadjust,custjump=custjump
 
 
   if keyword_set(custjump) then begin
-     hyperpi[*].start = [1E-6,5E,0] ;; the set I'm trying for the second-modified kernel
+     hyperpi[*].start = [2E-4,160E,0] ;; the set I'm trying for the second-modified kernel
      hyperpi[*].jumpsize = custjump
   endif else begin
-;  hyperpi[*].start = [0.0028,1D-5,0.0024]
-;  hyperpi[*].jumpsize = [0.0001,1E-6,0]
+;  hyperpi[*].start = [0.02,5,0.0024]
+;  hyperpi[*].jumpsize = [0.02,5,0]
 ;  hyperpi[*].start = [0.0005,0.2,0.002] ;; old set I used for absolute exponential kernel
 ;  hyperpi[*].jumpsize = [0.0001,0.05,0]
 ;  hyperpi[*].start = [0.0005,0.05,0.002] ;; the set I used for modified abs exp kern
 ;  hyperpi[*].jumpsize = [0.0002,0.02,0]
-     hyperpi[*].start = [0.0005,5,0] ;; the set I'm trying for the second-modified kernel
-     hyperpi[*].jumpsize = [0.0001,0,0]
+     hyperpi[*].start = [5E-4,5,0] ;; the set I'm trying for the second-modified kernel
+     hyperpi[*].jumpsize = [1E-4,5,0]
 ;  hyperpi[*].start = [0.08,5,0.002]
 ;  hyperpi[*].jumpsize = [0.04,1,0]
   endelse
@@ -94,6 +94,12 @@ pro try_mcmc,psplot=psplot,simread=simread,noadjust=noadjust,custjump=custjump
      trimname = trimst(n_elements(trimst)-1l)
      namespl = strsplit(trimname,'_',/extract)
      wavname = namespl[n_elements(namespl)-2l]
+
+     if wavname EQ 'z-primeum' then begin
+        change_kernels,'data/kernels/sinc.txt'
+     endif else begin
+        change_kernels,'data/kernels/abs_exp.txt'
+     endelse
 
      if keyword_set(simread) then begin
         readcol,'data/simulated_series/simser.txt',phase,fl
@@ -119,7 +125,7 @@ pro try_mcmc,psplot=psplot,simread=simread,noadjust=noadjust,custjump=custjump
      ;; Put in the limit that the maximum inverse time-scale parameter is smaller
      ;; than 1/(5 * time step size), otherwise it's pourly constrained
      hyperpi[1].limited = [1,1]
-     hyperpi[1].limits = [0E,1E/( (phase[1] - phase[0]))]
+     hyperpi[1].limits = [0E,1E/(0.3E * (phase[1] - phase[0]))]
 
 ;     hyperpi[1].limits[0] = 0.2E/(phase[n_elements(phase)-1l] - phase[0]) ;; don't let it flatten compl
 

@@ -52,7 +52,7 @@ pro multiple_mcmc_nights,phot=phot,both=both
 
      spawn,'cp radius_vs_wavelength/mcmc_rad_vs_wavl.txt '+$
            'radius_vs_wavelength/'+radcode+'_'+nightname+'_leg00fit_freelimblin_mcmc_hypers_'+$
-           'free_fixed_offtrans_err_009pt_modexp_kern.txt'
+           'free_free_offtrans_err_009pt_modexp_kern.txt'
      spawn,'cp plots/mcmc/individual_wavs/histograms_png/* plots/mcmc/individual_wavs/histograms_png_'+nightname
      spawn,'cp plots/mcmc/individual_wavs/chain_plots_png/* plots/mcmc/individual_wavs/chain_plots_png_'+nightname
      spawn,'cp plots/mcmc/individual_wavs/cov_plots_png/* plots/mcmc/individual_wavs/cov_plots_png_'+nightname
