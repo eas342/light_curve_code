@@ -666,7 +666,10 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
            if not keyword_set(kepfit) then begin
               pi[0].limited = [1,1] ;; make sure Rp/R* is limited
               pi[0].limits = [0D,1D] ;; Keep Rp/R* between 0 and 1
-           endif
+           endif else begin
+              pi[0].limited = [0,0]
+              pi[0].limits = [0D,0D]
+           endelse
            ;; make sure the flux ratio offset is free
            if keyword_set(fitepoch) then begin
               pi[11].fixed = 0
