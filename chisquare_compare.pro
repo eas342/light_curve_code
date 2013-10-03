@@ -28,13 +28,20 @@ if keyword_set(modchoose) then begin
    readcol,theofile,theowav,theorad,$
            format='(F,F)'
 endif else begin
-   readcol,'../models/fortney_g10mps_2500K_isothermal.csv',theowav,theorad,$
+;   readcol,'../models/fortney_g10mps_2500K_isothermal.csv',theowav,theorad,$
+;           skipline=6,format='(F,F)'
+
+   readcol,'../models/transit_models/lambda_R_P_iso_g10_2500.dat',theowav,theorad,$
            skipline=6,format='(F,F)'
+
 endelse
 
 
 ntheo=n_elements(theorad)
-binModel = avg_series(theowav,theorad,fltarr(ntheo)+0.2E,wavl-wavlwidth/2E,wavlwidth,weighted=0)
+binModel1 = avg_series(theowav,theorad,fltarr(ntheo)+0.2E,wavl-wavlwidth/2E,wavlwidth,weighted=0)
+binModel = binModel1
+
+
 save,wavl,binModel,filename='data/binned_model.sav'
 
 nwavs = n_elements(wavl)
@@ -55,11 +62,42 @@ dof2 = nwavs - n_elements(start2)
 chisq2 = total(((rad - ymod2)/rade)^2)/dof2
 print,'Flat Model ChisQ/DOF = ',chisq2
 
+readcol,'../models/transit_models/transit_t2500g10_noTiO.dat',theowav2,theorad2,$
+        skipline=6,format='(F,F)'
+ntheo2 = n_elements(theorad2)
+
+binModel2 = avg_series(theowav2,theorad2,fltarr(ntheo2)+0.2E,wavl-wavlwidth/2E,wavlwidth,weighted=0)
+binModel = binModel2
+save,wavl,binModel,filename='data/binned_model.sav'
+
+start3 = [0.1D]
+expr3 = 'model_evaluate(X,P[0])'
+result2 = mpfitexpr(expr3,wavl,rad,rade,start3)
+ymod3 = expression_eval(expr3,wavl,result2)
+dof3 = nwavs - n_elements(start3)
+chisq3 = total(((rad - ymod3)/rade)^2)/dof3
+print,'No TiO model Chisq/DOF = ',chisq3
+
 plot,wavl,rad,/nodata,ystyle=16
 oploterror,wavl,rad,wavlwidth/2E,rade,psym=3
 oplot,wavl,ymod1,color=mycol('yellow')
 oplot,wavl,ymod2,color=mycol('lblue')
 
 
+;; Save all the data to file for use in plotting
+nmod = 2
+
+binnedWav = wavl
+binnedValues = fltarr(nwavs,nmod)
+binnedValues[*,0] = binModel1 * result[0]
+binnedValues[*,1] = binModel2 * result2[0]
+
+fullRes = create_struct('model1wav',theowav,'model1rad',theorad * result[0],$
+                       'model2wav',theowav2,'model2rad',theorad2 * result2[0])
+modName = ['Equilbrium Chemistry','TiO-Removed']
+
+save,filename='data/binned_final.sav',$
+     binnedValues,nmod,fullRes,binnedWav,$
+     modName
 
 end

@@ -152,19 +152,33 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
 ;             skipline=6,format='(F,F)'
 ;      readcol,'../models/transit_models/transit_t2500g10_noTiO.dat',theowav,theorad,$
 ;              format='(F,F)'
-      readcol,'../models/transit_models/lambda_R_P_iso_g10_2500.dat',theowav,theorad,$
-              format='(F,F)'
+;      readcol,'../models/transit_models/lambda_R_P_iso_g10_2500.dat',theowav,theorad,$
+;              format='(F,F)'
 ;     mult2 = 0.10418 ;; found from the minimum chi-squared
 ;     mult2 = 1.54369E-6 ;; found from the minimum chi-squared
-     mult2 = 1.45734E-6 ;; found from the minimum chi-squared
+;     mult2 = 1.45734E-6 ;; found from the minimum chi-squared
 
-     theorad = smooth(theorad,5)
-     oplot,theowav,theorad * mult2,color=mycol('blue')
+;     theorad = smooth(theorad,5)
+     restore,'data/binned_final.sav'
+     modcolor = mycol(['blue','dgreen'])
+     positionMultX = [1.0,0.8] ;; position multipliers
+     positionMultY = [1.015,0.97] ;; position multipliers
 
-     ntheo=n_elements(theorad)
+     for i=0l,nmod-1l do begin
+        ;; Full resolution
+        xsmooth = fullRes.(i * 2l)
+        ySmooth = specsmooth(xsmooth,fullRes.(i * 2l+1l),100)
+        oplot,xsmooth,ysmooth,color=modcolor[i]
+        ;; Binned
+        oplot,binnedWav,binnedValues[*,i],psym=2,color=modcolor[i],symsize=2
+        xyouts,binnedWav[0] * positionMultX[i],binnedValues[0,i] * positionMultY[i],$
+               modName[i],charsize=0.7,$
+               color=modColor[i]
+     endfor
+
+;     ntheo=n_elements(theorad)
      ;; Bin model over wavelenght ranges
-     binModel = avg_series(theowav,theorad *mult2,fltarr(ntheo)+0.2E,wavl-wavlwidth,wavlwidth * 2E,weighted=0)
-     oplot,wavl,binModel,psym=2,color=mycol('blue'),symsize=2
+;     binModel = avg_series(theowav,theorad *mult2,fltarr(ntheo)+0.2E,wavl-wavlwidth,wavlwidth * 2E,weighted=0)
 
      if keyword_set(showOptical) then begin
         ;; Show the Bean 2009 result if asked to
@@ -172,8 +186,8 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
         CorErr = 0.0010
         CorWav = 0.65 ;; microns, approximately
         CorWid = 0.20 ;; microns, approx
-        binModel2 = avg_series(theowav,theorad * mult2,fltarr(ntheo)+0.2E,CorWav-CorWid/2E,CorWid,weighted=0)
-        oplot,[CorWav],[binModel2],psym=2,color=mycol('blue'),symsize=2
+;        binModel2 = avg_series(theowav,theorad * mult2,fltarr(ntheo)+0.2E,CorWav-CorWid/2E,CorWid,weighted=0)
+;        oplot,[CorWav],[binModel2],psym=2,color=mycol('blue'),symsize=2
         if keyword_set(phot) then begin
            CorWid = 0E ;; instead, we'll show the filter curve
            myCorSymbol = 4
