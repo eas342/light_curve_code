@@ -245,6 +245,14 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
              wavel,trans
      oplot,wavel,trans / max(trans) * 0.1E * (!y.crange[1] - !y.crange[0]) + !y.crange[0],$
            color=mycol('red')
+     if keyword_set(showOptical) then begin
+        readcol,'../corot_data/filter_curve/filter_curve_CoRoT.txt',skipline=1,$
+                CoRoTtransWav,CoRoTtrans
+        CoRoTtransWav = CoRoTtransWav * 1E-3 ;; convert from nm to microns
+        oplot,CoRoTtransWav,CoRoTtrans / max(CoRoTtrans) * 0.1E * (!y.crange[1] - !y.crange[0]) + !y.crange[0],$
+              color=mycol('red'),linestyle=2
+        
+     endif
   endif
 
   if keyword_set(showstarspec) then begin
