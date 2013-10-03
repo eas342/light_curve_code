@@ -36,12 +36,22 @@ endif else begin
 
 endelse
 
+;; Get the zprime filter curves
+readcol,'../calculations/zprime_transmission/zprime_response.txt.csv',skipline=1,$
+        zprimeWavl,zprimeResp
+readcol,'../corot_data/filter_curve/filter_curve_CoRoT.txt',skipline=1,$
+        CoRoTtransWav,CoRoTtrans
+;; Change from nm to microns
+CoRoTtransWav = CoRoTtransWav * 1E-3
 
 ntheo=n_elements(theorad)
 binModel1 = avg_series(theowav,theorad,fltarr(ntheo)+0.2E,wavl-wavlwidth/2E,wavlwidth,weighted=0)
+
+;; Correct the photometry bins, starting with the CoRoT response
+binModel1[0] = photobin(theowav,theorad,CoRoTtransWav,CoRoTtrans)
+binModel1[1] = photobin(theowav,theorad,zprimeWavl,zprimeResp)
+
 binModel = binModel1
-
-
 save,wavl,binModel,filename='data/binned_model.sav'
 
 nwavs = n_elements(wavl)
@@ -67,6 +77,10 @@ readcol,'../models/transit_models/transit_t2500g10_noTiO.dat',theowav2,theorad2,
 ntheo2 = n_elements(theorad2)
 
 binModel2 = avg_series(theowav2,theorad2,fltarr(ntheo2)+0.2E,wavl-wavlwidth/2E,wavlwidth,weighted=0)
+;; Correct the photometry bins, starting with the CoRoT response
+binModel2[0] = photobin(theowav2,theorad2,CoRoTtransWav,CoRoTtrans)
+binModel2[1] = photobin(theowav2,theorad2,zprimeWavl,zprimeResp)
+
 binModel = binModel2
 save,wavl,binModel,filename='data/binned_model.sav'
 

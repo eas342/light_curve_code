@@ -162,7 +162,7 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
      restore,'data/binned_final.sav'
      modcolor = mycol(['blue','dgreen'])
      positionMultX = [1.0,0.8] ;; position multipliers
-     positionMultY = [1.015,0.97] ;; position multipliers
+     positionMultY = [1.018,0.98] ;; position multipliers
 
      for i=0l,nmod-1l do begin
         ;; Full resolution
