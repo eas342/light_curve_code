@@ -5,7 +5,7 @@ pro compile_spec,extraction2=extraction2,sum=sum,nwavbins=nwavbins,$
                  custmask=custmask,molecbin=molecbin,trycurved=trycurved,$
                  matchgrid=matchgrid,readCurrent=readCurrent,skipBJD=skipBJD,$
                  masktelluric=masktelluric,showall=showall,irafnoise=irafnoise,$
-                 longwavname=longwavname
+                 longwavname=longwavname,trycorrect=trycorrect
 ;; Compiles the spectra into a few simple arrays to look at the spectrophotometry
 ;; extraction2 -- uses whatever spectra are in the data directory
 ;; sum -- uses the variance weighted (optimal) extraction by
@@ -37,6 +37,7 @@ pro compile_spec,extraction2=extraction2,sum=sum,nwavbins=nwavbins,$
 ;; showall - show all spectral info
 ;; irafnoise -- use IRAF to calculate noise instead of my own method
 ;; longwavname -- use longer wavelength name (describe wavelength range)
+;; trycorrect -- tries to correct the flux by the background ratio
 
 ;Nwavbins = 35 ;; number of wavelength bins
 ;Nwavbins = 9 ;; number of wavelength bins
@@ -333,6 +334,8 @@ endif
 
 ;; Divide the two spectra
 Divspec = flgrid[*,0,*] / flgrid[*,1,*]
+
+
 fracE = nansqrt((ErrGrid[*,0,*]/flgrid[*,0,*])^2 + $
              (ErrGrid[*,1,*]/flgrid[*,1,*])^2 )
 
@@ -341,6 +344,14 @@ SNR = Divspec / DivspecE
 
 ;; Divide the two backgrounds
 backdiv = backgrid[*,0,*] / backgrid[*,1,*]
+
+if keyword_set(trycorrect) then begin
+   C0 = 1.15E
+   C1 = -0.2E
+   Divspec = Divspec / (C0 + C1 * backdiv)
+   DivspecE = fracE * Divspec
+endif
+
 
 ;; Do the wavelength binning for the divided spec
 if keyword_set(extremeRange) then begin

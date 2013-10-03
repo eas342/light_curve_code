@@ -39,6 +39,11 @@ pro plot_specphot,divbymodel=divbymodel,usebin=usebin,removelin=removelin,$
         xydivspec = transpose(backdiv[*,0,*],[0,2,1])
         wavrange = [lamgrid[0],lamgrid[nwavs-1l]]
      end
+     keyword_set(snrRatio): begin
+        nwavs = n_elements(lamgrid)
+        xydivspec = transpose((flgrid[*,0,*]/errgrid[*,0,*])/(flgrid[*,1,*]/errgrid[*,1,*]),[0,2,1])
+        wavrange = [lamgrid[0],lamgrid[nwavs-1l]]
+     end
      else: begin
         nwavs = n_elements(lamgrid)
         xydivspec = transpose(divspec[*,0,*],[0,2,1])
