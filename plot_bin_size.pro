@@ -7,8 +7,8 @@ pro plot_bin_size,psplot=psplot,scalephoton=scalephoton,$
 ;;             of time
 
 if keyword_set(wavlmode) then begin
-   bintarr = [5,7,9,12,15,25,30,60,100]
-;   bintarr = [5,7,0]
+   bintarr = [5,7,9,12,15,25,30,60,100,0]
+;   bintarr = [5,7,15]
 endif else begin
    bintarr = [300,200,180,150,130,100,90,80,70,60,55,50,45,40,37,$
               35,33,30,27,25,23,20,18,15,14,13,12,10,9,8]
@@ -69,16 +69,19 @@ endif
 if keyword_set(scalephoton) then begin
    scaleFact = 10E
    photonfun = photonfun * scaleFact
-   photonName = 'Photon Noise x '+string(scaleFact,format='(F8.3)'+' ')
+   photonName = 'Minimum Noise x '+string(scaleFact,format='(F8.3)'+' ')
 endif else begin
-   photonName = 'Photon Noise '
+   photonName = 'Minimum Noise '
 endelse
-myYrange=[min(photonfun) - max(rmstbinfun) * 0.4E,max(rmstbinfun) * 1.2E]*100E
+;myYrange=[min(photonfun) - max(rmstbinfun) * 0.4E,max(rmstbinfun) *
+;                           1.2E]*100E
+;myYrange=[2E-2,5E]
+myYrange=[1E-3,2E]
 
 plot,bintdescrip,rmstbinfun[*,0]*100E,$
      xtitle=myXtitle,$
      ytitle='Out of Transit RMS (%)',$;/xlog,$
-     yrange=myYrange,ystyle=1
+     yrange=myYrange,ystyle=1,/ylog
 oplot,bintdescrip,photonfun[*,0]*100E,linestyle=2
 
 if keyword_set(wavlmode) then begin
