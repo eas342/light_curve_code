@@ -5,7 +5,7 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
                      showOptical=showOptical,custYrange=custYrange,$
                      powerErr=powerErr,multErr=multErr,medianbin=medianbin,$
                      nolit=nolit,showtext=showtext,depthkep=depthkep,$
-                     kepMORIS=kepMORIS,phot=phot
+                     kepMORIS=kepMORIS,phot=phot,custcharS=custcharS
 ;;psplot -- saves a postscript plot
 ;;showstarspec -- shows a star spectrum on the same plot
 ;;nbins -- number of points bo bin in Rp/R*
@@ -27,6 +27,8 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
 ;;depthkep - labels the Y axis as Kepler transit depth instead of Rp/R*
 ;;kepMORIS - shows the MORIS transit depth
 ;; phot - shows the zprime data as different
+;; custcharS -- set a custom character size (Terry thought my numbers
+;;              were too big)
 
   if keyword_set(showstar) then !x.margin = [9,9] else !x.margin=[9,3]
   ;; set the plot
@@ -113,11 +115,13 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
      myYtitle='Transit Depth / Mean Kepler'
   endif else myYtitle = 'R!Dp!N/R!D*!N'
 
+  if n_elements(custcharS) EQ 0 then custcharS = 1E
+
   plot,wavl,rad,$
        xtitle=myxtitle,$
        ytitle=myYtitle,$
        ystyle=ytempstyle,xstyle=1,xrange=myxrange,$
-       yrange=custYrange,/nodata
+       yrange=custYrange,/nodata,charsize=custcharS
 
   if keyword_set(phot) then begin
      oploterror,[wavl[0]],[rad[0]],[0],[rade[0]],thick=4,$
@@ -146,10 +150,13 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
   if keyword_set(showtheospec) then begin ;; show the theoretical transmission spectrum
 ;     readcol,'../models/fortney_g10mps_2500K_isothermal.csv',theowav,theorad,$
 ;             skipline=6,format='(F,F)'
-      readcol,'../models/transit_models/transit_t2250g10_noTiO.dat',theowav,theorad,$
+;      readcol,'../models/transit_models/transit_t2500g10_noTiO.dat',theowav,theorad,$
+;              format='(F,F)'
+      readcol,'../models/transit_models/lambda_R_P_iso_g10_2500.dat',theowav,theorad,$
               format='(F,F)'
 ;     mult2 = 0.10418 ;; found from the minimum chi-squared
-     mult2 = 1.5647E-6 ;; found from the minimum chi-squared
+;     mult2 = 1.54369E-6 ;; found from the minimum chi-squared
+     mult2 = 1.45734E-6 ;; found from the minimum chi-squared
 
      theorad = smooth(theorad,5)
      oplot,theowav,theorad * mult2,color=mycol('blue')
