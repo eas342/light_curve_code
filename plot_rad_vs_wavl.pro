@@ -174,7 +174,11 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
         CorWid = 0.20 ;; microns, approx
         binModel2 = avg_series(theowav,theorad * mult2,fltarr(ntheo)+0.2E,CorWav-CorWid/2E,CorWid,weighted=0)
         oplot,[CorWav],[binModel2],psym=2,color=mycol('blue'),symsize=2
-        oploterror,CorWav,CorRad,CorWid,CorErr,color=mycol('red'),psym=3,thick=2
+        if keyword_set(phot) then begin
+           CorWid = 0E ;; instead, we'll show the filter curve
+           myCorSymbol = 4
+        endif else myCorSymbol = 3
+        oploterror,CorWav,CorRad,CorWid,CorErr,color=mycol('red'),thick=2,psym=myCorSymbol,symsize=0.7
      endif
   endif
 
