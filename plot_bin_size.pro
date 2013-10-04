@@ -38,8 +38,10 @@ for i=0l,ntbin-1l do begin
    ;; the time bin sizes tsizes
    ;; the photon noise fracPhotonarr
    tabinv,bingridmiddle,selectwav,wavInd
-   rmstbinfun[i,*] = fracRMSarr[round(wavInd)]
-   photonfun[i,*] = fracPhotonarr[round(wavInd)]
+   wavInd = round(wavInd)
+
+   rmstbinfun[i,*] = fracRMSarr[wavInd]
+   photonfun[i,*] = fracPhotonarr[wavInd]
 
    if not keyword_set(wavl) then begin
       bintsizeArr[i] = tsizes[0]
@@ -76,7 +78,7 @@ endelse
 ;myYrange=[min(photonfun) - max(rmstbinfun) * 0.4E,max(rmstbinfun) *
 ;                           1.2E]*100E
 ;myYrange=[2E-2,5E]
-myYrange=[1E-3,2E]
+if keyword_set(wavlmode) then myYrange= [2E-2,5E] else myYrange=[1E-3,2E]
 
 plot,bintdescrip,rmstbinfun[*,0]*100E,$
      xtitle=myXtitle,$
