@@ -1,0 +1,2 @@
+# Range Start	Range End (for specphot image/dynamic spectrum plots)
+0.95E	1.01E
