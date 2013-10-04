@@ -276,7 +276,7 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
   if keyword_set(showstarspec) then begin
      ;; plot the source spectrum
      plot,lamgrid,flgrid(*,0,1),/noerase,xrange=prevXrange,ystyle=5,xstyle=1,$
-          yrange=[-6E5,6E5],/nodata
+          /nodata;yrange=[-6E5,6E5],/nodata
      oplot,lamgrid,flgrid(*,0,1),color=mycol('blue')
      axis,yaxis=1,yrange=!y.crange,color=mycol('blue'),/ystyle,$
           ytitle='Raw Source Flux (DN)'
