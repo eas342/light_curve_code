@@ -1,15 +1,15 @@
-pro compile_both,dec23=dec23,dec29=dec29
+pro compile_both,dec23=dec23,dec29=dec29,readC=readC
 ;; Compiles the both MORIS photometry & SpeX data so they can be
 ;; plotted & fit together
 ;; dec23 -- look at the dec23 data set (default is jan04)
 ;; dec29 -- look at the dec29 data set (default is jan04)
-
+;; readC -- read the current speclist (from choose_speclist)
 
 ;; Get the MORIS data
 case 1 of
-   keyword_set(dec23): compile_phot,/dec23
-   keyword_set(dec29): compile_phot,/dec29
-   else: compile_phot
+   keyword_set(dec23): compile_phot,/dec23,readC=readC
+   keyword_set(dec29): compile_phot,/dec29,readC=readC
+   else: compile_phot,readC=readC
 endcase
 
 restore,'data/specdata.sav'
@@ -29,9 +29,9 @@ binPhotE = binflE
 timePhot = utgrid
 
 case 1 of
-   keyword_set(dec23): compile_spec,/dec23
-   keyword_set(dec29): compile_spec,/dec29
-   else: compile_spec
+   keyword_set(dec23): compile_spec,/dec23,readC=readC
+   keyword_set(dec29): compile_spec,/dec29,readC=readC
+   else: compile_spec,readC=readC
 endcase
 
 ;; Get the spectral data

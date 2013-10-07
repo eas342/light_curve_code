@@ -4,4 +4,12 @@ pro choose_speclist
 fchoice = choose_file(searchDir='file_lists',filetype='.txt')
 spawn,'cp '+fchoice+' file_lists/current_speclist.txt'
 
+;; If it's KIC 1255 data, search for an associated data to
+;; recall the MORIS photometry
+startpos = strpos(fchoice,'kic1255') + 8
+if startpos NE -1 then begin
+   useDate = strmid(fchoice,startpos,9)
+   save,useDate,filename='data/used_date.sav'
+endif
+
 end

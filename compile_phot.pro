@@ -1,8 +1,9 @@
-pro compile_phot,dec23=dec23,dec29=dec29
+pro compile_phot,dec23=dec23,dec29=dec29,readC=readC
 ;; Compiles the MORIS photometry data in the same way as spectra for
 ;; use by other scripts
 ;; dec23 -- look at the dec23 data set (default is jan04)
 ;; dec29 -- look at the dec29 data set (default is jan04)
+;; readC - use the photometry for kic1255
 
 case 1 of
    keyword_set(dec23): begin
@@ -15,26 +16,48 @@ case 1 of
       restore,'../moris_data/reduced_lightc/UT2012Jan04_corot-1_a0729_final.idl'
    end
 endcase
+if keyword_set(readC) then begin
+   restore,'../../../Documents/kic1255/extracted_photometry/zhao_photometry/kic1255_npoly2.idl'
+   restore,'data/used_date.sav'
+   case useDate of 
+      '2013aug13': datastruct = data0813
+      '2013aug15': datastruct = data0815
+      '2013aug17': datastruct = data0818 ;; mistyped in the photometry save file
+      '2013sep03': datastruct = data0903
+   endcase
+   bjd = datastruct.bjd_tdb
+   best_flux = datastruct.flux
+end
 
 
 Nwavbins = 1 ;; photometry!
-bingrid = [0.826] ;; Z band photometry from curve
-binsizes = [0.076]
+if keyword_set(readC) then begin
+   bingrid = [0.62] ;; R band photometry from curve
+   binsizes = [0.070]
+   wavname='r-prime'
+   utgrid = bjd
+endif else begin
+   bingrid = [0.826] ;; Z band photometry from curve
+   binsizes = [0.076]
+   wavname='z-prime'
+   utgrid = bjd + 2400000.5D    ;- 0.0055D
+endelse
 
 npoints = n_elements(bjd)
-utgrid = bjd + 2400000.5D ;- 0.0055D
 
 binfl = fltarr(Nwavbins,npoints) ;; binned flux ratio
 binflE = fltarr(Nwavbins,npoints)
 binfl[0,*] = best_flux
-binflE[0,*] = 1E
+if keyword_set(readC) then begin
+   binflE[0,*] = datastruct.err
+endif else binflE[0,*] = 1E
 
 airmass = fltarr(npoints) + 1.E
 altitude = fltarr(npoints) + 90E
 
 morisPhase = phase
 
-wavname='z-prime'
+
 
 ; Save all data the same way as spec
 save,bingrid,binfl,binflE,$
