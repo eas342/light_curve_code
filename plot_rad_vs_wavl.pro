@@ -25,7 +25,7 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
 ;;nolit -- no literature value for the planet radius
 ;;showtext -- explanatory text
 ;;depthkep - labels the Y axis as Kepler transit depth instead of Rp/R*
-;;kepMORIS - shows the MORIS transit depth
+;;kepMORIS - shows the approx MORIS transit depth
 ;; phot - shows the zprime data as different
 ;; custcharS -- set a custom character size (Terry thought my numbers
 ;;              were too big)
@@ -109,11 +109,16 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
      myxrange = [0.8,2.55]
   endelse
 
-  if n_elements(custXrange) NE 0 then myXrange=custXrange
-  if n_elements(custYrange) EQ 0 then custYrange=[0.12,0.17]
   if n_elements(depthkep) NE 0 then begin
      myYtitle='Transit Depth / Mean Kepler'
-  endif else myYtitle = 'R!Dp!N/R!D*!N'
+     ;; change the default ranges
+     if n_elements(custYrange) EQ 0 then custYrange = [-3,9]
+     if n_elements(custXrange) EQ 0 then myXrange=[0.5,2.5]
+  endif else begin
+     myYtitle = 'R!Dp!N/R!D*!N'
+     if n_elements(custXrange) NE 0 then myXrange=custXrange
+     if n_elements(custYrange) EQ 0 then custYrange=[0.12,0.17]
+  endelse
 
   if n_elements(custcharS) EQ 0 then custcharS = 1E
 
