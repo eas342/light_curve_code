@@ -5,7 +5,7 @@ pro compile_spec,extraction2=extraction2,sum=sum,nwavbins=nwavbins,$
                  custmask=custmask,molecbin=molecbin,trycurved=trycurved,$
                  matchgrid=matchgrid,readCurrent=readCurrent,skipBJD=skipBJD,$
                  masktelluric=masktelluric,showall=showall,irafnoise=irafnoise,$
-                 longwavname=longwavname,trycorrect=trycorrect
+                 longwavname=longwavname,trycorrect=trycorrect,removelinear=removelinear
 ;; Compiles the spectra into a few simple arrays to look at the spectrophotometry
 ;; extraction2 -- uses whatever spectra are in the data directory
 ;; sum -- uses the variance weighted (optimal) extraction by
@@ -38,6 +38,7 @@ pro compile_spec,extraction2=extraction2,sum=sum,nwavbins=nwavbins,$
 ;; irafnoise -- use IRAF to calculate noise instead of my own method
 ;; longwavname -- use longer wavelength name (describe wavelength range)
 ;; trycorrect -- tries to correct the flux by the background ratio
+;; removelinear -- remove linear trends in the spectra before binning
 
 ;Nwavbins = 35 ;; number of wavelength bins
 ;Nwavbins = 9 ;; number of wavelength bins
@@ -85,7 +86,7 @@ if keyword_set(trycurved) then begin
    endelse
 endif
 if keyword_set(readCurrent) then begin
-   readcol,'file_lists/current_speclist.txt',filen,format='(A)'
+   readcol,'file_lists/current_speclist.txt',filen,format='(A)',stringskip='#'
 endif
 nfile = n_elements(filen)
 
@@ -262,8 +263,10 @@ endif
 
 ;; Mask all telluric features
 if keyword_set(masktelluric) then begin
-   Ntelluric = 4
-   telluricW = [[1.1,1.15],[1.3,1.48],[1.78,1.95],[1.97,2.05]]
+;   telluricW = [[1.1,1.15],[1.3,1.48],[1.78,1.95],[1.97,2.05]]
+   telluricW = [[1.1,1.15],[1.3,1.48],[1.75,2.1]]
+   sizeTell = size(telluricW)
+   Ntelluric = sizeTell[2]
    for k=0,Ntelluric-1 do begin
       feature = telluricW[*,k]
       featuremask = where(lamgrid GT feature[0] and lamgrid LE feature[1])
@@ -334,6 +337,40 @@ endif
 
 ;; Divide the two spectra
 Divspec = flgrid[*,0,*] / flgrid[*,1,*]
+
+if keyword_set(removelinear) then begin
+     ;;throw away all n_sigma events before de-trending
+     firstCutSig = 12E
+     restore,'data/timedata.sav'
+     nwavs = n_elements(lamgrid)
+     offp = where(tplot LT hstart OR tplot GT hend)
+     for i=0l,nwavs-1l do begin
+        if total(finite(DivSpec[i,0,offp])) EQ 0 then goodp = [-1] else begin
+           rstdoff = robust_sigma(DivSpec[i,0,offp])
+           medoff = median(DivSpec[i,offp])
+           
+           goodp = where(abs(DivSpec[i,0,*] - medoff) LE firstCutSig * rstdoff and $
+                         (tplot LT hstart OR tplot GT hend),complement=throwaways)
+        endelse
+        if goodp NE [-1] then begin
+;           if throwaways NE [-1] then begin
+;              tclip1 = tplot[throwaways]
+;              yclip1 = y[throwaways]
+;           endif
+;           yfull = y
+           ytemp = DivSpec[i,0,goodp]
+;           divbycurveclip1 = divbycurve[goodp]
+           yerr = Divspec[i,0,goodp]
+           tplottemp = tplot[goodp]
+;           airmass = airmass[goodp]
+           ;; fit result to a robust line
+           rlinefit = robust_linefit(tplottemp,ytemp)
+           Divspec[i,0,*] = Divspec[i,0,*] / (rlinefit[0] + tplot * rlinefit[1])
+        endif
+;           ;; divide by the line to flatten out
+;           yflat = divbycurveclip1 / yfit
+     endfor
+  endif
 
 
 fracE = nansqrt((ErrGrid[*,0,*]/flgrid[*,0,*])^2 + $
