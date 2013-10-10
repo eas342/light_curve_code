@@ -451,14 +451,18 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
              noerase=myNoErase,$
              xtickformat=tickformat,ytickformat=tickformat,$
              xrange=myXrange
+        if k mod 2 EQ 0 then dataColor=!p.color else dataColor=mycol('red')
         if not keyword_set(differential) then begin
            if keyword_set(showclipping) then begin
               oplot,tplot,y,psym=5,color=mycol('red') ;; original data
               oplot,tplotdivcurves,divbycurve,psym=4  ;; divided by light curve
               oplot,tplot,yfit,color=mycol('blue')    ;; fitted line to curve
            endif else begin
-              if n_elements(timebin) EQ 0 then oplot,tplot,y-offset,psym=4 else begin
-                 oploterror,tplot,y-offset,tsizes/2E,yerr,psym=3,hatlength=0,thick=2
+              if n_elements(timebin) EQ 0 then begin
+                 oplot,tplot,y-offset,psym=4,color=dataColor
+              endif else begin
+                 oploterror,tplot,y-offset,tsizes/2E,yerr,psym=3,$
+                            hatlength=0,thick=2,color=dataColor
               endelse
            endelse 
         endif
