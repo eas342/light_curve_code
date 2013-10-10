@@ -601,7 +601,7 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
            ;; Subtract 1 from the LC since it actually is centered on 1.0
            kphaseS = kphaseS - 1.0D
 ;           oplot,kphaseD,kfluxD-offset,color=mycol('red')
-           oplot,kphaseS,kfluxS-offset,color=mycol('red')
+           oplot,kphaseS,kfluxS-offset,color=mycol('blue')
 
         endif
 
