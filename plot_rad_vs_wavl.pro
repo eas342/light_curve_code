@@ -255,7 +255,9 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
   if keyword_set(psplot) then legcharsize = 0.75 else legcharsize=1
 
   if totsets GT 1l then begin
-     al_legend,legnamearr,psym=1l+lonarr(totsets),color=colorarr,/clear,/right,charsize=legcharsize
+     if keyword_set(depthk) then myRight=1 else myRight=0
+     al_legend,legnamearr,psym=1l+lonarr(totsets),color=colorarr,/clear,$
+               right=myRight,charsize=legcharsize
   endif
 
   if keyword_set(showtext) then begin
