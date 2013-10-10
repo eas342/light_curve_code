@@ -184,7 +184,7 @@ pro plot_stars,psplot=psplot,tryclean=tryclean,saveclean=saveclean,$
      xrefText = 0.55E * xsize+!x.crange[0]
      yrefText = 0.55E * ysize + !y.crange[0]
      xyouts,0.4E * xsize+!x.crange[0],0.85E * ysize + !y.crange[0],$
-            'CoRoT-1',color=!p.color,charsize=0.7
+            'Planet Host',color=!p.color,charsize=0.7
      xyouts,xrefText,yrefText,$
             'Reference Star',color=mycol('blue'),charsize=0.7
      xyouts,0.07E * xsize+!x.crange[0],0.2E * ysize + !y.crange[0],$
@@ -194,7 +194,7 @@ pro plot_stars,psplot=psplot,tryclean=tryclean,saveclean=saveclean,$
      ybump = !D.Y_CH_SIZE * 0.5E * dataperYpix * 0.7E
      oplot,[lamgrid[goodp[midpt]],xrefText],[yref[midpt]/max(yref),yrefText + ybump],color=mycol('blue')
   endif else begin
-     legend,['Corot-1','Reference Star',name3],$
+     legend,['Planet Host','Reference Star',name3],$
             color=mycol(['black','blue','red']),/right,linestyle=[0,3,4],$
             charsize=0.7
   endelse
