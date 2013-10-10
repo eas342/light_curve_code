@@ -1,10 +1,11 @@
-pro prepare_kepler_data
+pro prepare_kepler_data,psplot=psplot
 ;; Takes a phase folded Kepler light curve and prepares it for a
 ;; functional fit
-
+;; psplot - save a plot of the orignal folded data
 
   ;; Get average light curve
   readcol,'data/phase_folded_kepler_all_kic1255.txt',kbinnum,kphaseS,kfluxS,format='(F,F,F)',/silent
+
 
 
   ;; Change phase to 0
@@ -19,7 +20,28 @@ pro prepare_kepler_data
   
   ;; re-normalize
   y = y/avgout
-  
+
+  ;; set the plot
+  if keyword_set(psplot) then begin
+     set_plot,'ps'
+     !p.font=0
+     plotprenm = 'plots/kep_curves/kep_avg'
+     device,encapsulated=1, /helvetica,$
+            filename=plotprenm+'.eps'
+           device,xsize=5, ysize=5,decomposed=1,/color
+  endif
+  ;; Do a normal plot first
+  plot,kphaseS-1.0,y,ystyle=16,xrange=[-0.5,0.5],$
+       xtitle='Orbital Phase',xstyle=1,psym=10,charsize=0.4
+  if keyword_set(psplot) then begin
+     device, /close
+     cgPS2PDF,plotprenm+'.eps'
+     spawn,'convert -density 400% '+plotprenm+'.pdf '+plotprenm+'.png'
+     device,decomposed=0
+     set_plot,'x'
+     !p.font=-1
+  endif
+
   ;; make all out of transit points = 1
   y[outp] = 1.0E
 
