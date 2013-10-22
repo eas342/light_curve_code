@@ -4,7 +4,8 @@ pro get_profile_widths,showplot=showplot,jan04corot1=jan04corot1,$
 ;; showplot -- show a plot, otherwise it just records the numbers
 ;; jan04/dec23/dec29corot1 -- works for Corot-1 where I have different file name conventions
 
-  readcol,'file_lists/current_speclist.txt',fileL,format='(A)',/silent
+  readcol,'file_lists/current_speclist.txt',fileL,format='(A)',/silent,$
+          stringskip='#'
 
   nfile = n_elements(fileL)
 
@@ -44,7 +45,6 @@ pro get_profile_widths,showplot=showplot,jan04corot1=jan04corot1,$
      mc_findpeaks,profstruct,2,1,posit,apsign,/auto
 ;     print,posit
      HW = 40 ;; Half width
-     
      for i=0l,1 do begin
         ;; Go through both sources
         ;; make a sub-array surrounding a peak
