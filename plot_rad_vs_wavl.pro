@@ -111,11 +111,14 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
 
   if n_elements(depthkep) NE 0 then begin
      myYtitle='Transit Depth / Mean Kepler'
+     mylinestyle=1
+     wavlwidth = wavlwidth * 0E
      ;; change the default ranges
      if n_elements(custYrange) EQ 0 then custYrange = [-3,9]
      if n_elements(custXrange) EQ 0 then myXrange=[0.5,2.5]
   endif else begin
      myYtitle = 'R!Dp!N/R!D*!N'
+     mylinestyle=0
      if n_elements(custXrange) NE 0 then myXrange=custXrange
      if n_elements(custYrange) EQ 0 then custYrange=[0.12,0.17]
   endelse
@@ -133,10 +136,11 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
                 hatlength=!D.X_VSIZE / 30,errstyle=0,psym=4,symsize=0.7
      nwavs = n_elements(wavl)
      oploterror,wavl[1:nwavs-1l],rad[1:nwavs-1l],wavlwidth[1:nwavs-1],rade[1:nwavs-1],$
-                psym=3,thick=2
+                psym=3,thick=2,linestyle=mylinestyle
   endif else begin
      oploterror,wavl,rad,wavlwidth,rade,psym=3,thick=2
   endelse
+  if keyword_set(depthkep) then oplot,wavl,rad,thick=2,linestyle=0
 
 ;                color=mycol('yellow') 
   
@@ -236,6 +240,8 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
         wavl = 1E4 / (wavl)
      endif
 
+     if keyword_set(depthkep) then wavlwidth2 = wavlwidth2 * 0E
+
      if keyword_set(phot) then begin
         oploterror,[wavl2[0]],[rad2[0]],[0],[rade2[0]],thick=4,psym=4,$
                    color=colorchoices[i-1l],errstyle=0,hatlength=!D.X_VSIZE / 30,$
@@ -246,6 +252,9 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
      endif else begin
         oploterror,wavl2,rad2,wavlwidth2,rade2,psym=3,thick=2,color=colorchoices[i-1l]
      endelse
+
+     if keyword_set(depthkep) then oplot,wavl2,rad2,thick=2,linestyle=0,$
+                                         color=colorchoices[i-1l]
 
      print,'Legend Name for data from file '+file2+' ?'
      tempnm = ''
