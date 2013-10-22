@@ -1,8 +1,11 @@
-pro double_specphot,psplot=psplot
+pro double_specphot,psplot=psplot,noremovelin=noremovelin
 ;; Puts a plot of the stars spectra directly on top of the specphot
 ;; plot
 ;; psplot - saves a postscript plot
 
+if keyword_set(noremovelin) then begin
+   myRemovelin = 0
+endif else myRemovelin=1
 
   plot_tim_ser
 
@@ -20,7 +23,7 @@ pro double_specphot,psplot=psplot
   plot_stars,/normall,/showback,/directText,custXmargin=[9,12],/skipXTitle,$
              custYmargin=[0,0]
   !p.position = [0.2,0.1,0.75,0.748]
-  plot_specphot,/removelin,/skipInitialize,custymargin=[4,4]
+  plot_specphot,removelin=myRemovelin,/skipInitialize,custymargin=[4,4]
   !p.position = [0,0,0,0]
   !p.multi = 0
 
