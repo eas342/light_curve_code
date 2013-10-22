@@ -13,5 +13,6 @@ pro change_planets
   spawn,'cp transit_info/planet_info_'+pname+'.txt transit_info/planet_info.txt'
   spawn,'cp data/object_coordinates_'+pname+'.txt data/object_coordinates.txt'
   spawn,'cp param_input/specphot_range_'+pname+'.txt param_input/specphot_range.txt'
+  spawn,'cp param_input/time_series_sep_'+pname+'.txt param_input/time_series_sep.txt'
 
 end

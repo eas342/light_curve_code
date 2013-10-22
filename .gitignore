@@ -43,3 +43,4 @@ file_lists/current_speclist.txt
 transit_info/planet_info.txt
 file_lists/old/*
 param_input/specphot_range.txt
+param_input/time_series_sep.txt

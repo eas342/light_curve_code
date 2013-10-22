@@ -98,6 +98,9 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
      planetdat = create_struct(planetdat,info[l],data[l])
   endfor
 
+  ;; Get the separation between different time series for a given planet
+  readcol,'param_input/time_series_sep.txt',separationA,format='(F)',skipline=1
+
   if keyword_set(showmcmc) then begin
      ;; Read the MCMC parameters
      restore,'data/compiled_model_params.sav' ;; mcmcPars has NxM array 
@@ -432,7 +435,7 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
               myXtitle=''
               tickformat='(A1)'
            endelse
-           spacing=0.025
+           spacing=separationA[0]
            ydynam=[1E - spacing * (1+Nwavbins),1+spacing]
            offset = k * spacing
            myTitle=''
@@ -527,7 +530,8 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
               endelse
            endif
            if n_elements(timebin) EQ 0 then tsizes = fltarr(n_elements(tplot)) + tplot[1]-tplot[0]
-           oploterror,tplot,y,tsizes/2E,yerr,psym=3,hatlength=0,thick=2
+           oploterror,tplot,y-offset,tsizes/2E,yerr,psym=3,hatlength=0,thick=2,$
+                      color=dataColor
         endif
         ;;plot the clipped points
         if keyword_set(colorclip) then begin

@@ -1,0 +1,2 @@
+# Time Series Separation for CoRoT-1
+0.025
