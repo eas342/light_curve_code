@@ -436,6 +436,7 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
               tickformat='(A1)'
            endelse
            spacing=separationA[0]
+           if keyword_set(differential) then spacing = spacing * 0.3E
            ydynam=[1E - spacing * (1+Nwavbins),1+spacing]
            offset = k * spacing
            myTitle=''
@@ -523,10 +524,10 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
                  ;; long as fits aren't being performed)
                  
               if keyword_set(quadfit) then begin
-                 oplot,tplot,(result[0] + result[1] *tplot + result[2] * tplot^2),$
-                       thick=2,color=mycol('red')
+                 oplot,tplot,(result[0] + result[1] *tplot + result[2] * tplot^2)-offset,$
+                       thick=2,color=mycol('blue')
               endif else begin
-                 oplot,tplot,(fitY[0] + fitY[1] *tplot),thick=2,color=mycol('red')
+                 oplot,tplot,(fitY[0] + fitY[1] *tplot)-offset,thick=2,color=mycol('blue')
               endelse
            endif
            if n_elements(timebin) EQ 0 then tsizes = fltarr(n_elements(tplot)) + tplot[1]-tplot[0]
