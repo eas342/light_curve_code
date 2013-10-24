@@ -631,7 +631,9 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
                  
               end
               keyword_set(kepfit): begin
-                 expr = 'parameterized_kep(X,P[0]) *  (P[5] + X * P[6])'                 
+;                 expr = 'parameterized_kep(X,P[0]) *  (P[5] + X *
+;                 P[6])'                 
+                 expr = 'kepler_func(X,P[0]) *  (P[5] + X * P[6])'                 
               end
               else: begin
                  expr = 'quadlc(X-P[11],P[0],P[1],P[2],P[3],P[4])* ( P[5] + '+$

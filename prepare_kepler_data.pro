@@ -6,10 +6,11 @@ pro prepare_kepler_data,psplot=psplot
   ;; Get average light curve
   readcol,'data/phase_folded_kepler_all_kic1255.txt',kbinnum,kphaseS,kfluxS,format='(F,F,F)',/silent
 
-
-
   ;; Change phase to 0
   x = kphaseS - 1.0
+
+  phaseX = x
+  save,phaseX,kfluxS,filename='data/kepler_curves/phase_folded_kepler_all_kic1255.sav'
 
   ;; Make the Out of transit points flat & normalize
   
