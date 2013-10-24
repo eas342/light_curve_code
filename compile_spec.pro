@@ -352,7 +352,7 @@ if keyword_set(removelinear) then begin
            goodp = where(abs(DivSpec[i,0,*] - medoff) LE firstCutSig * rstdoff and $
                          (tplot LT hstart OR tplot GT hend),complement=throwaways)
         endelse
-        if goodp NE [-1] then begin
+        if n_elements(goodp) GT 5 then begin
 ;           if throwaways NE [-1] then begin
 ;              tclip1 = tplot[throwaways]
 ;              yclip1 = y[throwaways]
