@@ -1,4 +1,4 @@
-pro compile_phot,dec23=dec23,dec29=dec29,readC=readC
+pro compile_phot,dec23=dec23,dec29=dec29,readC=readC,removelinear=removelinear
 ;; Compiles the MORIS photometry data in the same way as spectra for
 ;; use by other scripts
 ;; dec23 -- look at the dec23 data set (default is jan04)
@@ -43,6 +43,7 @@ endif else begin
    utgrid = bjd + 2400000.5D    ;- 0.0055D
 endelse
 
+
 npoints = n_elements(bjd)
 
 binfl = fltarr(Nwavbins,npoints) ;; binned flux ratio
@@ -57,6 +58,9 @@ altitude = fltarr(npoints) + 90E
 
 morisPhase = phase
 
+if keyword_set(removelinear) then begin
+   remove_linear,utgrid,binfl,bingrid
+endif
 
 
 ; Save all data the same way as spec

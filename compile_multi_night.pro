@@ -6,8 +6,17 @@ pro compile_multi_night
 for i=0l,3l-1l do begin
    spawn,'cp '+listFile[i]+' file_lists/current_speclist.txt'
 
+   ;; If it's KIC 1255 data, search for an associated date to
+   ;; recall the MORIS photometry
+   startpos = strpos(listFile[i],'kic1255') + 8
+   if startpos NE -1 then begin
+      useDate = strmid(listFile[i],startpos,9)
+      save,useDate,filename='data/used_date.sav'
+   endif
+
    ;; Get the spectral data, removing linear trends in the time series
-   compile_spec,/readC,/removelinear 
+   compile_both,/readC,/removelinear
+;   compile_spec,/readC,/removelinear
    restore,'data/specdata.sav'
 
    if i EQ 0l then begin

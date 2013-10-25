@@ -1,5 +1,6 @@
 pro compile_both,dec23=dec23,dec29=dec29,readC=readC,$
-                 custwavbins=custwavbins,masktelluric=masktelluric
+                 custwavbins=custwavbins,masktelluric=masktelluric,$
+                 removelinear=removelinear
 ;; Compiles the both MORIS photometry & SpeX data so they can be
 ;; plotted & fit together
 ;; dec23 -- look at the dec23 data set (default is jan04)
@@ -9,9 +10,9 @@ pro compile_both,dec23=dec23,dec29=dec29,readC=readC,$
 
 ;; Get the MORIS data
 case 1 of
-   keyword_set(dec23): compile_phot,/dec23,readC=readC
-   keyword_set(dec29): compile_phot,/dec29,readC=readC
-   else: compile_phot,readC=readC
+   keyword_set(dec23): compile_phot,/dec23,readC=readC,removelinear=removelinear
+   keyword_set(dec29): compile_phot,/dec29,readC=readC,removelinear=removelinear
+   else: compile_phot,readC=readC,removelinear=removelinear
 endcase
 
 restore,'data/specdata.sav'
@@ -32,11 +33,11 @@ timePhot = utgrid
 
 case 1 of
    keyword_set(dec23): compile_spec,/dec23,readC=readC,nwavbins=custwavbins,$
-                                    masktelluric=masktelluric
+                                    masktelluric=masktelluric,removelinear=removelinear
    keyword_set(dec29): compile_spec,/dec29,readC=readC,nwavbins=custwavbins,$
-                                    masktelluric=masktelluric
+                                    masktelluric=masktelluric,removelinear=removelinear
    else: compile_spec,readC=readC,nwavbins=custwavbins,$
-                      masktelluric=masktelluric
+                      masktelluric=masktelluric,removelinear=removelinear
 endcase
 
 ;; Get the spectral data

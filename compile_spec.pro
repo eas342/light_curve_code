@@ -339,39 +339,8 @@ endif
 Divspec = flgrid[*,0,*] / flgrid[*,1,*]
 
 if keyword_set(removelinear) then begin
-     ;;throw away all n_sigma events before de-trending
-     firstCutSig = 12E
-     restore,'data/timedata.sav'
-     nwavs = n_elements(lamgrid)
-     offp = where(tplot LT hstart OR tplot GT hend)
-     for i=0l,nwavs-1l do begin
-        if total(finite(DivSpec[i,0,offp])) EQ 0 then goodp = [-1] else begin
-           rstdoff = robust_sigma(DivSpec[i,0,offp])
-           medoff = median(DivSpec[i,offp])
-           
-           goodp = where(abs(DivSpec[i,0,*] - medoff) LE firstCutSig * rstdoff and $
-                         (tplot LT hstart OR tplot GT hend),complement=throwaways)
-        endelse
-        if n_elements(goodp) GT 5 then begin
-;           if throwaways NE [-1] then begin
-;              tclip1 = tplot[throwaways]
-;              yclip1 = y[throwaways]
-;           endif
-;           yfull = y
-           ytemp = DivSpec[i,0,goodp]
-;           divbycurveclip1 = divbycurve[goodp]
-           yerr = Divspec[i,0,goodp]
-           tplottemp = tplot[goodp]
-;           airmass = airmass[goodp]
-           ;; fit result to a robust line
-           rlinefit = robust_linefit(tplottemp,ytemp)
-           Divspec[i,0,*] = Divspec[i,0,*] / (rlinefit[0] + tplot * rlinefit[1])
-        endif
-;           ;; divide by the line to flatten out
-;           yflat = divbycurveclip1 / yfit
-     endfor
-  endif
-
+   remove_linear,utgrid,divSpec,lamgrid
+endif
 
 fracE = nansqrt((ErrGrid[*,0,*]/flgrid[*,0,*])^2 + $
              (ErrGrid[*,1,*]/flgrid[*,1,*])^2 )
