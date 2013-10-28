@@ -4,12 +4,14 @@ pro get_profile_widths,showplot=showplot,jan04corot1=jan04corot1,$
 ;; showplot -- show a plot, otherwise it just records the numbers
 ;; jan04/dec23/dec29corot1 -- works for Corot-1 where I have different file name conventions
 
+
   readcol,'file_lists/current_speclist.txt',fileL,format='(A)',/silent,$
           stringskip='#'
 
   nfile = n_elements(fileL)
 
-  Widths = fltarr(nfile,2)
+  Widths = fltarr(nfile,2);; planet host star =0, reference star=1
+  starLocations = fltarr(nfile,2)
 
   case 1 of 
      keyword_set(jan04corot1): begin
@@ -41,8 +43,11 @@ pro get_profile_widths,showplot=showplot,jan04corot1=jan04corot1,$
      b = total(a,1)
 
      indices=findgen(n_elements(b))
-     profstruct = create_struct('data',[[indices],[b]])
+     ;; smooth the profile first
+     smoothprof = smooth(b,10)
+     profstruct = create_struct('data',[[indices],[smoothprof]])
      mc_findpeaks,profstruct,2,1,posit,apsign,/auto
+
 ;     print,posit
      HW = 40 ;; Half width
      for i=0l,1 do begin
@@ -56,6 +61,7 @@ pro get_profile_widths,showplot=showplot,jan04corot1=jan04corot1,$
         subarrayY = b[startx:endx]
         result = gaussfit(subarrayX,subarrayY,A,nterms=5)
         Widths[j,i] = A[2]
+        starLocations[j,i] = A[1]
 
         if keyword_set(showplot) then begin
            plot,indices,b
@@ -68,6 +74,6 @@ pro get_profile_widths,showplot=showplot,jan04corot1=jan04corot1,$
         endif
      endfor
   endfor
-  save,Widths,filename='data/prof_widths.sav'
+  save,Widths,starLocations,filename='data/prof_widths.sav'
 end
 
