@@ -9,7 +9,7 @@ pro plot_tim_ser,fitcurve=fitcurve,fitpoly=fitpoly,usepoly=usepoly,makestops=mak
                  nonormalize=nonormalize,showNomRad=showNomRad,fixoffset=fixoffset,$
                  custresidYrange=custresidYrange,fitepoch=fitepoch,singleplot=singleplot,$
                  showmcmc=showmcmc,deletePS=deletePS,showKep=showKep,lindetrend=lindetrend,$
-                 showjump=showjump,kepfit=kepfit
+                 showjump=showjump,kepfit=kepfit,skipReset=skipReset,custSep=custSep
 ;; plots the binned data as a time series and can also fit the Rp/R* changes
 ;; apPlot -- this optional keyword allows one to choose the aperture
 ;;           to plot
@@ -64,6 +64,8 @@ pro plot_tim_ser,fitcurve=fitcurve,fitpoly=fitpoly,usepoly=usepoly,makestops=mak
 ;;             postscript file, default is true
 ;; showKep -- shows the Kepler light curve for KIC 12557548
 ;; showjump -- show where the telescope tracking jump occured
+;; skipReset - skip the reset at the end of the program
+;; custSep -- custom separation between data in single plot mode
 
 ;sigrejcrit = 6D  ;; sigma rejection criterion
 sigrejcrit = 5D  ;; sigma rejection criterion
@@ -435,8 +437,11 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
               myXtitle=''
               tickformat='(A1)'
            endelse
-           spacing=separationA[0]
-           if keyword_set(differential) then spacing = spacing * 0.3E
+           if n_elements(custSep) EQ 0 then begin
+              if keyword_set(differential) then spacing = spacing * 0.3E else begin
+                 spacing=separationA[0]
+              endelse
+           endif else spacing = custSep
            ydynam=[1E - spacing * (1+Nwavbins),1+spacing]
            offset = k * spacing
            myTitle=''
@@ -853,7 +858,7 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
   endfor
   close,1
 
-  if keyword_set(singleplot) then begin
+  if keyword_set(singleplot) and not keyword_set(skipReset) then begin
      !p.multi = 0
      !Y.Omargin = [0,0]
   endif
