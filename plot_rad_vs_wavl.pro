@@ -300,6 +300,9 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
      !x.margin = [10.0,3.0]
   endif
 
+  if keyword_set(depthkep) then begin
+     oplot,!x.crange,[1,1],linestyle=2,color=mycol('red')
+  endif
 
   if keyword_set(psplot) then begin
      device, /close
