@@ -12,7 +12,13 @@ if keyword_set(wavlmode) then begin
 endif else begin
    bintarr = [300,200,180,150,130,100,90,80,70,60,55,50,45,40,37,$
               35,33,30,27,25,23,20,18,15,14,13,12,10,9,8]
+   ;; Skip time bins that are shorter than exposure times
+   restore,'data/specdata.sav'
+   maxpoints = n_elements(utgrid)/2
+   allowedbins = where(bintarr LT maxpoints)
+   bintarr = bintarr[allowedbins]
 endelse
+
 
 ntbin = n_elements(bintarr)
 
