@@ -2,7 +2,7 @@ pro plot_tim_ser,fitcurve=fitcurve,fitpoly=fitpoly,usepoly=usepoly,makestops=mak
                  fullrange=fullrange,smartbin=smartbin,oneprange=oneprange,$
                  offtranserr=offtranserr,freelimbquad=freelimbquad,clarlimb=clarlimb,$
                  psplot=psplot,noreject=noreject,differential=differential,$
-                 individual=individual,pngcopy=pngcopy,freeall=freall,fixall=fixall,$
+                 individual=individual,pngcopy=pngcopy,freeall=freeall,fixall=fixall,$
                  timebin=timebin,offreject=offreject,showclipping=showclipping,$
                  errorDistb=errorDistb,colorclip=colorclip,quadfit=quadfit,legorder=legorder,$
                  fixrad=fixrad,freelimblin=freelimblin,showDiffAirmass=showDiffairmass,$
@@ -319,7 +319,7 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
         
         
      endif
-     
+
      if n_elements(timebin) NE 0 then begin
         ;; Bin the series in time
         ybin = avg_series(tplot,y,y/yerr,timeGrid,tsizes,weighted=1,$
@@ -715,7 +715,7 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
 ;           endif else begin
 
 ;           endelse
-;           stop
+
            result = mpfitexpr(expr,tplot,y,yerr,start,parinfo=pi,perr=punct)
            modelPts = 512l
            ntpoints = n_elements(tplot)
