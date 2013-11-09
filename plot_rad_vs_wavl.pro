@@ -223,9 +223,9 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
      tempnm=''
      read,tempnm,format='(A)'
      legnamearr[0l] = tempnm
-     colorchoices = [!p.color,mycol(['orange','purple','blue'])]
-     ncolchoices = n_elements(colorchoices)
-     colorarr = colorchoices[lindgen(totsets) mod ncolchoices]
+     colorlist = [!p.color,mycol(['orange','purple','blue'])]
+     ncolchoices = n_elements(colorlist)
+     colorchoices = colorlist[lindgen(totsets) mod ncolchoices]
   endif
      
   for i=2l,totsets do begin
@@ -265,7 +265,7 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
 
   if totsets GT 1l then begin
      if keyword_set(depthk) then myRight=1 else myRight=0
-     al_legend,legnamearr,psym=1l+lonarr(totsets),color=colorarr,/clear,$
+     al_legend,legnamearr,psym=1l+lonarr(totsets),color=colorchoices,/clear,$
                right=myRight,charsize=legcharsize
   endif
 
