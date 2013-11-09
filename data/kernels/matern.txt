@@ -8,7 +8,7 @@ Argument = - abs(x) * theta1 * 1.73205D
 bigNeg = where(Argument LT -15D,complement=smallNeg)
 if bigNeg NE [-1] then f[bigNeg] = 0D
 if smallNeg NE [-1] then begin
-   f[smallNeg] = theta0^2 * (1D + 1.73205D * abs(x) * theta1) * exp(Argument)
+   f[smallNeg] = theta0^2 * (1D + 1.73205D * abs(x[smallNeg]) * theta1) * exp(Argument[smallNeg])
 endif
 
 return,f
