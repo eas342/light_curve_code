@@ -1,7 +1,8 @@
-pro analyze_resids,psplot=psplot,showkern=showkern
+pro analyze_resids,psplot=psplot,showkern=showkern,fast=fast
 ;; Looks at the residuals of the model fit to analyze red noise
 ;; also generates, Autocorrelation and Power Spectral Density
 ;; showkern -- show the covariance kernel w/ best-fit hyper-parameters
+;; fast - skips the time series and power spectrum plots to run faster
 
   cd,c=currentd
   fileopt = file_search(currentd+'/data/cleaned_tim_ser/*.txt')
@@ -78,40 +79,43 @@ pro analyze_resids,psplot=psplot,showkern=showkern
 
      endif
 
-     if keyword_set(psplot) then begin
-        device, /close
-        cgPS2PDF,plotprenm+'.eps'
-        spawn,'convert -density 250% '+plotprenm+'.pdf '+plotprenm+'.png'
-        plotprenm = 'plots/power_spectrum/psd_plot_'+wavname
-        device,encapsulated=1, /helvetica,$
-               filename=plotprenm+'.eps'
-        device,xsize=12, ysize=8,decomposed=1,/color
-     endif
+     if not keyword_set(fast) then begin
+        if keyword_set(psplot) then begin
+           device, /close
+           cgPS2PDF,plotprenm+'.eps'
+           spawn,'convert -density 250% '+plotprenm+'.pdf '+plotprenm+'.png'
+           plotprenm = 'plots/power_spectrum/psd_plot_'+wavname
+           device,encapsulated=1, /helvetica,$
+                  filename=plotprenm+'.eps'
+           device,xsize=12, ysize=8,decomposed=1,/color
+        endif
      
-     scargle,t,fl,om,px
-     plot,om/(2D * !DPI),px,$
+        
+        scargle,t,fl,om,px
+        plot,om/(2D * !DPI),px,$
 ;       xtitle='Frequency (1/min)',$
-          xtitle='Frequency (1/min)',/xlog,$
+             xtitle='Frequency (1/min)',/xlog,$
 ;       ytitle='Power Spectral Density',yrange=[0,5],$
-          ytitle='Power Spectral Density',/ylog,$
-          title=wavname+' Time Series'
+             ytitle='Power Spectral Density',/ylog,$
+             title=wavname+' Time Series'
+        
+        
+        if keyword_set(psplot) then begin
+           device, /close
+           cgPS2PDF,plotprenm+'.eps'
+           spawn,'convert -density 250% '+plotprenm+'.pdf '+plotprenm+'.png'
+           plotprenm = 'plots/power_spectrum/residual_series_'+wavname
+           device,encapsulated=1, /helvetica,$
+                  filename=plotprenm+'.eps'
+           device,xsize=12, ysize=8,decomposed=1,/color
+        endif
      
-     
-     if keyword_set(psplot) then begin
-        device, /close
-        cgPS2PDF,plotprenm+'.eps'
-        spawn,'convert -density 250% '+plotprenm+'.pdf '+plotprenm+'.png'
-        plotprenm = 'plots/power_spectrum/residual_series_'+wavname
-        device,encapsulated=1, /helvetica,$
-               filename=plotprenm+'.eps'
-        device,xsize=12, ysize=8,decomposed=1,/color
-     endif
-     
-     plot,t,resid,xtitle='Time from transit center (s)',$
-          ytitle='Flux Residuals (%)',$
-          title=wavname+' Time Series'
-;  oploterr,t,resid,flerr*100E
-;  stop
+        plot,t,resid,xtitle='Time from transit center (s)',$
+             ytitle='Flux Residuals (%)',$
+             title=wavname+' Time Series'
+
+     endif 
+
      if keyword_set(psplot) then begin
         device, /close
         cgPS2PDF,plotprenm+'.eps'
