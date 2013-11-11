@@ -102,7 +102,7 @@ pro try_mcmc,psplot=psplot,simread=simread,noadjust=noadjust,custjump=custjump
      wavname = namespl[n_elements(namespl)-2l]
 
      if wavname EQ 'z-primeum' then begin
-        change_kerensl,kernchoice[0]
+        change_kernels,kernchoice[0]
      endif else begin
         change_kernels,kernchoice[1]
      endelse
