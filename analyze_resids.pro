@@ -1,7 +1,7 @@
-pro analyze_resids,psplot=psplot
-
-
+pro analyze_resids,psplot=psplot,showkern=showkern
 ;; Looks at the residuals of the model fit to analyze red noise
+;; also generates, Autocorrelation and Power Spectral Density
+;; showkern -- show the covariance kernel w/ best-fit hyper-parameters
 
   cd,c=currentd
   fileopt = file_search(currentd+'/data/cleaned_tim_ser/*.txt')
@@ -10,6 +10,13 @@ pro analyze_resids,psplot=psplot
 ;     readcol,'data/cleaned_tim_ser/timeser_1.43um_.txt',$
 ;  readcol,'data/cleaned_tim_ser/timeser_0.91um_.txt',$
 ;          phase,fl,flerr,modelfl,resid
+
+  if keyword_set(showkern) then begin
+     readcol,'radius_vs_wavelength/fit_data_mcmc/09_9Q_X_D0_vs_wavl.txt',$
+             format='(F,F,F,F)',wavl1,wavl1size,theta0,theta0Err
+     readcol,'radius_vs_wavelength/fit_data_mcmc/10_9Q_X_D1_vs_wavl.txt',$
+             format='(F,F,F,F)',wavl2,wavl2size,theta1,theta1Err
+  endif
 
   for wavInd = 0l,totfiles-1l do begin
      readcol,fileopt[wavInd],phase,fl,flerr,modelfl,resid,format='(F)',skipline=1,/silent
@@ -42,7 +49,11 @@ pro analyze_resids,psplot=psplot
      ;; Find autocorrelation function
      np = n_elements(phase)
      steparray = lindgen(np)
-     autoC = a_correlate(resid,steparray)
+     if keyword_set(showkern) then begin
+        autoC = a_correlate(resid * 1E-2,steparray,/cov)
+     endif else begin
+        autoC = a_correlate(resid,steparray)
+     endelse
      if keyword_set(min) then begin
         autoX = steparray * (t[1] - t[0])
         autoXtitle = 'Delay (min)'
@@ -57,7 +68,16 @@ pro analyze_resids,psplot=psplot
           ytitle='Autocorrelation',$
           title=wavname+' Time Series',$
           xrange=autoXrange
-     
+
+     if keyword_set(showkern) then begin
+        ;; Show the best-fit kenrel
+        ;; get the MCMC hyperpameter fit data
+        kernX = phase - phase[0]
+        kernY = cov_kernel(kernX,theta0[wavInd],theta1[wavInd])
+        oplot,autoX,kernY,color=mycol('blue')
+
+     endif
+
      if keyword_set(psplot) then begin
         device, /close
         cgPS2PDF,plotprenm+'.eps'
