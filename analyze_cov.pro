@@ -7,7 +7,7 @@ pro analyze_cov,psplot=psplot,nocontour=nocontour,nohyper=nohyper,$
 ;; discard -- number of initial points to discard before using the chain
 
   ;; Use analyze_mcmc to get the parameter uncertainties
-  analyze_mcmc,discard=discard
+  analyze_mcmc,discard=discard,nohyper=nohyper
   restore,'data/mcmc/param_unc/param_unc.sav'
   unct = (paramLower + paramUpper)/2E
   fitpars = medparams

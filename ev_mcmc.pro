@@ -12,7 +12,13 @@ function ev_mcmc,expr,X,Y,Yerr,start,chainL=chainL,parinfo=pi,maxp=maxp,$
   if n_elements(chainL) EQ 0 then chainL = 200l
   if n_elements(maxP) EQ 0 then maxP = 90000l
   nparams = n_elements(start)
-  if n_elements(hyperparams) NE 0 then nhypers = n_elements(hyperparams.start)
+  if n_elements(hyperparams) NE 0 then begin
+     nhypers = n_elements(hyperparams.start)
+     noHyperSwitch = 0
+  endif else begin
+     NoHyperSwitch = 1
+     nhypers = 0l
+  endelse 
 
   ;; update point where it shows a plot
   updatept = 100l
@@ -53,7 +59,7 @@ function ev_mcmc,expr,X,Y,Yerr,start,chainL=chainL,parinfo=pi,maxp=maxp,$
   if n_elements(hyperparams) NE 0 then begin
      chainHypers = fltarr(nhypers,chainL)
      chainHypers[*,0] = hyperparams.start
-  endif
+  endif else chainHypers = [0E]
   
   modelY = expression_eval(expr,X,chainparams[*,0])
   if n_elements(hyperparams) NE 0 then begin
@@ -134,20 +140,21 @@ function ev_mcmc,expr,X,Y,Yerr,start,chainL=chainL,parinfo=pi,maxp=maxp,$
         ;; Shorten the chains for plotting
         fullchain = chainparams
         chainparams = chainparams[*,0l:(j-1l)]
+        aRatio = float(j)/float(i) ;; acceptance ratio        
         if n_elements(hyperparams) NE 0 then begin
            fullhypers = chainhypers
            chainhypers = chainhypers[*,0l:(j-1l)]
         endif
-        aRatio = float(j)/float(i) ;; acceptance ratio        
         save,chainparams,lmfit,lmunct,freep,dof,chisQarray,aRatio,$
              chainhypers,$
              filename='data/mcmc/mcmc_chains.sav'
-        if j GT 10 then chainplot
+
+        if j GT 10 then chainplot,nohyper=noHyperSwitch
 
         wait,0.02
         ;; Restore the chain to its full length
         chainparams = fullchain
-        chainhypers = fullhypers
+        if n_elements(hyperparams) NE 0 then chainhypers = fullhypers
      endif
 
   endfor
