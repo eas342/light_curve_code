@@ -1,0 +1,3 @@
+#Instrument	Kernel Choice
+MORIS_z_prime	data/kernels/matern.txt
+SpeX		data/kernels/matern.txt

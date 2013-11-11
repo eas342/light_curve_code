@@ -29,6 +29,12 @@ pro try_mcmc,psplot=psplot,simread=simread,noadjust=noadjust,custjump=custjump
      planetdat = create_struct(planetdat,info[l],data[l])
   endfor
 
+  ;; get kernel choices
+  readcol,'param_input/kernel_choices.txt',$
+          skipline=1,format='(A,A)',$
+          instrumentkernRef,kernchoice
+
+
   u1parm = 0.1E  ;; starting limb darkening parameters
   u2parm = 0.0E
 
@@ -96,9 +102,9 @@ pro try_mcmc,psplot=psplot,simread=simread,noadjust=noadjust,custjump=custjump
      wavname = namespl[n_elements(namespl)-2l]
 
      if wavname EQ 'z-primeum' then begin
-        change_kernels,'data/kernels/sinc.txt'
+        change_kerensl,kernchoice[0]
      endif else begin
-        change_kernels,'data/kernels/abs_exp.txt'
+        change_kernels,kernchoice[1]
      endelse
 
      if keyword_set(simread) then begin

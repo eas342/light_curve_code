@@ -114,6 +114,9 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
      openr,1,'data/model_expr.txt'
      readf,1,modelExpr
      close,1
+     readcol,'param_input/kernel_choices.txt',$
+             skipline=1,format='(A,A)',$
+             instrumentkernRef,kernchoice
   endif
 
   u1parm = 0.0E         
@@ -575,9 +578,9 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
 
         if keyword_set(showmcmc) then begin
            if wavname[k] EQ 'z-prime' then begin
-              change_kernels,'data/kernels/sinc.txt'
+              change_kernels,kernchoice[0]
            endif else begin
-              change_kernels,'data/kernels/abs_exp.txt'
+              change_kernels,kernchoice[1]
            endelse
 
            mcmcShowP = 350
