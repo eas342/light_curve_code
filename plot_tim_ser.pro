@@ -799,9 +799,14 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
            modelY = fltarr(ntplot)
            resid = fltarr(ntplot)
         endif
+        if keyword_set(showmcmc) then begin
+           resid = mcmcResid * 100E
+           modelY = meanfuncdat
+        endif
+
         forprint,tplot,y,yerr,modelY,resid,$
                  textout='data/cleaned_tim_ser/timeser_'+wavname[k]+'um_.txt',$
-                 comment='#Phase  Flux  Fl_err  Model_fl   Residual for '+wavname[k]+'um',$
+                 comment='#Phase  Flux  Fl_err  Model_fl   Residual for '+wavname[k]+'um (%)',$
                  /silent
 
         if keyword_set(psplot) and (not keyword_set(singleplot) OR k EQ Nwavbins-1l)  then begin
