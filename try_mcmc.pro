@@ -135,12 +135,12 @@ pro try_mcmc,psplot=psplot,simread=simread,noadjust=noadjust,custjump=custjump
 
 ;     hyperpi[1].limits[0] = 0.2E/(phase[n_elements(phase)-1l] - phase[0]) ;; don't let it flatten compl
 
-;     result = ev_mcmc(expr,phase,fl,flerr,start,parinfo=pi,chainL = chainPoints,maxp=99000l,$
-;                      hyperparams=hyperpi,noadjust=noadjust)
+     result = ev_mcmc(expr,phase,fl,flerr,start,parinfo=pi,chainL = chainPoints,maxp=99000l,$
+                      hyperparams=hyperpi,noadjust=noadjust)
 ;     result = ev_mcmc(expr,phase,fl,flerr,start,parinfo=pi,chainL = 200l,maxp=99000l,$
 ;                      hyperparams=hyperpi)
-     result = ev_mcmc(expr,phase,fl,flerr,start,parinfo=pi,chainL = chainPoints,maxp=9900l)
-     noHyperSwitch = 1
+;     result = ev_mcmc(expr,phase,fl,flerr,start,parinfo=pi,chainL = chainPoints,maxp=9900l)
+;     noHyperSwitch = 1
 
      analyze_mcmc,/psplot,discard=discardPoints,nohyper=noHyperSwitch
      ;; Save the chains
@@ -160,6 +160,7 @@ pro try_mcmc,psplot=psplot,simread=simread,noadjust=noadjust,custjump=custjump
      ;; Save the parameter covariance plot
      spawn,'cp plots/mcmc/covar_plot.png plots/mcmc/individual_wavs/cov_plots_png/cov_plot_'+wavname+'.png'
      spawn,'cp plots/mcmc/covar_plot.eps plots/mcmc/individual_wavs/cov_plots_eps/cov_plot_'+wavname+'.eps'
+
      if keyword_set(simread) then return
   endfor
 
