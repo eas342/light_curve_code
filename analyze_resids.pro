@@ -52,8 +52,10 @@ pro analyze_resids,psplot=psplot,showkern=showkern,fast=fast
      steparray = lindgen(np)
      if keyword_set(showkern) then begin
         autoC = a_correlate(resid * 1E-2,steparray,/cov)
+        custYrange=[min(autoC),max(autoC) * 1.5E]
      endif else begin
         autoC = a_correlate(resid,steparray)
+        custYrange=[0,0]
      endelse
      if keyword_set(min) then begin
         autoX = steparray * (t[1] - t[0])
@@ -68,7 +70,8 @@ pro analyze_resids,psplot=psplot,showkern=showkern,fast=fast
           xtitle=autoXtitle,$
           ytitle='Autocorrelation',$
           title=wavname+' Time Series',$
-          xrange=autoXrange
+          xrange=autoXrange,$
+          yrange=custYrange
 
      if keyword_set(showkern) then begin
         ;; Show the best-fit kenrel
@@ -76,6 +79,18 @@ pro analyze_resids,psplot=psplot,showkern=showkern,fast=fast
         kernX = phase - phase[0]
         kernY = cov_kernel(kernX,theta0[wavInd],theta1[wavInd])
         oplot,autoX,kernY,color=mycol('blue')
+        kernY2 = cov_kernel(kernX,theta0[wavInd] - theta0Err[wavInd],$
+                            theta1[wavInd])
+        oplot,autoX,kernY2,color=mycol('blue'),linestyle=2
+        kernY3 = cov_kernel(kernX,theta0[wavInd] + theta0Err[wavInd],$
+                            theta1[wavInd])
+        oplot,autoX,kernY3,color=mycol('blue'),linestyle=2
+;        kernY4 = cov_kernel(kernX,theta0[wavInd],$
+;                            theta1[wavInd] + theta1Err[wavInd])
+;        oplot,autoX,kernY4,color=mycol('red'),linestyle=2
+;        kernY5 = cov_kernel(kernX,theta0[wavInd],$
+;                            theta1[wavInd] - theta1Err[wavInd])
+;        oplot,autoX,kernY5,color=mycol('red'),linestyle=2
 
      endif
 
