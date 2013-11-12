@@ -1,4 +1,5 @@
-pro try_mcmc,psplot=psplot,simread=simread,noadjust=noadjust,custjump=custjump
+pro try_mcmc,psplot=psplot,simread=simread,noadjust=noadjust,$
+             custjump=custjump,legendre=legendre
 ;; Tests out my MCMC fit to a time series
 ;; psplot -- an outdated feature to plot the results, they are now
 ;;           saved by other routines
@@ -6,6 +7,8 @@ pro try_mcmc,psplot=psplot,simread=simread,noadjust=noadjust,custjump=custjump
 ;;            check that it can recover hyper-parameters and errors
 ;; noadjust -- don't update parameters
 ;; custjump -- custom jump sizes
+;; legendre -- fit the time series baselien with a
+;;             Legendre polynomial instead of a Gaussian process
 
   ;; set the plot
   if keyword_set(psplot) then begin
@@ -34,7 +37,6 @@ pro try_mcmc,psplot=psplot,simread=simread,noadjust=noadjust,custjump=custjump
           skipline=1,format='(A,A)',$
           instrumentkernRef,kernchoice
 
-
   u1parm = 0.1E  ;; starting limb darkening parameters
   u2parm = 0.0E
 
@@ -46,9 +48,11 @@ pro try_mcmc,psplot=psplot,simread=simread,noadjust=noadjust,custjump=custjump
   pi[2].fixed = 0 ;; free the linear limb darkening
 ;  pi[3].fixed = 0 ;; free the quadratic limb darkening
   pi[5].fixed = 0 ;; free the offset
-;  pi[6].fixed = 0 ;; free the linear coefficient
-;  pi[7].fixed = 0 ;; free the second Legendre coefficient
-;  pi[8].fixed = 0 ;; free the third Legendre coefficient
+  if keyword_set(legendre) then begin
+     pi[6].fixed = 0 ;; free the linear coefficient
+     pi[7].fixed = 0 ;; free the second Legendre coefficient
+     pi[8].fixed = 0 ;; free the third Legendre coefficient
+  endif 
 
   ;; Let the limb darkening, quadratic and cubic coefficient be negative
   pi[2].limited=[0,0]
@@ -72,7 +76,6 @@ pro try_mcmc,psplot=psplot,simread=simread,noadjust=noadjust,custjump=custjump
   ;; set up the hyperparameters
   hyperpi = replicate({fixed:0, limited:[1,0], limits:[0.0E,0.0E],$
                       start:0E,jumpsize:0E},3)
-
 
   if keyword_set(custjump) then begin
      hyperpi[*].start = [2E-4,160E,0] ;; the set I'm trying for the second-modified kernel
@@ -135,12 +138,17 @@ pro try_mcmc,psplot=psplot,simread=simread,noadjust=noadjust,custjump=custjump
 
 ;     hyperpi[1].limits[0] = 0.2E/(phase[n_elements(phase)-1l] - phase[0]) ;; don't let it flatten compl
 
-     result = ev_mcmc(expr,phase,fl,flerr,start,parinfo=pi,chainL = chainPoints,maxp=99000l,$
-                      hyperparams=hyperpi,noadjust=noadjust)
+     if keyword_set(legendre) then begin
+        result = ev_mcmc(expr,phase,fl,flerr,start,parinfo=pi,chainL = chainPoints,maxp=99000l,$
+                         noadjust=noadjust)
+     endif else begin
+        result = ev_mcmc(expr,phase,fl,flerr,start,parinfo=pi,chainL = chainPoints,maxp=99000l,$
+                         hyperparams=hyperpi,noadjust=noadjust)
+        noHyperSwitch = 1
+     endelse
 ;     result = ev_mcmc(expr,phase,fl,flerr,start,parinfo=pi,chainL = 200l,maxp=99000l,$
 ;                      hyperparams=hyperpi)
 ;     result = ev_mcmc(expr,phase,fl,flerr,start,parinfo=pi,chainL = chainPoints,maxp=9900l)
-;     noHyperSwitch = 1
 
      analyze_mcmc,/psplot,discard=discardPoints,nohyper=noHyperSwitch
      ;; Save the chains
