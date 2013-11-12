@@ -60,6 +60,16 @@ pro multiple_mcmc_nights,phot=phot,both=both
      spawn,'cp plots/spec_t_series/tser_'+wavname[0]+'.png plots/spec_t_series/all_t_series_'+nightname+'.png'
      spawn,'cp plots/spec_t_series/tser_'+wavname[0]+'.pdf plots/spec_t_series/all_t_series_'+nightname+'.pdf'
      spawn,'cp data/mcmc/*um.sav data/mcmc/chains_'+nightname+'/'
+
+     ;; Make a copy of the AutoCorrelation plots
+     analyze_resids,/psplot,/fast,/showkern
+     for j=0l,n_elements(wavname)-1 do begin
+        spawn,'cp plots/power_spectrum/acf_plot_'+wavname[j]+'um.png plots/power_spectrum/'+$
+              nightname+'_acf_png/'
+        spawn,'cp plots/power_spectrum/acf_plot_'+wavname[j]+'um.eps plots/power_spectrum/'+$
+              nightname+'_acf_eps/'
+     endfor
+
   endfor
 
 
