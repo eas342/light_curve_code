@@ -26,6 +26,7 @@ pro analyze_mcmc,psplot=psplot,nohyper=nohyper,extend2lm=extend2lm,$
 
   parnames = ['Rp/R*','b/R*','u1','u2','A/R*','A_0','A_1','A_2','A_3']
 ;  parfree =  [      1,     0,   1,   0,     0,    1,   1,    1,    0 ]
+  parnamesSimple = ['Rp_Rs','b_Rs','u1','u2','A_Rs','A_0','A_1','A_2','A_3']
 
   sizePchain = size(chainparams)
   nregular = sizePchain[1] ;; number of regular parameters
@@ -33,6 +34,7 @@ pro analyze_mcmc,psplot=psplot,nohyper=nohyper,extend2lm=extend2lm,$
   if n_elements(chainhypers) NE 0 AND not keyword_set(nohyper) then begin
      nparams = nregular + 2
 
+     parnamesSimple = [parnamesSimple,+['Theta_0','Theta_1']]
      parnames = [parnames,cgGreek('Theta')+['!D0!N','!D1!N']]
      fullchain = fltarr(nregular+2,sizePchain[2])
      fullchain[0:nregular-1,*] = chainparams
@@ -146,7 +148,7 @@ pro analyze_mcmc,psplot=psplot,nohyper=nohyper,extend2lm=extend2lm,$
      lmunctfull = lmunct
   endelse
 
-  forprint,parnames,lmfull,lmunctfull,medparams,$
+  forprint,parnamesSimple,lmfull,lmunctfull,medparams,$
            paramUpper,paramLower,$
            format='(A8,5(1x,F16.5))',textout='data/mcmc/param_unc/param_unc.txt',$
            comment=textcomment

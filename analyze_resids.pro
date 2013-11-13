@@ -13,9 +13,9 @@ pro analyze_resids,psplot=psplot,showkern=showkern,fast=fast
 ;          phase,fl,flerr,modelfl,resid
 
   if keyword_set(showkern) then begin
-     readcol,'radius_vs_wavelength/fit_data_mcmc/09_9Q_X_D0_vs_wavl.txt',$
+     readcol,'radius_vs_wavelength/fit_data_mcmc/09_Theta_0_vs_wavl.txt',$
              format='(F,F,F,F)',wavl1,wavl1size,theta0,theta0Err
-     readcol,'radius_vs_wavelength/fit_data_mcmc/10_9Q_X_D1_vs_wavl.txt',$
+     readcol,'radius_vs_wavelength/fit_data_mcmc/10_Theta_1_vs_wavl.txt',$
              format='(F,F,F,F)',wavl2,wavl2size,theta1,theta1Err
   endif
 
