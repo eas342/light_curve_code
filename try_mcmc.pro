@@ -141,10 +141,10 @@ pro try_mcmc,psplot=psplot,simread=simread,noadjust=noadjust,$
      if keyword_set(legendre) then begin
         result = ev_mcmc(expr,phase,fl,flerr,start,parinfo=pi,chainL = chainPoints,maxp=99000l,$
                          noadjust=noadjust)
+        noHyperSwitch = 1
      endif else begin
         result = ev_mcmc(expr,phase,fl,flerr,start,parinfo=pi,chainL = chainPoints,maxp=99000l,$
                          hyperparams=hyperpi,noadjust=noadjust)
-        noHyperSwitch = 1
      endelse
 ;     result = ev_mcmc(expr,phase,fl,flerr,start,parinfo=pi,chainL = 200l,maxp=99000l,$
 ;                      hyperparams=hyperpi)
