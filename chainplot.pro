@@ -1,11 +1,12 @@
 pro chainplot,psplot=psplot,nohyper=nohyper,extend2lm=extend2lm,$
-              discard=discard
+              discard=discard,showL=showL
 ;; Takes the MCMC results and plots the parameters as a function of
 ;; time to check for convergence
 ;; psplot - generates postscript, png and pdf plots
 ;; nohyper - don't display hyper parameters - often used if
 ;;           hyper-parameters are fixed
 ;; extend2lm -- extend the X range to show all Levenberg-Marquardt results
+;; showL -- show the likelihood function
 
   ;; set the plot
   if keyword_set(psplot) then begin
@@ -54,16 +55,17 @@ pro chainplot,psplot=psplot,nohyper=nohyper,extend2lm=extend2lm,$
 
   nfree = total(freep)
   assert,n_elements(parnames),'=',nparams,'Warning # of parameter mismatch'
+  nplots = nfree
+  if keyword_set(showL) then nplots = nplots + 1; show another plot if asked to (for Likelihood)
 
-
-  !p.multi = [0,1,nfree]
+  !p.multi = [0,1,nplots]
   !X.Omargin = [11,1]
   !Y.omargin = [5,1]
 
   for i=0l,nfree-1l do begin
      pInd = freeInd[i] ;; parameter index
 
-     if i LT nfree-1l then myXtitle='' else myXtitle='Steps'
+     if i LT nplots-1l then myXtitle='' else myXtitle='Steps'
      plot,chainparams[pInd,*],$
 ;          ytitle=parnames[pInd],psym=10,$
           charsize=2,xmargin=[5,5],$
@@ -73,7 +75,7 @@ pro chainplot,psplot=psplot,nohyper=nohyper,extend2lm=extend2lm,$
           xticklen=0.05,xtitle=myXtitle,$
           xtick_get=xtickvals,xtickformat='(A1)',$;; supress & save tick labels
           ytick_get=ytickvals,ytickformat='(A1)'
-     if i LT nfree-1l then noX=1 else noX=0
+     if i LT nplots-1l then noX=1 else noX=0
      twotick_labels,xtickvals,ytickvals,/ymid,ytitle=parnames[pInd],$
                     noX=noX
 
@@ -102,6 +104,18 @@ pro chainplot,psplot=psplot,nohyper=nohyper,extend2lm=extend2lm,$
      
   endfor
 
+  if keyword_set(showL) then begin
+     nchainpoints = n_elements(chainparams[0,*])
+     plot,chisqarray[0:nchainpoints-1l],$
+          charsize=2,xmargin=[5,5],$
+          ystyle=16,yrange=threshold(chisqarray[0:nchainpoints-1l],mult=0.05),$
+          xstyle=1,ymargin=[0,0],$
+          xticklen=0.05,xtitle='Steps',$
+          xtick_get=xtickvals,xtickformat='(A1)',$;; supress & save tick labels
+          ytick_get=ytickvals,ytickformat='(A1)'
+     twotick_labels,xtickvals,ytickvals,/ymid,ytitle='Log (L)',$
+                    noX=0
+  endif
 
   if keyword_set(psplot) then begin
      device, /close
