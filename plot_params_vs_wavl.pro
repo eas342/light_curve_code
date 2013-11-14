@@ -192,7 +192,7 @@ pro plot_params_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
           ytitle='Raw Source Flux (DN)'
      
   endif
-  !x.margin = [10.0,3.0] ;;return to normal
+  !x.margin = [15,4] ;;return to normal
 
   if keyword_set(psplot) then begin
      device, /close
