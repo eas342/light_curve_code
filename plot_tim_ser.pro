@@ -713,10 +713,6 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
            for i=6,10-1 do pi[i].limited = [0,0] ;; let the polynomial coefficients be + or -
 
            case 1 of 
-              keyword_set(quadfit): begin
-                 pi[6].fixed = 0 ;; let the linear coefficient
-                 pi[7].fixed = 0 ;; let the second Legendre coefficient vary
-              end
               n_elements(legOrder) NE 0: begin
                  for i=5l,legOrder+5l do begin
                     pi[i].fixed = 0 ;; let the i-th Legendre coefficient vary
