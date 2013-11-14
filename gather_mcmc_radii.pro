@@ -18,8 +18,12 @@ pro gather_mcmc_radii
         nparam = n_elements(paramNames)
         ParamArray = fltarr(nfile,nparam)
         ParamArrayErr = fltarr(nfile,nparam)
+        ParamArrayErrP = fltarr(nfile,nparam)
+        ParamArrayErrM = fltarr(nfile,nparam)
      endif
      ParamArray[i,*] = mcmcfit
+     ParamArrayErrP[i,*] = mcmcfitErrP
+     ParamArrayErrM[i,*] = mcmcfitErrM
      ParamArrayErr[i,*] = (mcmcfitErrP + mcmcfitErrM)/2E
   endfor
 
@@ -29,8 +33,8 @@ pro gather_mcmc_radii
   assert,n_elements(wavl),'=',nfile,'Mismatch between rad vs wavelength wavelengths and input wavelengths.'
 
   ;; Save the radius file
-  forprint,wavl,wavlsize,ParamArray[*,0],ParamArrayErr[*,0],$
-           comment='#Wavelength(um) Bin size(um) Rp/R*   Rp/R* Error',$
+  forprint,wavl,wavlsize,ParamArray[*,0],ParamArrayErr[*,0],ParamArrayErrP[*,0],ParamArrayErrM[*,0],$
+           comment='#Wavelength(um) Bin size(um) Rp/R*       Rp/R* Error    Error +     Error -',$
            textout='radius_vs_wavelength/mcmc_rad_vs_wavl.txt'
 
   replaceTypes = ['/','*','!']
