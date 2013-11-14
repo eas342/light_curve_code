@@ -411,6 +411,23 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
            endcase
         endelse
 
+        if keyword_set(quadfit) then begin
+           result = poly_fit(tplot[offp],y[offp],2,measure_errors=yerr[offp],yfit=yfit)
+           Offresid = y[offp] - yfit
+        endif else begin
+           fitY = linfit(tplot[offp],y[offp])
+           Offresid = y[offp] - (fitY[0] + fitY[1]*tplot[offp])
+        endelse
+        fracRMSarr[k] = robust_sigma(Offresid)/median(y[offp])
+        print,'Frac lin corr robust sigma for ',wavname[k],': ',fracRMSarr[k]
+        ;; Show the off transit fit
+;        oplot,tplot,fity[0] + fity[1]*tplot,color=mycol('red')
+
+        if keyword_set(offtranserr) then begin
+           rstdevOff = robust_sigma(Offresid)
+           yerr = fltarr(n_elements(goodp)) + rstdevOff
+        endif
+
         if keyword_set(psplot) and (not keyword_set(singleplot) OR k EQ 0)  then begin
            plotnmpre = 'plots/spec_t_series/tser_'+wavname[k]
            device,encapsulated=1, /helvetica,$
@@ -496,22 +513,6 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
 ;        print,'Fractional off transit Stdev in F for ',wavname,': ',stddev(y[offp])/mean(y[offp])
 ;        print,'Fractional off transit Robust sigma for ',wavname,': ',robust_sigma(y[offp])/median(y[offp])
         ;; try fitting the off transit to a function first
-        if keyword_set(quadfit) then begin
-           result = poly_fit(tplot[offp],y[offp],2,measure_errors=yerr[offp],yfit=yfit)
-           Offresid = y[offp] - yfit
-        endif else begin
-           fitY = linfit(tplot[offp],y[offp])
-           Offresid = y[offp] - (fitY[0] + fitY[1]*tplot[offp])
-        endelse
-        fracRMSarr[k] = robust_sigma(Offresid)/median(y[offp])
-        print,'Frac lin corr robust sigma for ',wavname[k],': ',fracRMSarr[k]
-        ;; Show the off transit fit
-;        oplot,tplot,fity[0] + fity[1]*tplot,color=mycol('red')
-
-        if keyword_set(offtranserr) then begin
-           rstdevOff = robust_sigma(Offresid)
-           yerr = fltarr(n_elements(goodp)) + rstdevOff
-        endif
 
         ;; show the transit epochs
         drawy = [!y.crange[0],!y.crange[1]]
@@ -599,8 +600,19 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
               columnvec = cov_kernel(phaseShow[m] - tplot,mcmcpars[k,9],mcmcpars[k,10])
               mcmcModel[m] = meanfunctest[m] + columnvec ## Cinv ## transpose(mcmcResid)
            endfor
-
            oplot,phaseShow,mcmcModel-offset,color=mycol('blue'),thick=2
+
+           ;; Calculate a Chi-squared, even if it's not the
+           ;; right thing
+           mcmcModelmatch = fltarr(n_elements(y)) ;; match the # of points (1 model pt per data pt)
+           for m=0l,n_elements(y)-1l do begin
+              columnvec = cov_kernel(tplot[m] - tplot,mcmcpars[k,9],mcmcpars[k,10])
+              mcmcModelmatch[m] = meanfuncdat[m] + columnvec ## Cinv ## transpose(mcmcResid)
+           endfor
+           pseudoresids = (mcmcModelmatch - y) ;; sort of like the residuals
+           pseudochisquare = total((pseudoresids/yerr)^2)
+           print,'Psuedo Chi-square = ',pseudochisquare
+
         endif
 
         if keyword_set(showKep) then begin
