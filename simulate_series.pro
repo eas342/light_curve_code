@@ -142,7 +142,7 @@ pro simulate_series,theta=theta,Npoints=Npoints,psplot=psplot,$
               plot,x,y,yrange=custYrange,$
                    xtitle='Orbital Phase',$
                    ytitle='Flux',$
-                   title=custYtitle,xmargin=[7,7]
+                   title=custYtitle;,xmargin=[7,7]
            endif else begin
               oplot,x,y,linestyle=stylearr[j],color=colorarray[j]
            endelse
