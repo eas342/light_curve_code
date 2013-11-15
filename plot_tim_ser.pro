@@ -9,7 +9,8 @@ pro plot_tim_ser,fitcurve=fitcurve,fitpoly=fitpoly,usepoly=usepoly,makestops=mak
                  nonormalize=nonormalize,showNomRad=showNomRad,fixoffset=fixoffset,$
                  custresidYrange=custresidYrange,fitepoch=fitepoch,singleplot=singleplot,$
                  showmcmc=showmcmc,deletePS=deletePS,showKep=showKep,lindetrend=lindetrend,$
-                 showjump=showjump,kepfit=kepfit,skipReset=skipReset,custSep=custSep
+                 showjump=showjump,kepfit=kepfit,skipReset=skipReset,custSep=custSep,$
+                 showNomMCMC=showNomMCMC
 ;; plots the binned data as a time series and can also fit the Rp/R* changes
 ;; apPlot -- this optional keyword allows one to choose the aperture
 ;;           to plot
@@ -60,6 +61,7 @@ pro plot_tim_ser,fitcurve=fitcurve,fitpoly=fitpoly,usepoly=usepoly,makestops=mak
 ;; fitepoch -- fits the transit center
 ;; singleplot -- Puts everything in a single plot
 ;; showmcmc -- shows the MCMC results
+;; showNomMCMC - show the MCMC fit without GP hyperparameters
 ;; deletePS -- specified whether or not to delete the
 ;;             postscript file, default is true
 ;; showKep -- shows the Kepler light curve for KIC 12557548
@@ -612,7 +614,7 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
            pseudoresids = (mcmcModelmatch - y) ;; sort of like the residuals
            pseudochisquare = total((pseudoresids/yerr)^2)
            print,'Psuedo Chi-square = ',pseudochisquare
-
+           if keyword_set(showNommcmc) then oplot,tplot,meanfuncdat,color=mycol('green')
         endif
 
         if keyword_set(showKep) then begin
