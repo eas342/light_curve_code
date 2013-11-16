@@ -91,6 +91,14 @@ pro analyze_resids,psplot=psplot,showkern=showkern,fast=fast
         kernY4 = auto_estimator(C)
         oplot,autoX,kernY4,color=mycol('orange'),thick=2
 
+        C = cov_matrix(Npoints,kernX,theta0[wavInd] - theta0Err[wavInd],theta1[wavInd])
+        kernY5 = auto_estimator(C)
+        oplot,autoX,kernY5,color=mycol('orange'),thick=2,linestyl=2
+
+        C = cov_matrix(Npoints,kernX,theta0[wavInd] + theta0Err[wavInd],theta1[wavInd])
+        kernY6 = auto_estimator(C)
+        oplot,autoX,kernY6,color=mycol('orange'),thick=2,linestyl=2
+
 ;        kernY4 = cov_kernel(kernX,theta0[wavInd],$
 ;                            theta1[wavInd] + theta1Err[wavInd])
 ;        oplot,autoX,kernY4,color=mycol('red'),linestyle=2
