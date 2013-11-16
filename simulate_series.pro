@@ -109,6 +109,9 @@ pro simulate_series,theta=theta,Npoints=Npoints,psplot=psplot,$
               oplot,C[0,*],linestyle=0,colo=mycol('black'),thick=10
               oplot,C[0,*],linestyle=0,colo=mycol('blue'),thick=6
 
+              AutoEstimator = auto_estimator(C)
+              oplot,AutoEstimator,color=mycol('orange'),linestyle=2,thick=3
+              
               ;; Find the average auto-correlation function
               avgAuto = fltarr(Npoints)
               for l=0l,Npoints-1l do begin
