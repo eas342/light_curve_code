@@ -67,7 +67,7 @@ function ev_mcmc,expr,X,Y,Yerr,start,chainL=chainL,parinfo=pi,maxp=maxp,$
   endif else chisQarray[0] = total( ((Y - ModelY)/Yerr)^2 )
 
   j=1
-
+  
   ;; use the rough covariance matrix to choose random bump sizes
 ;  jumps = rebin(punct,nparams,maxP) * randParray * 3E
   jumps = rebin(punct,nparams,maxP) * randParray * 0.8E
@@ -149,7 +149,7 @@ function ev_mcmc,expr,X,Y,Yerr,start,chainL=chainL,parinfo=pi,maxp=maxp,$
              chainhypers,$
              filename='data/mcmc/mcmc_chains.sav'
 
-        if j GT 10 then chainplot,nohyper=noHyperSwitch
+        if j GT 10 then chainplot,nohyper=noHyperSwitch,/showL
 
         wait,0.02
         ;; Restore the chain to its full length
