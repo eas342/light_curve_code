@@ -74,11 +74,6 @@ pro simulate_series,theta=theta,Npoints=Npoints,psplot=psplot,$
   U = transpose(U)
   autoArray = fltarr(Npoints,Nrealizations)
 
-  if n_elements(custYrange) EQ 0 then begin
-     if keyword_set(autoC) then custYrange = [-1,1] else begin
-        custYrange = [-0.02,0.02]
-     endelse
-  endif
         
   custYtitle=cgGreek('sigma')+'= '+string(sigma,format='(G6.2)')+',  '+cgGreek('theta')+'!D0!N= '+$
              string(Theta[0],format='(G7.2)')+',  '+cgGreek('theta')+'!D1!N= '+$
@@ -96,8 +91,12 @@ pro simulate_series,theta=theta,Npoints=Npoints,psplot=psplot,$
 
      case 1 of
         keyword_set(autoC): begin
-           autoArray[*,j] = a_correlate(y,steparray)
+           autoArray[*,j] = a_correlate(y,steparray,/cov)
            if j EQ 0l then begin
+              if n_elements(custYrange) EQ 0 then begin
+                 BothArrays = [transpose(C[0,*]),autoArray[*,j]]
+                 custYrange = [min(BothArrays),max(bothArrays)]
+              endif
               plot,steparray,autoArray[*,j],$
                    ytitle='ACF',$
                    xtitle='Lag',yrange=custYrange,$
@@ -107,8 +106,9 @@ pro simulate_series,theta=theta,Npoints=Npoints,psplot=psplot,$
            endelse
            ;; Show the initial covariance
            if j EQ Nrealizations-1l then begin
-              oplot,C[0,*]/sigma^2,linestyle=0,colo=mycol('black'),thick=10
-              oplot,C[0,*]/sigma^2,linestyle=0,colo=mycol('blue'),thick=6
+              oplot,C[0,*],linestyle=0,colo=mycol('black'),thick=10
+              oplot,C[0,*],linestyle=0,colo=mycol('blue'),thick=6
+
               ;; Find the average auto-correlation function
               avgAuto = fltarr(Npoints)
               for l=0l,Npoints-1l do begin
@@ -127,6 +127,9 @@ pro simulate_series,theta=theta,Npoints=Npoints,psplot=psplot,$
         end
         keyword_set(residplot): begin
            if j EQ 0l then begin
+              if n_elements(custYrange) EQ 0 then begin
+                    custYrange = [-0.02,0.02]
+              endif
               plot,x,y * 100E,xtitle='Orbital phase',$
                    ytitle='Relative Flux (%)',/nodata,$
                    yrange=custYrange * 100E,$
@@ -139,6 +142,9 @@ pro simulate_series,theta=theta,Npoints=Npoints,psplot=psplot,$
         end
         else: begin
            if j EQ 0l then begin
+              if n_elements(custYrange) EQ 0 then begin
+                    custYrange = [-0.02,0.02]
+              endif
               plot,x,y,yrange=custYrange,$
                    xtitle='Orbital Phase',$
                    ytitle='Flux',$
