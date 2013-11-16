@@ -4,10 +4,13 @@ function cov_kernel,x,theta0,theta1
 
 ;; create array identical to x argument
 f = x
-Argument = - x^2 * theta1^2
+Argument = - abs(x) * theta1 * 2.23607D
 bigNeg = where(Argument LT -15D,complement=smallNeg)
 if bigNeg NE [-1] then f[bigNeg] = 0D
-if smallNeg NE [-1] then f[smallNeg] = theta0 * exp(Argument[smallNeg])
+if smallNeg NE [-1] then begin
+   f[smallNeg] = theta0^2 * (1D + 2.23607D * abs(x[smallNeg]) * theta1 + $
+   	       	 	    1.666667D * x[smallNeg]^2 * theta1^2) * exp(Argument[smallNeg])
+endif
 
 return,f
 
