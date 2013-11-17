@@ -56,6 +56,7 @@ function ev_mcmc,expr,X,Y,Yerr,start,chainL=chainL,parinfo=pi,maxp=maxp,$
 
   chainparams = fltarr(nparams,chainL);; chain of parameters 
   chainparams[*,0] = result
+;  chainparams[*,0] = [0.143,0.507,0.1,0,4.751,1.0,0,0,0]
   if n_elements(hyperparams) NE 0 then begin
      chainHypers = fltarr(nhypers,chainL)
      chainHypers[*,0] = hyperparams.start
