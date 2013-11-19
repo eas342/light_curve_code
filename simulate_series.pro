@@ -89,6 +89,8 @@ pro simulate_series,theta=theta,Npoints=Npoints,psplot=psplot,$
      ;; Multiply by matrix from correlation matrix
      Y = RandomSer ## U
 
+     if keyword_set(psplot) then myCharsize=0.7 else myCharsize=1.0
+
      case 1 of
         keyword_set(autoC): begin
            autoArray[*,j] = a_correlate(y,steparray,/cov)
@@ -100,7 +102,7 @@ pro simulate_series,theta=theta,Npoints=Npoints,psplot=psplot,$
               plot,steparray,autoArray[*,j],$
                    ytitle='ACF',$
                    xtitle='Lag',yrange=custYrange,$
-                   title=custYtitle
+                   title=custYtitle,charsize=mycharsize
            endif else begin
               oplot,steparray,autoArray[*,j],color=colorarray[j]
            endelse
@@ -110,6 +112,7 @@ pro simulate_series,theta=theta,Npoints=Npoints,psplot=psplot,$
               oplot,C[0,*],linestyle=0,colo=mycol('blue'),thick=6
 
               AutoEstimator = auto_estimator(C)
+              oplot,AutoEstimator,color=mycol('black'),linestyle=2,thick=6
               oplot,AutoEstimator,color=mycol('orange'),linestyle=2,thick=3
               
               ;; Find the average auto-correlation function
@@ -120,12 +123,13 @@ pro simulate_series,theta=theta,Npoints=Npoints,psplot=psplot,$
               oplot,avgAuto,color=mycol('black'),linestyle=2,thick=6
               oplot,avgAuto,color=mycol('yellow'),linestyle=2,thick=3
               
-              al_legend,['Individual ACF','Input Kernel','Ensemble Avg ACF'],$
-                        color=mycol(['purple','black','black']),$
-                        thick=[1,10,6],/right,linestyle=[0,0,2],/clear
-              al_legend,['Individual ACF','Input Kernel','Ensemble Avg ACF'],$
-                        color=mycol(['purple','blue','yellow']),$
-                        thick=[1,6,3],/right,linestyle=[0,0,2],/clear
+
+              al_legend,['Individual ACF','Input Kernel','Ensemble Avg ACF','Sample ACF'],$
+                        color=mycol(['purple','black','black','black']),$
+                        thick=[1,10,6,6],/right,linestyle=[0,0,2,2],/clear,charsize=myCharsize
+              al_legend,['Individual ACF','Input Kernel','Ensemble Avg ACF','Sample ACF'],$
+                        color=mycol(['purple','blue','yellow','orange']),$
+                        thick=[1,6,3,3],/right,linestyle=[0,0,2,2],charsize=myCharsize
            endif
         end
         keyword_set(residplot): begin
