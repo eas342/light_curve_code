@@ -17,6 +17,9 @@ pro analyze_resids,psplot=psplot,showkern=showkern,fast=fast
              format='(F,F,F,F)',wavl1,wavl1size,theta0,theta0Err
      readcol,'radius_vs_wavelength/fit_data_mcmc/10_Theta_1_vs_wavl.txt',$
              format='(F,F,F,F)',wavl2,wavl2size,theta1,theta1Err
+     readcol,'param_input/kernel_choices.txt',$
+             skipline=1,format='(A,A)',$
+             instrumentkernRef,kernchoice
   endif
 
   for wavInd = 0l,totfiles-1l do begin
@@ -74,6 +77,14 @@ pro analyze_resids,psplot=psplot,showkern=showkern,fast=fast
           yrange=custYrange
 
      if keyword_set(showkern) then begin
+        ;; Check to be sure you have the right kernel
+        if wavname EQ 'z-prime' then begin
+           change_kernels,kernchoice[0]
+        endif else begin
+           change_kernels,kernchoice[1]
+        endelse
+
+        
         ;; Show the best-fit kenrel
         ;; get the MCMC hyperpameter fit data
         kernX = phase - phase[0]
