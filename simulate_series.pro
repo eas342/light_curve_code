@@ -82,6 +82,7 @@ pro simulate_series,theta=theta,Npoints=Npoints,psplot=psplot,$
   ;; If asked to, show the auto-correlation functions instead of the
   ;; time series
   if keyword_set(autoC) then steparray = lindgen(Npoints)
+  if keyword_set(psplot) then myCharsize=0.7 else myCharsize=1.0
 
   for j=0l,Nrealizations-1l do begin 
 
@@ -89,7 +90,6 @@ pro simulate_series,theta=theta,Npoints=Npoints,psplot=psplot,$
      ;; Multiply by matrix from correlation matrix
      Y = RandomSer ## U
 
-     if keyword_set(psplot) then myCharsize=0.7 else myCharsize=1.0
 
      case 1 of
         keyword_set(autoC): begin
@@ -140,7 +140,7 @@ pro simulate_series,theta=theta,Npoints=Npoints,psplot=psplot,$
               plot,x,y * 100E,xtitle='Orbital phase',$
                    ytitle='Relative Flux (%)',/nodata,$
                    yrange=custYrange * 100E,$
-                   title=custYtitle
+                   title=custYtitle,charsize=mycharsize
               dx = (x[1] - x[0])/2E
               oploterror,x,y*100E,$
                          fltarr(Npoints)+dx,(fltarr(Npoints)+sigma)*100E,$
@@ -154,7 +154,7 @@ pro simulate_series,theta=theta,Npoints=Npoints,psplot=psplot,$
               endif
               plot,x,y,yrange=custYrange,$
                    xtitle='Orbital Phase',$
-                   ytitle='Flux',$
+                   ytitle='Flux',charsize=mycharsize,$
                    title=custYtitle;,xmargin=[7,7]
            endif else begin
               oplot,x,y,linestyle=stylearr[j],color=colorarray[j]
