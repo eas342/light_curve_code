@@ -113,7 +113,7 @@ pro chainplot,psplot=psplot,nohyper=nohyper,extend2lm=extend2lm,$
           xticklen=0.05,xtitle='Steps',$
           xtick_get=xtickvals,xtickformat='(A1)',$;; supress & save tick labels
           ytick_get=ytickvals,ytickformat='(A1)'
-     twotick_labels,xtickvals,ytickvals,/ymid,ytitle='Log (L)',$
+     twotick_labels,xtickvals,ytickvals,/ymid,ytitle='- Log (L)',$
                     noX=0
   endif
 
