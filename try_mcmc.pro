@@ -78,7 +78,7 @@ pro try_mcmc,psplot=psplot,simread=simread,noadjust=noadjust,$
                       start:0E,jumpsize:0E},3)
 
   if keyword_set(custjump) then begin
-     hyperpi[*].start = [2E-4,160E,0] ;; the set I'm trying for the second-modified kernel
+     hyperpi[*].start = [5E-3,10E,0] ;; the set I'm trying for the second-modified kernel
      hyperpi[*].jumpsize = custjump
   endif else begin
 ;  hyperpi[*].start = [0.02,5,0.0024]
@@ -87,8 +87,10 @@ pro try_mcmc,psplot=psplot,simread=simread,noadjust=noadjust,$
 ;  hyperpi[*].jumpsize = [0.0001,0.05,0]
 ;  hyperpi[*].start = [0.0005,0.05,0.002] ;; the set I used for modified abs exp kern
 ;  hyperpi[*].jumpsize = [0.0002,0.02,0]
+;     hyperpi[*].start = [5E-4,5,0] ;; the set I'm trying for the second-modified kernel
+;     hyperpi[*].jumpsize = [1E-4,5,0]
      hyperpi[*].start = [5E-4,5,0] ;; the set I'm trying for the second-modified kernel
-     hyperpi[*].jumpsize = [1E-4,5,0]
+     hyperpi[*].jumpsize = [5E-5,5,0]
 ;  hyperpi[*].start = [0.08,5,0.002]
 ;  hyperpi[*].jumpsize = [0.04,1,0]
   endelse
