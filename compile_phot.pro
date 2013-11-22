@@ -1,33 +1,44 @@
-pro compile_phot,dec23=dec23,dec29=dec29,readC=readC,removelinear=removelinear
+pro compile_phot,dec23=dec23,dec29=dec29,readC=readC,removelinear=removelinear,$
+                 choosefile=choosefile
 ;; Compiles the MORIS photometry data in the same way as spectra for
 ;; use by other scripts
 ;; dec23 -- look at the dec23 data set (default is jan04)
 ;; dec29 -- look at the dec29 data set (default is jan04)
 ;; readC - use the photometry for kic1255
+;; choosefile -- choose a specific file from the CoRoT-1 photometry
+;;               folder
 
-case 1 of
-   keyword_set(dec23): begin
-      restore,'../moris_data/reduced_lightc/corot-1_UT2011Dec23_a0729_final.idl'
+case 1 of 
+   keyword_set(choosefile): begin
+      custfile = choose_file(searchDir='../moris_data/reduced_lightc/',filetype='.sav')
+      restore,custfile
    end
-   keyword_set(dec29): begin
-      restore,'../moris_data/reduced_lightc/UT2011Dec29_corot-1_a0729_final.idl'
+   keyword_set(readC): begin
+      restore,'../../../Documents/kic1255/extracted_photometry/zhao_photometry/kic1255_npoly2.idl'
+      restore,'data/used_date.sav'
+      case useDate of 
+         '2013aug13': datastruct = data0813
+         '2013aug15': datastruct = data0815
+         '2013aug17': datastruct = data0818 ;; mistyped in the photometry save file
+         '2013sep03': datastruct = data0903
+      endcase
+      bjd = datastruct.bjd_tdb
+      best_flux = datastruct.flux
    end
    else: begin
-      restore,'../moris_data/reduced_lightc/UT2012Jan04_corot-1_a0729_final.idl'
+      case 1 of
+         keyword_set(dec23): begin
+            restore,'../moris_data/reduced_lightc/corot-1_UT2011Dec23_a0729_final.idl'
+         end
+         keyword_set(dec29): begin
+            restore,'../moris_data/reduced_lightc/UT2011Dec29_corot-1_a0729_final.idl'
+         end
+         else: begin
+            restore,'../moris_data/reduced_lightc/UT2012Jan04_corot-1_a0729_final.idl'
+         end
+      endcase
    end
 endcase
-if keyword_set(readC) then begin
-   restore,'../../../Documents/kic1255/extracted_photometry/zhao_photometry/kic1255_npoly2.idl'
-   restore,'data/used_date.sav'
-   case useDate of 
-      '2013aug13': datastruct = data0813
-      '2013aug15': datastruct = data0815
-      '2013aug17': datastruct = data0818 ;; mistyped in the photometry save file
-      '2013sep03': datastruct = data0903
-   endcase
-   bjd = datastruct.bjd_tdb
-   best_flux = datastruct.flux
-end
 
 
 Nwavbins = 1 ;; photometry!
