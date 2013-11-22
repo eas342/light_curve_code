@@ -1,9 +1,9 @@
-function cov_kernel,x,theta0,theta1
+function cov_kernel,x,theta
 ;; Covariance kernel used by likelihood evaluation, simulated series
 ;; and plot_tim_ser
 
 ;; create array identical to x argument
-f = theta0^2 * (1D + x^2 * theta1^2/0.5D)^(-0.5D)
+f = theta[0]^2 * (1D + x^2 * theta[1]^2/0.5D)^(-0.5D)
 
 return,f
 

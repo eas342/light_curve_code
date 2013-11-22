@@ -88,25 +88,25 @@ pro analyze_resids,psplot=psplot,showkern=showkern,fast=fast
         ;; Show the best-fit kenrel
         ;; get the MCMC hyperpameter fit data
         kernX = phase - phase[0]
-        kernY = cov_kernel(kernX,theta0[wavInd],theta1[wavInd])
+        kernY = cov_kernel(kernX,[theta0[wavInd],theta1[wavInd]])
         oplot,autoX,kernY,color=mycol('blue')
-        kernY2 = cov_kernel(kernX,theta0[wavInd] - theta0Err[wavInd],$
-                            theta1[wavInd])
+        kernY2 = cov_kernel(kernX,[theta0[wavInd] - theta0Err[wavInd],$
+                            theta1[wavInd]])
         oplot,autoX,kernY2,color=mycol('blue'),linestyle=2
-        kernY3 = cov_kernel(kernX,theta0[wavInd] + theta0Err[wavInd],$
-                            theta1[wavInd])
+        kernY3 = cov_kernel(kernX,[theta0[wavInd] + theta0Err[wavInd],$
+                            theta1[wavInd]])
         oplot,autoX,kernY3,color=mycol('blue'),linestyle=2
 
         Npoints = n_elements(phase)
-        C = cov_matrix(Npoints,kernX,theta0[wavInd],theta1[wavInd])
+        C = cov_matrix(Npoints,kernX,[theta0[wavInd],theta1[wavInd]])
         kernY4 = auto_estimator(C)
         oplot,autoX,kernY4,color=mycol('orange'),thick=2
 
-        C = cov_matrix(Npoints,kernX,theta0[wavInd] - theta0Err[wavInd],theta1[wavInd])
+        C = cov_matrix(Npoints,kernX,[theta0[wavInd] - theta0Err[wavInd],theta1[wavInd]])
         kernY5 = auto_estimator(C)
         oplot,autoX,kernY5,color=mycol('orange'),thick=2,linestyl=2
 
-        C = cov_matrix(Npoints,kernX,theta0[wavInd] + theta0Err[wavInd],theta1[wavInd])
+        C = cov_matrix(Npoints,kernX,[theta0[wavInd] + theta0Err[wavInd],theta1[wavInd]])
         kernY6 = auto_estimator(C)
         oplot,autoX,kernY6,color=mycol('orange'),thick=2,linestyl=2
 

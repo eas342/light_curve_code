@@ -1,11 +1,11 @@
-function cov_matrix,npts,x,theta0,theta1
+function cov_matrix,npts,x,theta
 ;; Covariance matrix used by likelihood evaluation, simulated series
 ;; and plot_tim_ser
 
 firstX = rebin(x,npts,npts)
 secondX = transpose(firstX)
 
-return,cov_kernel(firstX - secondX,theta0,theta1)
+return,cov_kernel(firstX - secondX,theta)
 ;Argument = -abs(firstX - secondX)^2 * theta1^2
 ;bigNeg = where(Argument LT -15D,complement=smallNeg)
 ;if bigNeg NE [-1] then C2[bigNeg] = 0D

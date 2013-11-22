@@ -1,7 +1,7 @@
-function cov_kernel,x,theta0,theta1
+function cov_kernel,x,theta
 ;; Covariance kernel used by likelihood evaluation, simulated series
 ;; and plot_tim_ser
 
-return,theta0^2 * sinc(x * theta1) / theta1
+return,theta[0]^2 * sinc(x * theta[1]) / theta[1]
 
 end

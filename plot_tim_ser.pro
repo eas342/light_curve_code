@@ -592,14 +592,14 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
            meanfunctest = expression_eval(modelExpr,phaseShow,mcmcPars[k,0:8])
            ;oplot,phaseShow,meanfunctest-offset,color=mycol('blue'),thick=2
            ;; Find the residual vector
-           meanfuncdat = expression_eval(modelExpr,tplot,mcmcPars[k,0:8])
+           meanfuncdat = expression_eval(modelExpr,tplot,transpose(mcmcPars[k,0:8]))
            mcmcResid = y - meanfuncdat
            ;; Find the inverse covariance matrix using the likelihood
            ;; function which also needs the inverse covariance matrix
-           likeL = ev_leval([mcmcPars[k,9],mcmcPars[k,10],0],x=tplot,yin=y,yerr=yerr,Cinv=Cinv)
+           likeL = ev_leval([transpose(mcmcPars[k,9:10]),0],x=tplot,yin=y,yerr=yerr,Cinv=Cinv)
            mcmcModel = fltarr(n_elements(phaseShow))
            for m=0l,mcmcShowP-1l do begin
-              columnvec = cov_kernel(phaseShow[m] - tplot,mcmcpars[k,9],mcmcpars[k,10])
+              columnvec = cov_kernel(phaseShow[m] - tplot,transpose(mcmcpars[k,9:10]))
               mcmcModel[m] = meanfunctest[m] + columnvec ## Cinv ## transpose(mcmcResid)
            endfor
            oplot,phaseShow,mcmcModel-offset,color=mycol('blue'),thick=2
@@ -608,7 +608,7 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
            ;; right thing
            mcmcModelmatch = fltarr(n_elements(y)) ;; match the # of points (1 model pt per data pt)
            for m=0l,n_elements(y)-1l do begin
-              columnvec = cov_kernel(tplot[m] - tplot,mcmcpars[k,9],mcmcpars[k,10])
+              columnvec = cov_kernel(tplot[m] - tplot,transpose(mcmcpars[k,9:10]))
               mcmcModelmatch[m] = meanfuncdat[m] + columnvec ## Cinv ## transpose(mcmcResid)
            endfor
            pseudoresids = (mcmcModelmatch - y) ;; sort of like the residuals

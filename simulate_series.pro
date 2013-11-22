@@ -40,12 +40,12 @@ pro simulate_series,theta=theta,Npoints=Npoints,psplot=psplot,$
   ;; Try a squared exponential kernel from Danielski 2013
   ;; theta[0] is the maximum covariance
   ;; theta[1] is the inverse length scale
-  if n_elements(theta) EQ 0 then theta = [0.0002, 5]
+  if n_elements(theta) EQ 0 then theta = [0.0002, 5,0]
 
   ;; ensure that's it's double precision
   theta= double(theta)
 
-  C = cov_matrix(Npoints,x,theta[0],theta[1])
+  C = cov_matrix(Npoints,x,theta)
 
 
   ;; Add sigma to all diagonal elements

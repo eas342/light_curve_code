@@ -1,14 +1,14 @@
-function cov_kernel,x,theta0,theta1
+function cov_kernel,x,theta
 ;; Covariance kernel used by likelihood evaluation, simulated series
 ;; and plot_tim_ser
 
 ;; create array identical to x argument
 f = x
-Argument = - abs(x) * theta1 * 1.73205D
+Argument = - abs(x) * theta[1] * 1.73205D
 bigNeg = where(Argument LT -15D,complement=smallNeg)
 if bigNeg NE [-1] then f[bigNeg] = 0D
 if smallNeg NE [-1] then begin
-   f[smallNeg] = theta0^2 * (1D + 1.73205D * abs(x[smallNeg]) * theta1) * exp(Argument[smallNeg])
+   f[smallNeg] = theta[0]^2 * (1D + 1.73205D * abs(x[smallNeg]) * theta[1]) * exp(Argument[smallNeg])
 endif
 
 return,f
