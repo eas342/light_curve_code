@@ -91,6 +91,7 @@ pro try_mcmc,psplot=psplot,simread=simread,noadjust=noadjust,$
 ;     hyperpi[*].jumpsize = [1E-4,5,0]
      hyperpi[*].start = [5E-4,5,0] ;; the set I'm trying for the second-modified kernel
      hyperpi[*].jumpsize = [5E-5,5,0]
+     hyperpi[*].fixed = [0,0,0]
 ;  hyperpi[*].start = [0.08,5,0.002]
 ;  hyperpi[*].jumpsize = [0.04,1,0]
   endelse

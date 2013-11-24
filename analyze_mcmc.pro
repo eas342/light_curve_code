@@ -32,18 +32,19 @@ pro analyze_mcmc,psplot=psplot,nohyper=nohyper,extend2lm=extend2lm,$
   nregular = sizePchain[1] ;; number of regular parameters
   ;; If there are hyper-parameters, plot those as well
   if n_elements(chainhypers) NE 0 AND not keyword_set(nohyper) then begin
-     nparams = nregular + 2
+     nhyperTot = n_elements(hyperparams(*).fixed)
+     hyperFreeArr = 1 - hyperparams(*).fixed
+     nhyperFree = total(hyperFreeArr)
+     nparams = nregular + nhyperTot
 
-     parnamesSimple = [parnamesSimple,+['Theta_0','Theta_1']]
-     parnames = [parnames,cgGreek('Theta')+['!D0!N','!D1!N']]
-     fullchain = fltarr(nregular+2,sizePchain[2])
+     parnames = [parnames,cgGreek('Theta')+['!D0!N','!D1!N','!D2!N']]
+     parnamesSimple = [parnamesSimple,+['Theta_0','Theta_1','Theta_2']]
+     fullchain = fltarr(nregular+nhyperTot,sizePchain[2])
      fullchain[0:nregular-1,*] = chainparams
-     fullchain[nregular:nparams-1l,*] = chainhypers[0:1,*]
+     fullchain[nregular:nparams-1l,*] = chainhypers[0:nhyperTot-1l,*]
      chainparams = fullchain
-     medparams = [lmfit,mean(chainhypers[0,*]),mean(chainhypers[1,*])]
-     if stddev(chainhypers[1,*]) EQ 0 then freep = [freep,1,0] else begin
-        freep = [freep,1,1] ;; make 2 hyper-parameters free
-     endelse
+     medparams = [lmfit,replicate(0,nhyperFree)]
+     freep = [freep,hyperFreeArr]
   endif else begin
      nparams = n_elements(lmfit)
      ;; Returned parameters and uncertainties
@@ -141,8 +142,8 @@ pro analyze_mcmc,psplot=psplot,nohyper=nohyper,extend2lm=extend2lm,$
                     format='(A8,5(1x,A16))')
 
   if n_elements(chainhypers) NE 0 AND not keyword_set(nohyper) then begin
-     lmfull = [lmfit,0,0] ;; full Levenbergy-marquardt array (0 for the hyper-parameters)
-     lmunctfull = [lmunct,0,0]
+     lmfull = [lmfit,replicate(0,nhyperTot)] ;; full Levenbergy-marquardt array (0 for the hyper-parameters)
+     lmunctfull = [lmunct,replicate(0,nhyperTot)]
   endif else begin
      lmfull = lmfit
      lmunctfull = lmunct

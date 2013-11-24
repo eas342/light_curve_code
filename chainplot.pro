@@ -32,17 +32,21 @@ pro chainplot,psplot=psplot,nohyper=nohyper,extend2lm=extend2lm,$
   nregular = sizePchain[1] ;; number of regular parameters
   ;; If there are hyper-parameters, plot those as well
   if n_elements(chainhypers) NE 0 AND not keyword_set(nohyper) then begin
-     nparams = nregular + 2
+     nhyperTot = n_elements(hyperparams(*).fixed)
+     hyperFreeArr = 1 - hyperparams(*).fixed
+     nhyperFree = total(hyperFreeArr)
+     nparams = nregular + nhyperTot
 
-     parnames = [parnames,cgGreek('Theta')+['!D0!N','!D1!N']]
-     fullchain = fltarr(nregular+2,sizePchain[2])
+     parnames = [parnames,cgGreek('Theta')+['!D0!N','!D1!N','!D2!N']]
+     fullchain = fltarr(nregular+nhyperTot,sizePchain[2])
      fullchain[0:nregular-1,*] = chainparams
-     fullchain[nregular:nparams-1l,*] = chainhypers[0:1,*]
+     fullchain[nregular:nparams-1l,*] = chainhypers[0:nhyperTot-1l,*]
      chainparams = fullchain
-     medparams = [lmfit,0,0]
-     if stddev(chainhypers[1,*]) EQ 0 then freep = [freep,1,0] else begin
-        freep = [freep,1,1] ;; make 2 hyper-parameters free
-     endelse
+     medparams = [lmfit,replicate(0,nhyperFree)]
+     freep = [freep,hyperFreeArr]
+;     if stddev(chainhypers[1,*]) EQ 0 then freep = [freep,1,0] else begin
+;        freep = [freep,1,1] ;; make 2 hyper-parameters free
+;     endelse
   endif else begin
      nparams = n_elements(lmfit)
      ;; Returned parameters and uncertainties

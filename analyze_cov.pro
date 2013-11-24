@@ -42,16 +42,18 @@ pro analyze_cov,psplot=psplot,nocontour=nocontour,nohyper=nohyper,$
   nregular = sizePchain[1] ;; number of regular parameters (not including hypers)
 
   if n_elements(chainhypers) NE 0 AND not keyword_set(nohyper) then begin
-     nparams = nregular + 2
-     parnames = [parnames,cgGreek('Theta')+['!D0!N','!D1!N']]
-     fullchain = fltarr(nregular+2,sizePchain[2])
+     nhyperTot = n_elements(hyperparams(*).fixed)
+     hyperFreeArr = 1 - hyperparams(*).fixed
+     nhyperFree = total(hyperFreeArr)
+     nparams = nregular + nhyperTot
+
+     parnames = [parnames,cgGreek('Theta')+['!D0!N','!D1!N','!D2!N']]
+     fullchain = fltarr(nregular+nhyperTot,sizePchain[2])
      fullchain[0:nregular-1,*] = chainparams
-     fullchain[nregular:nparams-1l,*] = chainhypers[0:1,*]
+     fullchain[nregular:nparams-1l,*] = chainhypers[0:nhyperTot-1l,*]
      chainparams = fullchain
-     medparams = [fitpars,0,0]
-     if stddev(chainhypers[1,*]) EQ 0 then freep = [freep,1,0] else begin
-        freep = [freep,1,1] ;; make 2 hyper-parameters free
-     endelse
+     medparams = [lmfit,replicate(0,nhyperFree)]
+     freep = [freep,hyperFreeArr]
   endif else begin
      nparams = n_elements(fitpars)
      ;; Returned parameters and uncertainties

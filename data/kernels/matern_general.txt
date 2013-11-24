@@ -1,0 +1,23 @@
+function cov_kernel,x,theta
+;; Covariance kernel used by likelihood evaluation, simulated series
+;; and plot_tim_ser
+;; Genralized Matern Kernel
+
+;; create array identical to x argument
+f = x
+Argument = abs(x) * theta[1] 
+bigNeg = where(Argument LT -15D,complement=smallNeg)
+if bigNeg NE [-1] then f[bigNeg] = 0D
+if smallNeg NE [-1] then begin
+   case theta[2] of
+   	0: f[smallNeg] = theta[0]^2 *  exp(-Argument[smallNeg]) ;; matern 1/2
+	1: f[smallNeg] = theta[0]^2 *  exp(-Argument[smallNeg] * 1.73205D) * $
+	   (1D + 1.73205D * abs(x[smallNeg]) * theta[1])  ;; matern 3/2
+	2: f[smallNeg] = theta[0]^2 *  exp(-Argument[smallNeg] * 2.23607D) * $
+	   (1D + 2.23607D * abs(x[smallNeg]) * theta[1] + 1.666667D * x[smallNeg]^2 * theta[1]^2) ;; matern 5/2
+	3: f[smallNeg] = theta[0]^2 *  exp(-Argument[smallNeg]^2 * 0.5D);; matern inf
+endcase
+endif
+return,f
+
+end

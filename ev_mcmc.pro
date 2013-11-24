@@ -30,13 +30,13 @@ function ev_mcmc,expr,X,Y,Yerr,start,chainL=chainL,parinfo=pi,maxp=maxp,$
 ;  randUarray = 2E * randomu(0,nparams,maxP) - 1E
   randParray = randomn(0,nparams,maxP)
   if n_elements(hyperparams) NE 0 then begin
-     randHarray = randomn(1,nhypers,maxP)
+     randHarray = fltarr(nhypers,maxP);randomn(1,nhypers,maxP)
      randHarray[0,*] = randomn(4,maxP)
      ;; Here for the possibly exponentially distributed
      ;; parameter, let's try an exponential jump distribution
 ;     randHarray[1,*] = -1E * (alog(randomu(2,maxp)) + 1E)
      randHarray[1,*] = randomn(5,maxP)
-     randHarray[2,*] = randomn(6,maxP)
+     randHarray[2,*] = fix(randomu(6,maxP)*4E) ;; kernel choices
   endif
   randKeeparr = randomu(100,maxP) ;; Keep threshholds
 
@@ -88,6 +88,7 @@ function ev_mcmc,expr,X,Y,Yerr,start,chainL=chainL,parinfo=pi,maxp=maxp,$
      chainparams[*,j] = chainparams[*,j-1] + jumps[*,i]
      if n_elements(hyperparams) NE 0 then begin
         chainHypers[*,j] = chainHypers[*,j-1] + hyperjumps[*,i]
+        chainHypers[2,j] = randHarray[2,i] ;; discreet variables treated differently
      endif
 
      newModel = expression_eval(expr,X,chainparams[*,j])
@@ -147,7 +148,7 @@ function ev_mcmc,expr,X,Y,Yerr,start,chainL=chainL,parinfo=pi,maxp=maxp,$
            chainhypers = chainhypers[*,0l:(j-1l)]
         endif
         save,chainparams,lmfit,lmunct,freep,dof,chisQarray,aRatio,$
-             chainhypers,$
+             chainhypers,hyperparams,$
              filename='data/mcmc/mcmc_chains.sav'
 
         if j GT 10 then chainplot,nohyper=noHyperSwitch,/showL
@@ -169,7 +170,7 @@ function ev_mcmc,expr,X,Y,Yerr,start,chainL=chainL,parinfo=pi,maxp=maxp,$
   chainparams = chainparams[*,0l:(j-1l)]
   if n_elements(hyperparams) NE 0 then chainhypers = chainhypers[*,0l:(j-1l)]
   save,chainparams,lmfit,lmunct,freep,dof,chisQarray,aRatio,$
-       chainhypers,$
+       chainhypers,hyperparams,$
        filename='data/mcmc/mcmc_chains.sav'
   ;; save the chains, the mpfit best-fit values
 ;  stop
