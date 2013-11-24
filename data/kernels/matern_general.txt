@@ -6,7 +6,9 @@ function cov_kernel,x,theta
 ;; create array identical to x argument
 f = x
 Argument = abs(x) * theta[1] 
-bigNeg = where(Argument LT -15D,complement=smallNeg)
+if theta[2] LE 2 then begin
+   bigNeg = where(Argument GT 15D,complement=smallNeg)
+endif else bigNeg = where(Argument^2 GT 15D,complement=smallNeg)
 if bigNeg NE [-1] then f[bigNeg] = 0D
 if smallNeg NE [-1] then begin
    case theta[2] of

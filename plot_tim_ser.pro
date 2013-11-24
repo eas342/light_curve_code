@@ -589,7 +589,7 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
            mcmcShowP = 350
            phaseShow = findgen(mcmcshowP)/float(mcmcShowP) * (max(tplot)-min(tplot)) + min(tplot)
            ;; First find the mean function with expression evaluation
-           meanfunctest = expression_eval(modelExpr,phaseShow,mcmcPars[k,0:8])
+           meanfunctest = expression_eval(modelExpr,phaseShow,transpose(mcmcPars[k,0:8]))
            ;oplot,phaseShow,meanfunctest-offset,color=mycol('blue'),thick=2
            ;; Find the residual vector
            meanfuncdat = expression_eval(modelExpr,tplot,transpose(mcmcPars[k,0:8]))
@@ -614,7 +614,7 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
            pseudoresids = (mcmcModelmatch - y) ;; sort of like the residuals
            pseudochisquare = total((pseudoresids/yerr)^2)
            print,'Psuedo Chi-square = ',pseudochisquare
-           if keyword_set(showNommcmc) then oplot,tplot,meanfuncdat,color=mycol('green')
+           if keyword_set(showNommcmc) then oplot,tplot,meanfuncdat-offset,color=mycol('green')
         endif
 
         if keyword_set(showKep) then begin

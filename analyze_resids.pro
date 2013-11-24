@@ -5,36 +5,43 @@ pro analyze_resids,psplot=psplot,showkern=showkern,fast=fast
 ;; fast - skips the time series and power spectrum plots to run faster
 
   cd,c=currentd
-  fileopt = file_search(currentd+'/data/cleaned_tim_ser/*.txt')
+  restore,'data/specdata.sav' ;; get the wav names
+  fileopt = 'data/cleaned_tim_ser/timeser_'+wavname+'um_.txt' ;; go in same order as wavname
   totfiles = n_elements(fileopt)
+
+;  fileopt = file_search(currentd+'/data/cleaned_tim_ser/*.txt')
+;  totfiles = n_elements(fileopt)
 ;  for i=0l,n_elements(fileopt)-1l do begin
 ;     readcol,'data/cleaned_tim_ser/timeser_1.43um_.txt',$
 ;  readcol,'data/cleaned_tim_ser/timeser_0.91um_.txt',$
 ;          phase,fl,flerr,modelfl,resid
 
   if keyword_set(showkern) then begin
-     readcol,'radius_vs_wavelength/fit_data_mcmc/09_Theta_0_vs_wavl.txt',$
-             format='(F,F,F,F)',wavl1,wavl1size,theta0,theta0Err
-     readcol,'radius_vs_wavelength/fit_data_mcmc/10_Theta_1_vs_wavl.txt',$
-             format='(F,F,F,F)',wavl2,wavl2size,theta1,theta1Err
+     restore,'data/compiled_model_params.sav' ;; mcmcPars has NxM array 
+;     readcol,'radius_vs_wavelength/fit_data_mcmc/09_Theta_0_vs_wavl.txt',$
+;             format='(F,F,F,F)',wavl1,wavl1size,theta0,theta0Err
+;     readcol,'radius_vs_wavelength/fit_data_mcmc/10_Theta_1_vs_wavl.txt',$
+;             format='(F,F,F,F)',wavl2,wavl2size,theta1,theta1Err
      readcol,'param_input/kernel_choices.txt',$
              skipline=1,format='(A,A)',$
              instrumentkernRef,kernchoice
   endif
 
+
+
   for wavInd = 0l,totfiles-1l do begin
      readcol,fileopt[wavInd],phase,fl,flerr,modelfl,resid,format='(F)',skipline=1,/silent
      
-     startString = 'cleaned_tim_ser/timeser_'
-     wavnSt = strpos(fileopt[wavInd],startString)
-     wavnSize = strpos(fileopt[wavInd],'_.txt') - wavnSt - strlen(startString)
-     wavname = strmid(fileopt[wavInd],wavnSt+strlen(startString),wavnSize)
+;     startString = 'cleaned_tim_ser/timeser_'
+;     wavnSt = strpos(fileopt[wavInd],startString)
+;     wavnSize = strpos(fileopt[wavInd],'_.txt') - wavnSt - strlen(startString)
+;     wavname = strmid(fileopt[wavInd],wavnSt+strlen(startString),wavnSize)
      
      ;; set the plot
      if keyword_set(psplot) then begin
         set_plot,'ps'
         !p.font=0
-        plotprenm = 'plots/power_spectrum/acf_plot_'+wavname
+        plotprenm = 'plots/power_spectrum/acf_plot_'+wavname[wavInd]
         device,encapsulated=1, /helvetica,$
                filename=plotprenm+'.eps'
         device,xsize=12, ysize=8,decomposed=1,/color
@@ -72,41 +79,45 @@ pro analyze_resids,psplot=psplot,showkern=showkern,fast=fast
      plot,autoX,autoC,$
           xtitle=autoXtitle,$
           ytitle='Autocorrelation',$
-          title=wavname+' Time Series',$
+          title=wavname[wavInd]+' Time Series',$
           xrange=autoXrange,$
           yrange=custYrange
 
      if keyword_set(showkern) then begin
         ;; Check to be sure you have the right kernel
-        if wavname EQ 'z-prime' then begin
+        if wavname[wavInd] EQ 'z-prime' then begin
            change_kernels,kernchoice[0]
         endif else begin
            change_kernels,kernchoice[1]
         endelse
 
-        
         ;; Show the best-fit kenrel
         ;; get the MCMC hyperpameter fit data
         kernX = phase - phase[0]
-        kernY = cov_kernel(kernX,[theta0[wavInd],theta1[wavInd]])
+        nmcmcPars = n_elements(mcmcPars[wavInd,*])
+        kernY = cov_kernel(kernX,transpose(mcmcPars[wavInd,9:nmcmcPars-1]))
         oplot,autoX,kernY,color=mycol('blue')
-        kernY2 = cov_kernel(kernX,[theta0[wavInd] - theta0Err[wavInd],$
-                            theta1[wavInd]])
+
+        kernY2 = cov_kernel(kernX,[mcmcPars[wavInd,9] - mcmcParsErr[wavInd,9],$
+                            transpose(mcmcPars[wavInd,10:nmcmcPars-1])])
         oplot,autoX,kernY2,color=mycol('blue'),linestyle=2
-        kernY3 = cov_kernel(kernX,[theta0[wavInd] + theta0Err[wavInd],$
-                            theta1[wavInd]])
+        kernY3 = cov_kernel(kernX,[mcmcPars[wavInd,9] + mcmcParsErr[wavInd,9],$
+                            transpose(mcmcPars[wavInd,10:nmcmcPars-1])])
         oplot,autoX,kernY3,color=mycol('blue'),linestyle=2
 
         Npoints = n_elements(phase)
-        C = cov_matrix(Npoints,kernX,[theta0[wavInd],theta1[wavInd]])
+
+        C = cov_matrix(Npoints,kernX,transpose(mcmcPars[wavInd,9:nmcmcPars-1]))
         kernY4 = auto_estimator(C)
         oplot,autoX,kernY4,color=mycol('orange'),thick=2
 
-        C = cov_matrix(Npoints,kernX,[theta0[wavInd] - theta0Err[wavInd],theta1[wavInd]])
+        C = cov_matrix(Npoints,kernX,[mcmcPars[wavInd,9] - mcmcParsErr[wavInd,9],$
+                                      transpose(mcmcPars[wavInd,10:nmcmcPars-1])])
         kernY5 = auto_estimator(C)
         oplot,autoX,kernY5,color=mycol('orange'),thick=2,linestyl=2
 
-        C = cov_matrix(Npoints,kernX,[theta0[wavInd] + theta0Err[wavInd],theta1[wavInd]])
+        C = cov_matrix(Npoints,kernX,[mcmcPars[wavind,9] + mcmcParsErr[wavInd,9],$
+                                      transpose(mcmcPars[wavInd,10:nmcmcPars-1])])
         kernY6 = auto_estimator(C)
         oplot,autoX,kernY6,color=mycol('orange'),thick=2,linestyl=2
 
@@ -124,7 +135,7 @@ pro analyze_resids,psplot=psplot,showkern=showkern,fast=fast
            device, /close
            cgPS2PDF,plotprenm+'.eps'
            spawn,'convert -density 250% '+plotprenm+'.pdf '+plotprenm+'.png'
-           plotprenm = 'plots/power_spectrum/psd_plot_'+wavname
+           plotprenm = 'plots/power_spectrum/psd_plot_'+wavname[wavInd]
            device,encapsulated=1, /helvetica,$
                   filename=plotprenm+'.eps'
            device,xsize=12, ysize=8,decomposed=1,/color
@@ -137,14 +148,14 @@ pro analyze_resids,psplot=psplot,showkern=showkern,fast=fast
              xtitle='Frequency (1/min)',/xlog,$
 ;       ytitle='Power Spectral Density',yrange=[0,5],$
              ytitle='Power Spectral Density',/ylog,$
-             title=wavname+' Time Series'
+             title=wavname[wavInd]+' Time Series'
         
         
         if keyword_set(psplot) then begin
            device, /close
            cgPS2PDF,plotprenm+'.eps'
            spawn,'convert -density 250% '+plotprenm+'.pdf '+plotprenm+'.png'
-           plotprenm = 'plots/power_spectrum/residual_series_'+wavname
+           plotprenm = 'plots/power_spectrum/residual_series_'+wavname[wavInd]
            device,encapsulated=1, /helvetica,$
                   filename=plotprenm+'.eps'
            device,xsize=12, ysize=8,decomposed=1,/color
@@ -152,7 +163,7 @@ pro analyze_resids,psplot=psplot,showkern=showkern,fast=fast
      
         plot,t,resid,xtitle='Time from transit center (s)',$
              ytitle='Flux Residuals (%)',$
-             title=wavname+' Time Series'
+             title=wavname[wavInd]+' Time Series'
 
      endif 
 

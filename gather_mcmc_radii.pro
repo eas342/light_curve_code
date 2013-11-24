@@ -55,8 +55,9 @@ pro gather_mcmc_radii
               parfname+'_vs_wavl.txt',/silent
   endfor
   mcmcPars = paramArray
+  mcmcParsErr = paramArrayErr
   ;; Save so plot time series can show the model results
-  save,mcmcPars,filename='data/compiled_model_params.sav'
+  save,mcmcPars,mcmcParsErr,filename='data/compiled_model_params.sav'
 
 end
 
