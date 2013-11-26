@@ -64,9 +64,9 @@ pro multiple_mcmc_nights,phot=phot,both=both
      ;; Make a copy of the AutoCorrelation plots
      analyze_resids,/psplot,/fast,/showkern
      for j=0l,n_elements(wavname)-1 do begin
-        spawn,'cp plots/power_spectrum/acf_plot_'+wavname[j]+'um.png plots/power_spectrum/'+$
+        spawn,'cp plots/power_spectrum/acf_plot_'+wavname[j]+'.png plots/power_spectrum/'+$
               nightname+'_acf_png/'
-        spawn,'cp plots/power_spectrum/acf_plot_'+wavname[j]+'um.eps plots/power_spectrum/'+$
+        spawn,'cp plots/power_spectrum/acf_plot_'+wavname[j]+'.eps plots/power_spectrum/'+$
               nightname+'_acf_eps/'
      endfor
 
