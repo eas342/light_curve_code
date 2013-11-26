@@ -5,7 +5,8 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
                      showOptical=showOptical,custYrange=custYrange,$
                      powerErr=powerErr,multErr=multErr,medianbin=medianbin,$
                      nolit=nolit,showtext=showtext,depthkep=depthkep,$
-                     kepMORIS=kepMORIS,phot=phot,custcharS=custcharS
+                     kepMORIS=kepMORIS,phot=phot,custcharS=custcharS,$
+                     asymmetric=asymmetric
 ;;psplot -- saves a postscript plot
 ;;showstarspec -- shows a star spectrum on the same plot
 ;;nbins -- number of points bo bin in Rp/R*
@@ -29,6 +30,7 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
 ;; phot - shows the zprime data as different
 ;; custcharS -- set a custom character size (Terry thought my numbers
 ;;              were too big)
+;; asymmetric -- show asymmetric error bars
 
   if keyword_set(showstar) then !x.margin = [9,9] else !x.margin=[9,3]
   ;; set the plot
@@ -56,7 +58,14 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
      else: radfile='radius_vs_wavelength/radius_vs_wavl.txt'
   endcase
 
-  readcol,radfile,wavl,wavlsize,rad,rade,skipline=1,format='(F,F,F)'
+  if keyword_set(asymmetric) then begin
+     readcol,radfile,wavl,wavlsize,rad,rade,radep,radem,skipline=1,format='(F,F,F,F)'
+  endif else begin
+     readcol,radfile,wavl,wavlsize,rad,rade,skipline=1,format='(F,F,F)'
+     ;; Make the +/- bars the same
+     radep = rade
+     radem = rade
+  endelse
 
   if n_elements(powerErr) NE 0 then rade = rade^(powerErr)
   if n_elements(multErr) NE 0 then rade = rade * multErr
@@ -138,7 +147,8 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
      oploterror,wavl[1:nwavs-1l],rad[1:nwavs-1l],wavlwidth[1:nwavs-1],rade[1:nwavs-1],$
                 psym=3,thick=2,linestyle=mylinestyle
   endif else begin
-     oploterror,wavl,rad,wavlwidth,rade,psym=3,thick=2
+     oploterror,wavl,rad,wavlwidth,radep,psym=3,thick=2,/hibar
+     oploterror,wavl,rad,wavlwidth,radem,psym=3,thick=2,/lobar
   endelse
   if keyword_set(depthkep) then oplot,wavl,rad,thick=2,linestyle=0
 
