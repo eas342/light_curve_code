@@ -63,9 +63,11 @@ pro analyze_resids,psplot=psplot,showkern=showkern,fast=fast
      if keyword_set(showkern) then begin
         autoC = a_correlate(resid * 1E-2,steparray,/cov)
         custYrange=[min(autoC),max(autoC) * 1.5E]
+        autoYtitle = 'Autocovariance'
      endif else begin
         autoC = a_correlate(resid,steparray)
         custYrange=[0,0]
+        autoYtitle = 'Autocorrelation'
      endelse
      if keyword_set(min) then begin
         autoX = steparray * (t[1] - t[0])
@@ -78,7 +80,7 @@ pro analyze_resids,psplot=psplot,showkern=showkern,fast=fast
      endelse
      plot,autoX,autoC,$
           xtitle=autoXtitle,$
-          ytitle='Autocorrelation',$
+          ytitle=autoYtitle,$
           title=wavname[wavInd]+' Time Series',$
           xrange=autoXrange,$
           yrange=custYrange
@@ -92,41 +94,35 @@ pro analyze_resids,psplot=psplot,showkern=showkern,fast=fast
         endelse
 
         ;; Show the best-fit kenrel
-        ;; get the MCMC hyperpameter fit data
         kernX = phase - phase[0]
         nmcmcPars = n_elements(mcmcPars[wavInd,*])
-        kernY = cov_kernel(kernX,transpose(mcmcPars[wavInd,9:nmcmcPars-1]))
-        oplot,autoX,kernY,color=mycol('blue')
-
-        kernY2 = cov_kernel(kernX,[mcmcPars[wavInd,9] - mcmcParsErr[wavInd,9],$
-                            transpose(mcmcPars[wavInd,10:nmcmcPars-1])])
-        oplot,autoX,kernY2,color=mycol('blue'),linestyle=2
-        kernY3 = cov_kernel(kernX,[mcmcPars[wavInd,9] + mcmcParsErr[wavInd,9],$
-                            transpose(mcmcPars[wavInd,10:nmcmcPars-1])])
-        oplot,autoX,kernY3,color=mycol('blue'),linestyle=2
-
         Npoints = n_elements(phase)
-
-        C = cov_matrix(Npoints,kernX,transpose(mcmcPars[wavInd,9:nmcmcPars-1]))
-        kernY4 = auto_estimator(C)
-        oplot,autoX,kernY4,color=mycol('orange'),thick=2
-
-        C = cov_matrix(Npoints,kernX,[mcmcPars[wavInd,9] - mcmcParsErr[wavInd,9],$
+        if keyword_set(showallCurves) then begin
+           kernY = cov_kernel(kernX,transpose(mcmcPars[wavInd,9:nmcmcPars-1]))
+           oplot,autoX,kernY,color=mycol('blue')
+           
+           kernY2 = cov_kernel(kernX,[mcmcPars[wavInd,9] - mcmcParsErr[wavInd,9],$
                                       transpose(mcmcPars[wavInd,10:nmcmcPars-1])])
-        kernY5 = auto_estimator(C)
-        oplot,autoX,kernY5,color=mycol('orange'),thick=2,linestyl=2
-
-        C = cov_matrix(Npoints,kernX,[mcmcPars[wavind,9] + mcmcParsErr[wavInd,9],$
+           oplot,autoX,kernY2,color=mycol('blue'),linestyle=2
+           kernY3 = cov_kernel(kernX,[mcmcPars[wavInd,9] + mcmcParsErr[wavInd,9],$
                                       transpose(mcmcPars[wavInd,10:nmcmcPars-1])])
-        kernY6 = auto_estimator(C)
-        oplot,autoX,kernY6,color=mycol('orange'),thick=2,linestyl=2
+           oplot,autoX,kernY3,color=mycol('blue'),linestyle=2
+           
+           
+           C = cov_matrix(Npoints,kernX,[mcmcPars[wavInd,9] - mcmcParsErr[wavInd,9],$
+                                         transpose(mcmcPars[wavInd,10:nmcmcPars-1])])
+           kernY5 = auto_estimator(C)
+           oplot,autoX,kernY5,color=mycol('orange'),thick=2,linestyl=2
+           
+           C = cov_matrix(Npoints,kernX,[mcmcPars[wavind,9] + mcmcParsErr[wavInd,9],$
+                                         transpose(mcmcPars[wavInd,10:nmcmcPars-1])])
+           kernY6 = auto_estimator(C)
+           oplot,autoX,kernY6,color=mycol('orange'),thick=2,linestyl=2
 
-;        kernY4 = cov_kernel(kernX,theta0[wavInd],$
-;                            theta1[wavInd] + theta1Err[wavInd])
-;        oplot,autoX,kernY4,color=mycol('red'),linestyle=2
-;        kernY5 = cov_kernel(kernX,theta0[wavInd],$
-;                            theta1[wavInd] - theta1Err[wavInd])
-;        oplot,autoX,kernY5,color=mycol('red'),linestyle=2
+        endif
+           C = cov_matrix(Npoints,kernX,transpose(mcmcPars[wavInd,9:nmcmcPars-1]))
+           kernY4 = auto_estimator(C)
+           oplot,autoX,kernY4,color=mycol('orange'),thick=2
 
      endif
 
