@@ -1,4 +1,4 @@
-pro rerun_multiple_mcmc,docov=docov,both=both
+pro rerun_multiple_mcmc,docov=docov,both=both,showLegResid=showLegResid
 ;; Takes the MCMC chain data and re-runs portions of it
   ;; Make light curves, and do MCMC fitting for multiple nights
   ;; Make sure to empty the Cleaned_tim_ser folder first
@@ -6,6 +6,8 @@ pro rerun_multiple_mcmc,docov=docov,both=both
 ;; docov -- makes covariance plots for the parameters and saves the
 ;;          eps files
 ;; both -- do both photometry and spectroscopy
+;; showLegResid -- shows the Legendre polynomial residuals (before
+;;                 fancy GP + MCMC fitting)
 
   read,'Have you emptied the cleaned_time_ser folder?',junk
 
@@ -57,8 +59,12 @@ pro rerun_multiple_mcmc,docov=docov,both=both
      spawn,'cp radius_vs_wavelength/mcmc_rad_vs_wavl.txt '+$
            'radius_vs_wavelength/'+radcode+'_'+datename[i]+'_leg00fit_freelimblin_mcmc_hypers_'+$
            'free_free_offtrans_err_009pt_matern_general.txt'
+     spawn,'cp -r radius_vs_wavelength/fit_data_mcmc/* radius_vs_wavelength/fit_data_mcmc_'+datename[i]+'/'
 
      ;; Make a copy of the AutoCorrelation plots
+     if keyword_set(showLegResid) then begin
+        plot_tim_ser,timebin=Npoints,/offtranserr,/singleplot,legord=0,/fitcurve,/freelimblin
+     endif
      analyze_resids,/psplot,/fast,/showkern
      for j=0l,n_elements(wavname)-1 do begin
         spawn,'cp plots/power_spectrum/acf_plot_'+wavname[j]+'.png plots/power_spectrum/'+$
