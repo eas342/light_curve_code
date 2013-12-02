@@ -135,8 +135,8 @@ pro analyze_cov,psplot=psplot,nocontour=nocontour,nohyper=nohyper,$
         if not keyword_set(nocontour) then begin
            
            ;; Now show a contour at 68% confidence
-           binX = unct[XpInd]*0.3
-           binY = unct[YpInd]*0.3
+           binX = unct[XpInd]*0.35
+           binY = unct[YpInd]*0.35
            bin2=hist_2d(chainparams[XpInd,*],chainparams[YpInd,*],$
                         bin1=binX,bin2=binY,$
                         min1=myXrange[0],max1=myXrange[1],$
@@ -188,7 +188,10 @@ pro analyze_cov,psplot=psplot,nocontour=nocontour,nohyper=nohyper,$
   if keyword_set(psplot) then begin
      device, /close
      cgPS2PDF,plotprenm+'.eps'
-     spawn,'convert -density 450% '+plotprenm+'.pdf '+plotprenm+'.png'
+     spawn,'convert -density 200% '+plotprenm+'.pdf '+plotprenm+'.png'
+     ;; overwrite the EPS file as an image since all those dots
+     ;; don't work well in a PDF
+     spawn,'convert '+plotprenm+'.png '+plotprenm+'.eps'
      device,decomposed=0
      set_plot,'x'
      !p.font=-1
