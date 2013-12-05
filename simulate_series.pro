@@ -1,7 +1,8 @@
 pro simulate_series,theta=theta,Npoints=Npoints,psplot=psplot,$
                     custYrange=custYrange,sigma=sigma,$
                     Nrealizations=Nrealizations,autoc=autoc,$
-                    modified=modified,residplot=residplot
+                    modified=modified,residplot=residplot,$
+                    showestimator=showestimator
 ;; Makes a random time series with correlated noise
 ;; theta - is the set of hyperparameters that govern the correlated
 ;;         noise - theta[0] is the maximum correlation coefficient and
@@ -14,6 +15,8 @@ pro simulate_series,theta=theta,Npoints=Npoints,psplot=psplot,$
 ;; autoc -- show the autocorrelation functions instead of the time series
 ;; modified -- multiplies the kernel by parameter theta1
 ;; residplot -- shows a plot much like the residual plots from data anlaysis
+;; showestimator - show the autocovariance esimator, using
+;;                 Wei's "Time Series Analysis"
 
   ;; set the plot
   if keyword_set(psplot) then begin
@@ -74,15 +77,16 @@ pro simulate_series,theta=theta,Npoints=Npoints,psplot=psplot,$
   U = transpose(U)
   autoArray = fltarr(Npoints,Nrealizations)
 
-        
-  custYtitle=cgGreek('sigma')+'= '+string(sigma,format='(G6.2)')+',  '+cgGreek('theta')+'!D0!N= '+$
-             string(Theta[0],format='(G7.2)')+',  '+cgGreek('theta')+'!D1!N= '+$
-             string(Theta[1],format='(G7.2)')
+  ntheta = n_elements(theta)
+  thetaString = replicate(',  ',ntheta) + replicate(cgGreek('theta'),ntheta) + $
+                '!D'+strtrim(indgen(ntheta),1)+'!N= '+string(Theta,format='(G7.2)')
+  thetaString = string(thetaString,format='('+strtrim(ntheta,1)+'A)') ;; concatenate
+  custYtitle=cgGreek('sigma')+'= '+string(sigma,format='(G6.2)')+thetaString
 
   ;; If asked to, show the auto-correlation functions instead of the
   ;; time series
   if keyword_set(autoC) then steparray = lindgen(Npoints)
-  if keyword_set(psplot) then myCharsize=0.7 else myCharsize=1.0
+  if keyword_set(psplot) then myCharsize=0.65 else myCharsize=1.0
 
   for j=0l,Nrealizations-1l do begin 
 
@@ -100,7 +104,7 @@ pro simulate_series,theta=theta,Npoints=Npoints,psplot=psplot,$
                  custYrange = [min(BothArrays),max(bothArrays)]
               endif
               plot,steparray,autoArray[*,j],$
-                   ytitle='ACF',$
+                   ytitle='Autocovariance',$
                    xtitle='Lag',yrange=custYrange,$
                    title=custYtitle,charsize=mycharsize
            endif else begin
@@ -111,10 +115,6 @@ pro simulate_series,theta=theta,Npoints=Npoints,psplot=psplot,$
               oplot,C[0,*],linestyle=0,colo=mycol('black'),thick=10
               oplot,C[0,*],linestyle=0,colo=mycol('blue'),thick=6
 
-              AutoEstimator = auto_estimator(C)
-              oplot,AutoEstimator,color=mycol('black'),linestyle=2,thick=6
-              oplot,AutoEstimator,color=mycol('orange'),linestyle=2,thick=3
-              
               ;; Find the average auto-correlation function
               avgAuto = fltarr(Npoints)
               for l=0l,Npoints-1l do begin
@@ -122,14 +122,30 @@ pro simulate_series,theta=theta,Npoints=Npoints,psplot=psplot,$
               endfor
               oplot,avgAuto,color=mycol('black'),linestyle=2,thick=6
               oplot,avgAuto,color=mycol('yellow'),linestyle=2,thick=3
+
+              legendNames = ['Individual AC','Input Kernel','Ensemble Avg AC']
+              legendColor = mycol(['purple' ,'blue'        ,'yellow'         ]);; foreground color
+              legendBacks = mycol(['purple' ,'black'       ,'black'          ]);; background color
+              legendStyle = [0              ,         0    ,           2     ] ;; linestyle
+              legendBthic = [ 1             ,      10      ,           6     ] ; background thickness
+              legendFthic = [ 1             ,      6       ,           3     ] ; foregroudn thickness
+
+              if keyword_set(showestimator) then begin
+                 AutoEstimator = auto_estimator(C)
+                 oplot,AutoEstimator,color=mycol('black'),linestyle=2,thick=6
+                 oplot,AutoEstimator,color=mycol('orange'),linestyle=2,thick=3
+                 legendNames = [legendNames,'AC Estimator']
+                 legendColor = [legendColor,mycol('orange')]
+                 legendBacks = [legendBacks,mycol('black')]
+                 legendBthic = [legenBthic,6]
+                 legendFthic = [lgendFthic,3]
+              endif
               
 
-              al_legend,['Individual ACF','Input Kernel','Ensemble Avg ACF','Sample ACF'],$
-                        color=mycol(['purple','black','black','black']),$
-                        thick=[1,10,6,6],/right,linestyle=[0,0,2,2],/clear,charsize=myCharsize
-              al_legend,['Individual ACF','Input Kernel','Ensemble Avg ACF','Sample ACF'],$
-                        color=mycol(['purple','blue','yellow','orange']),$
-                        thick=[1,6,3,3],/right,linestyle=[0,0,2,2],charsize=myCharsize
+              al_legend,legendNames,color=legendBacks,$
+                        thick=legendBthic,/right,linestyle=legendStyle,/clear,charsize=myCharsize
+              al_legend,legendNames,color=legendColor,$
+                        thick=legendFthic,/right,linestyle=legendStyle,charsize=myCharsize
            endif
         end
         keyword_set(residplot): begin
