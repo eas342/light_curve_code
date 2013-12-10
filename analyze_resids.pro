@@ -78,10 +78,15 @@ pro analyze_resids,psplot=psplot,showkern=showkern,fast=fast
         autoXtitle = 'Lag (steps)'
         autoXrange = [1,n_elements(steparray)-1l]
      endelse
+
+     if strpos(wavname[wavInd],'prime') EQ -1 then wavelabel = wavname[wavInd]+' um' else begin
+        wavelabel = wavname[wavInd]
+     endelse
+
      plot,autoX,autoC,$
           xtitle=autoXtitle,$
           ytitle=autoYtitle,$
-          title=wavname[wavInd]+' Time Series',$
+          title=wavelabel+' Time Series',$
           xrange=autoXrange,$
           yrange=custYrange
 
@@ -144,14 +149,14 @@ pro analyze_resids,psplot=psplot,showkern=showkern,fast=fast
              xtitle='Frequency (1/min)',/xlog,$
 ;       ytitle='Power Spectral Density',yrange=[0,5],$
              ytitle='Power Spectral Density',/ylog,$
-             title=wavname[wavInd]+' Time Series'
+             title=wavelabel+' Time Series'
         
         
         if keyword_set(psplot) then begin
            device, /close
            cgPS2PDF,plotprenm+'.eps'
            spawn,'convert -density 250% '+plotprenm+'.pdf '+plotprenm+'.png'
-           plotprenm = 'plots/power_spectrum/residual_series_'+wavname[wavInd]
+           plotprenm = 'plots/power_spectrum/residual_series_'+wavelabel
            device,encapsulated=1, /helvetica,$
                   filename=plotprenm+'.eps'
            device,xsize=12, ysize=8,decomposed=1,/color
@@ -159,7 +164,7 @@ pro analyze_resids,psplot=psplot,showkern=showkern,fast=fast
      
         plot,t,resid,xtitle='Time from transit center (s)',$
              ytitle='Flux Residuals (%)',$
-             title=wavname[wavInd]+' Time Series'
+             title=wavelabel+' Time Series'
 
      endif 
 
