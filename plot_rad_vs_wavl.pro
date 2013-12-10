@@ -6,7 +6,9 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
                      powerErr=powerErr,multErr=multErr,medianbin=medianbin,$
                      nolit=nolit,showtext=showtext,depthkep=depthkep,$
                      kepMORIS=kepMORIS,phot=phot,custcharS=custcharS,$
-                     asymmetric=asymmetric
+                     asymmetric=asymmetric,$
+                     rightleg=rightleg,bottomleg=bottomleg,$
+                     redphotcurve=redphotcurve
 ;;psplot -- saves a postscript plot
 ;;showstarspec -- shows a star spectrum on the same plot
 ;;nbins -- number of points bo bin in Rp/R*
@@ -31,6 +33,7 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
 ;; custcharS -- set a custom character size (Terry thought my numbers
 ;;              were too big)
 ;; asymmetric -- show asymmetric error bars
+;; rightleg/bottomleg -- move the legend to the right/bottom
 
   if keyword_set(showstar) then !x.margin = [9,9] else !x.margin=[9,3]
   ;; set the plot
@@ -274,9 +277,12 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
   if keyword_set(psplot) then legcharsize = 0.75 else legcharsize=1
 
   if totsets GT 1l then begin
-     if keyword_set(depthk) then myRight=1 else myRight=0
+     if n_elements(rightleg) EQ 0 then begin
+        if keyword_set(depthk) then rightleg=1 else rightleg=0
+     endif
+     if n_elements(bottomleg) EQ 0 then bottomleg = 0
      al_legend,legnamearr,psym=1l+lonarr(totsets),color=colorchoices,/clear,$
-               right=myRight,charsize=legcharsize
+               right=rightleg,bottom=bottomleg,charsize=legcharsize
   endif
 
   if keyword_set(showtext) then begin
@@ -287,14 +293,15 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
   if keyword_set(phot) then begin
      readcol,'../calculations/zprime_transmission/zprime_response.txt.csv',skipline=1,$
              wavel,trans
+     if keyword_set(redphotcurve) then filterCurveColor = mycol('red') else filterCurveColor=mycol('dgreen')
      oplot,wavel,trans / max(trans) * 0.1E * (!y.crange[1] - !y.crange[0]) + !y.crange[0],$
-           color=mycol('red')
+           color=filterCurveColor
      if keyword_set(showOptical) then begin
         readcol,'../corot_data/filter_curve/filter_curve_CoRoT.txt',skipline=1,$
                 CoRoTtransWav,CoRoTtrans
         CoRoTtransWav = CoRoTtransWav * 1E-3 ;; convert from nm to microns
         oplot,CoRoTtransWav,CoRoTtrans / max(CoRoTtrans) * 0.1E * (!y.crange[1] - !y.crange[0]) + !y.crange[0],$
-              color=mycol('red'),linestyle=2
+              color=filterCurveColor,linestyle=2
         
      endif
   endif
