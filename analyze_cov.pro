@@ -136,18 +136,26 @@ pro analyze_cov,psplot=psplot,nocontour=nocontour,nohyper=nohyper,$
            
            ;; Now show a contour at 68% confidence
            binX = unct[XpInd]*0.35
-           binY = unct[YpInd]*0.35
+           if parnames[YpInd] EQ cgGreek('Theta')+'!D2!N' then begin
+              binY = 0.333E
+              mymin2 = 0E - binY * 3E/2E
+              mymax2 = 3E + binY * 3E/2E
+           endif else begin
+              binY = unct[YpInd]*0.35
+              mymin2 = myYrange[0]
+              mymax2 = myYrange[1]
+           endelse
            bin2=hist_2d(chainparams[XpInd,*],chainparams[YpInd,*],$
                         bin1=binX,bin2=binY,$
                         min1=myXrange[0],max1=myXrange[1],$
-                        min2=myYrange[0],max2=myYrange[1])
+                        min2=mymin2,max2=mymax2)
            
            ;; Get dimensions of image
            bin2dims = size(bin2,/dim)
            Nxpoints = bin2dims[0]
            xcontour = findgen(Nxpoints) * binX + myXrange[0] + binX/2E ;; middle of bins
            NYpoints = bin2dims[1]
-           ycontour = findgen(NYpoints) * binY + myYrange[0] + binY/2E ;; middle of bins
+           ycontour = findgen(NYpoints) * binY + mymin2 + binY/2E ;; middle of bins
            
            ;; Find the 68% and 95% contours
            normbin = bin2 / float(total(bin2)) ;; PDF
