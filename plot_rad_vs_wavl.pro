@@ -8,7 +8,7 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
                      kepMORIS=kepMORIS,phot=phot,custcharS=custcharS,$
                      asymmetric=asymmetric,$
                      rightleg=rightleg,bottomleg=bottomleg,$
-                     redphotcurve=redphotcurve
+                     filterCurveColor=filterCurveColor
 ;;psplot -- saves a postscript plot
 ;;showstarspec -- shows a star spectrum on the same plot
 ;;nbins -- number of points bo bin in Rp/R*
@@ -34,6 +34,7 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
 ;;              were too big)
 ;; asymmetric -- show asymmetric error bars
 ;; rightleg/bottomleg -- move the legend to the right/bottom
+;; filterCurveColor -- lets you specify the filter curve color
 
   if keyword_set(showstar) then !x.margin = [9,9] else !x.margin=[9,3]
   ;; set the plot
@@ -110,6 +111,11 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
   endif else begin
   endelse
 
+  myplotsym = 0 ; circle
+  myplotfill = 1 ; fill
+  myplotsymSize = 0.5 ;; half size
+  plotsym,myplotsym,myplotsymSize,fill=myplotfill 
+
   wavlwidth = binsizes/2E
   if keyword_set(wavnum) then begin
      myxtitle = 'Wave Number (cm!E-1!N)'
@@ -117,7 +123,7 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
      wavl = 1E4 / (wavl)
      myxrange = [4000,11500]
   endif else begin
-     myxtitle='Wavelength (um)'
+     myxtitle='Wavelength ('+cgGreek('mu')+'m)'
      myxrange = [0.8,2.55]
   endelse
 
@@ -145,13 +151,13 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
 
   if keyword_set(phot) then begin
      oploterror,[wavl[0]],[rad[0]],[0],[rade[0]],thick=4,$
-                hatlength=!D.X_VSIZE / 30,errstyle=0,psym=4,symsize=0.7
+                hatlength=!D.X_VSIZE / 30,errstyle=0,psym=8,symsize=1.2
      nwavs = n_elements(wavl)
      oploterror,wavl[1:nwavs-1l],rad[1:nwavs-1l],wavlwidth[1:nwavs-1],rade[1:nwavs-1],$
-                psym=3,thick=2,linestyle=mylinestyle
+                psym=8,thick=2,linestyle=mylinestyle
   endif else begin
-     oploterror,wavl,rad,wavlwidth,radep,psym=3,thick=2,/hibar
-     oploterror,wavl,rad,wavlwidth,radem,psym=3,thick=2,/lobar
+     oploterror,wavl,rad,wavlwidth,radep,psym=8,thick=2,/hibar
+     oploterror,wavl,rad,wavlwidth,radem,psym=8,thick=2,/lobar
   endelse
   if keyword_set(depthkep) then oplot,wavl,rad,thick=2,linestyle=0
 
@@ -192,7 +198,8 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
         ySmooth = specsmooth(xsmooth,fullRes.(i * 2l+1l),100)
         oplot,xsmooth,ysmooth,color=modcolor[i]
         ;; Binned
-        oplot,binnedWav,binnedValues[*,i],psym=2,color=modcolor[i],symsize=2
+        plotsym,myplotsym,myplotsymSize,fill=0
+        oplot,binnedWav,binnedValues[*,i],psym=8,color=modcolor[i],symsize=1
         xyouts,binnedWav[0] * positionMultX[i],binnedValues[0,i] * positionMultY[i],$
                modName[i],charsize=0.7,$
                color=modColor[i]
@@ -256,14 +263,14 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
      if keyword_set(depthkep) then wavlwidth2 = wavlwidth2 * 0E
 
      if keyword_set(phot) then begin
-        oploterror,[wavl2[0]],[rad2[0]],[0],[rade2[0]],thick=4,psym=4,$
+        oploterror,[wavl2[0]],[rad2[0]],[0],[rade2[0]],thick=4,psym=8,$
                    color=colorchoices[i-1l],errstyle=0,hatlength=!D.X_VSIZE / 30,$
-                   symsize=0.7
+                   symsize=1.2
         nwavs = n_elements(wavl2)
         oploterror,wavl2[1:nwavs-1l],rad2[1:nwavs-1l],wavlwidth2[1:nwavs-1],rade2[1:nwavs-1],$
-                   psym=3,thick=2,color=colorchoices[i-1l]
+                   psym=8,thick=2,color=colorchoices[i-1l]
      endif else begin
-        oploterror,wavl2,rad2,wavlwidth2,rade2,psym=3,thick=2,color=colorchoices[i-1l]
+        oploterror,wavl2,rad2,wavlwidth2,rade2,psym=8,thick=2,color=colorchoices[i-1l]
      endelse
 
      if keyword_set(depthkep) then oplot,wavl2,rad2,thick=2,linestyle=0,$
@@ -281,27 +288,34 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
         if keyword_set(depthk) then rightleg=1 else rightleg=0
      endif
      if n_elements(bottomleg) EQ 0 then bottomleg = 0
-     al_legend,legnamearr,psym=1l+lonarr(totsets),color=colorchoices,/clear,$
-               right=rightleg,bottom=bottomleg,charsize=legcharsize
+     al_legend,legnamearr,psym=8+lonarr(totsets),color=colorchoices,/clear,$
+               right=rightleg,bottom=bottomleg,charsize=legcharsize,symsize=1.05 + lonarr(totsets)
+
   endif
 
   if keyword_set(showtext) then begin
-     legend,['Bean 2009','This Work','Binned Model Value'],psym=[1,1,2],/bottom,charsize=legcharsize,$
-            color=[mycol('red'),!P.color,mycol('blue')],/right
+     plotsym,myplotsym,myplotsymSize,fill=1
+     al_legend,['Bean 2009','This Work','Binned Model Value'],psym=[4,8,8],/bottom,charsize=legcharsize,$
+            color=[mycol('white'),!P.color,mycol('white')],/right,fill=1,symsize=[0.7,1.0,1.0],$
+               thick=[2,1,1],textcolor=mycol(['white','white','white'])
+     plotsym,myplotsym,myplotsymSize,fill=0
+     al_legend,['Bean 2009','This Work','Binned Model Value'],psym=[4,8,8],/bottom,charsize=legcharsize,$
+            color=[mycol('red'),!P.color,!P.color],/right,fill=1,symsize=[0.7,1.0,1.0],$
+               thick=[2,1,1]
   endif
 
   if keyword_set(phot) then begin
      readcol,'../calculations/zprime_transmission/zprime_response.txt.csv',skipline=1,$
              wavel,trans
-     if keyword_set(redphotcurve) then filterCurveColor = mycol('red') else filterCurveColor=mycol('dgreen')
+     if n_elements(filterCurveColor) EQ 0 then filterCurveColor='dgreen'
      oplot,wavel,trans / max(trans) * 0.1E * (!y.crange[1] - !y.crange[0]) + !y.crange[0],$
-           color=filterCurveColor
+           color=mycol(filterCurveColor)
      if keyword_set(showOptical) then begin
         readcol,'../corot_data/filter_curve/filter_curve_CoRoT.txt',skipline=1,$
                 CoRoTtransWav,CoRoTtrans
         CoRoTtransWav = CoRoTtransWav * 1E-3 ;; convert from nm to microns
         oplot,CoRoTtransWav,CoRoTtrans / max(CoRoTtrans) * 0.1E * (!y.crange[1] - !y.crange[0]) + !y.crange[0],$
-              color=filterCurveColor,linestyle=2
+              color=mycol(filterCurveColor),linestyle=2
         
      endif
   endif
