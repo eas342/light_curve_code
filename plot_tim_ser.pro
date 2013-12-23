@@ -10,7 +10,7 @@ pro plot_tim_ser,fitcurve=fitcurve,fitpoly=fitpoly,usepoly=usepoly,makestops=mak
                  custresidYrange=custresidYrange,fitepoch=fitepoch,singleplot=singleplot,$
                  showmcmc=showmcmc,deletePS=deletePS,showKep=showKep,lindetrend=lindetrend,$
                  showjump=showjump,kepfit=kepfit,skipReset=skipReset,custSep=custSep,$
-                 showNomMCMC=showNomMCMC
+                 showNomMCMC=showNomMCMC,useGPasfit=useGPasfit
 ;; plots the binned data as a time series and can also fit the Rp/R* changes
 ;; apPlot -- this optional keyword allows one to choose the aperture
 ;;           to plot
@@ -68,6 +68,9 @@ pro plot_tim_ser,fitcurve=fitcurve,fitpoly=fitpoly,usepoly=usepoly,makestops=mak
 ;; showjump -- show where the telescope tracking jump occured
 ;; skipReset - skip the reset at the end of the program
 ;; custSep -- custom separation between data in single plot mode
+;; useGPasfit -- use the Gaussian process model as a fit (instead of
+;;               just the mean function) The result should be like
+;;               white noise
 
 ;sigrejcrit = 6D  ;; sigma rejection criterion
 sigrejcrit = 5D  ;; sigma rejection criterion
@@ -810,7 +813,9 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
            resid = fltarr(ntplot)
         endif
         if keyword_set(showmcmc) then begin
-           resid = mcmcResid * 100E
+           if keyword_set(useGPasfit) then begin
+              resid = pseudoresids
+           endif else resid = mcmcResid * 100E
            modelY = meanfuncdat
         endif
 
