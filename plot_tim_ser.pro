@@ -814,7 +814,7 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
         endif
         if keyword_set(showmcmc) then begin
            if keyword_set(useGPasfit) then begin
-              resid = pseudoresids
+              resid = pseudoresids * 100E
            endif else resid = mcmcResid * 100E
            modelY = meanfuncdat
         endif
