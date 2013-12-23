@@ -45,6 +45,9 @@ pro rerun_multiple_mcmc,docov=docov,both=both,showLegResid=showLegResid
         spawn,'cp data/mcmc/chains_'+datename[i]+'/mcmc_chains_'+wavname[j]+'um.sav data/mcmc/mcmc_chains.sav'
         analyze_mcmc,discard=discardPoints
         spawn,'cp data/mcmc/param_unc/param_unc.txt data/mcmc/param_unc/param_unc_'+wavname[j]+'um.txt'
+        spawn,'cp data/mcmc/param_unc/param_unc.txt data/mcmc/param_unc/'+datename[i]+$
+              '_param_unc/param_unc_'+wavname[j]+'um.txt'
+
         firstwav = wavname[0]
         if keyword_set(docov) then begin
            analyze_cov,/psplot,discard=discardPoints
