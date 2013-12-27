@@ -1,8 +1,9 @@
-pro analyze_resids,psplot=psplot,showkern=showkern,fast=fast
+pro analyze_resids,psplot=psplot,showkern=showkern,fast=fast,custYrange=custYrange
 ;; Looks at the residuals of the model fit to analyze red noise
 ;; also generates, Autocorrelation and Power Spectral Density
 ;; showkern -- show the covariance kernel w/ best-fit hyper-parameters
 ;; fast - skips the time series and power spectrum plots to run faster
+;; custYrange -- custom Y range for plots
 
   cd,c=currentd
   restore,'data/specdata.sav' ;; get the wav names
@@ -41,6 +42,7 @@ pro analyze_resids,psplot=psplot,showkern=showkern,fast=fast
      if keyword_set(psplot) then begin
         set_plot,'ps'
         !p.font=0
+        ;; Get rid of spaces in the file name
         plotprenm = 'plots/power_spectrum/acf_plot_'+wavname[wavInd]
         device,encapsulated=1, /helvetica,$
                filename=plotprenm+'.eps'
@@ -62,12 +64,12 @@ pro analyze_resids,psplot=psplot,showkern=showkern,fast=fast
      steparray = lindgen(np)
      if keyword_set(showkern) then begin
         autoC = a_correlate(resid * 1E-2,steparray,/cov)
-        custYrange=[min(autoC),max(autoC) * 1.5E]
+        if n_elements(custYrange) EQ 0 then myYrange=[min(autoC),max(autoC) * 1.5E] else myYrange=custyrange
         autoYtitle = 'Autocovariance'
      endif else begin
-        autoC = a_correlate(resid,steparray)
-        custYrange=[0,0]
-        autoYtitle = 'Autocorrelation'
+        autoC = a_correlate(resid * 1E-2,steparray,/cov)
+        if n_elements(custYrange) EQ 0 then myYrange=[0,0] else myYrange=custyrange
+        autoYtitle = 'Autocovariance'
      endelse
      if keyword_set(min) then begin
         autoX = steparray * (t[1] - t[0])
@@ -88,7 +90,8 @@ pro analyze_resids,psplot=psplot,showkern=showkern,fast=fast
           ytitle=autoYtitle,$
           title=wavelabel+' Time Series',$
           xrange=autoXrange,$
-          yrange=custYrange
+          yrange=myYrange,$
+          xmargin=[12,3]
 
      if keyword_set(showkern) then begin
         ;; Check to be sure you have the right kernel
@@ -156,7 +159,7 @@ pro analyze_resids,psplot=psplot,showkern=showkern,fast=fast
            device, /close
            cgPS2PDF,plotprenm+'.eps'
            spawn,'convert -density 250% '+plotprenm+'.pdf '+plotprenm+'.png'
-           plotprenm = 'plots/power_spectrum/residual_series_'+wavelabel
+           plotprenm = 'plots/power_spectrum/residual_series_'+wavname[wavInd]
            device,encapsulated=1, /helvetica,$
                   filename=plotprenm+'.eps'
            device,xsize=12, ysize=8,decomposed=1,/color
@@ -171,6 +174,7 @@ pro analyze_resids,psplot=psplot,showkern=showkern,fast=fast
      if keyword_set(psplot) then begin
         device, /close
         cgPS2PDF,plotprenm+'.eps'
+        stop
         spawn,'convert -density 250% '+plotprenm+'.pdf '+plotprenm+'.png'
         device,decomposed=0
         set_plot,'x'
