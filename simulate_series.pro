@@ -106,7 +106,8 @@ pro simulate_series,theta=theta,Npoints=Npoints,psplot=psplot,$
               plot,steparray,autoArray[*,j],$
                    ytitle='Autocovariance',$
                    xtitle='Lag',yrange=custYrange,$
-                   title=custYtitle,charsize=mycharsize
+                   title=custYtitle,charsize=mycharsize,$
+                   xmargin=[13,3]
            endif else begin
               oplot,steparray,autoArray[*,j],color=colorarray[j]
            endelse

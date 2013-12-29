@@ -68,7 +68,8 @@ pro analyze_resids,psplot=psplot,showkern=showkern,fast=fast,custYrange=custYran
         autoYtitle = 'Autocovariance'
      endif else begin
         autoC = a_correlate(resid * 1E-2,steparray,/cov)
-        if n_elements(custYrange) EQ 0 then myYrange=[0,0] else myYrange=custyrange
+        if n_elements(custYrange) EQ 0 then myYrange=[min(autoC),max(autoC) * 1.5E] else myYrange=custyrange
+;        if n_elements(custYrange) EQ 0 then myYrange=[0,0] else myYrange=custyrange
         autoYtitle = 'Autocovariance'
      endelse
      if keyword_set(min) then begin
@@ -174,7 +175,6 @@ pro analyze_resids,psplot=psplot,showkern=showkern,fast=fast,custYrange=custYran
      if keyword_set(psplot) then begin
         device, /close
         cgPS2PDF,plotprenm+'.eps'
-        stop
         spawn,'convert -density 250% '+plotprenm+'.pdf '+plotprenm+'.png'
         device,decomposed=0
         set_plot,'x'
