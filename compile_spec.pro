@@ -320,18 +320,22 @@ if keyword_set(specshift) then begin
       medspec0[i] = median(flgrid[i,0,*])
       medspec1[i] = median(flgrid[i,1,*])
    endfor
-   lagarray = lindgen(20l) - 10l
    badp = where(finite(medspec0) EQ 0)
    if badp NE [-1] then medspec0[badp] = 0.0E
    badp = where(finite(medspec1) EQ 0)
    if badp NE [-1] then medspec1[badp] = 0.0E
-   CrossC = c_correlate(medspec0,medspec1,lagarray)
-;   stop
+   ;; Filter the specta
+   fmedspec0 = convol(medspec0,digital_filter(0.15,0.3,50,10))
+   fmedspec1 = convol(medspec1,digital_filter(0.15,0.3,50,10))
+   lagarray = lindgen(9l) - 4l
+   CrossC = c_correlate(fmedspec0,fmedspec1,lagarray)
    PolyFit = poly_fit(lagarray,crossC,2)
    ShiftStars = polyFit[1]/(-2E * polyFit[2])
+
    xyspec = fltarr(Ngpts,nfile)
    xyspec[*,*] = flgrid[*,0,*]
    shiftedGrid = shift_interp(xyspec,ShiftStars)
+;   shiftedGrid = shift_interp(xyspec,0)
    flgrid[*,0,*] = shiftedGrid
 endif
 
