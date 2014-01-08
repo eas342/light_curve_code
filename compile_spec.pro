@@ -288,7 +288,13 @@ ReadNarr = replicate(ReadN,Ngpts,Nap,Nfile)
 
 
 ;; Star Shift, the default is to move the reference star by -1 pixel
-if n_elements(starshift) EQ 0 then starshift = -1
+if n_elements(starshift) EQ 0 then begin
+   ;; the readCurrent keyword is designed to read newer data so the default star
+   ;; shift is 0 for the new data
+   if keyword_set(readCurrent) then starshift=0 else begin
+      starshift = -1
+   endelse
+endif
 xygrid = fltarr(Ngpts,nfile)
 xygrid[*,*] = flgrid[*,1,*] ;; adjust the reference star
 shiftedGrid = shift_interp(xygrid,starshift)
