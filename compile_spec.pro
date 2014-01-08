@@ -287,8 +287,6 @@ ReadNarr = replicate(ReadN,Ngpts,Nap,Nfile)
 ;ErrGrid = nansqrt( FowFac * flgrid + FowFac * backgrid + readnarr^2 * npix)
 
 
-
-
 ;; Star Shift, the default is to move the reference star by -1 pixel
 if n_elements(starshift) EQ 0 then starshift = -1
 xygrid = fltarr(Ngpts,nfile)
@@ -299,7 +297,7 @@ flgrid[*,1,*] = shiftedGrid
 ;; Shift arrays
 if keyword_set(specshift) then begin
    ;; Align the stars within their bins
-   
+
    if keyword_set(trystraight) then begin
       ;; since the straightend spec has some weird properties above
       ;; 2.47um because of shifting spectra, mask those out
@@ -310,6 +308,7 @@ if keyword_set(specshift) then begin
    for i=0l,Nap-1l do begin
       xyspec = fltarr(Ngpts,nfile)
       xyspec[*,*] = flgrid[*,i,*]
+
       ShiftedGrid1 = find_shifts(xyspec,/cutEnds)
       flgrid[*,i,*] = ShiftedGrid1
    endfor
@@ -318,8 +317,8 @@ if keyword_set(specshift) then begin
    medspec0 = fltarr(Ngpts)
    medspec1 = fltarr(Ngpts)
    for i=0l,Ngpts-1l do begin
-      medspec0[i] = median(flgrid[*,0,*])
-      medspec1[i] = median(flgrid[*,1,*])
+      medspec0[i] = median(flgrid[i,0,*])
+      medspec1[i] = median(flgrid[i,1,*])
    endfor
    lagarray = lindgen(20l) - 10l
    badp = where(finite(medspec0) EQ 0)
@@ -327,6 +326,7 @@ if keyword_set(specshift) then begin
    badp = where(finite(medspec1) EQ 0)
    if badp NE [-1] then medspec1[badp] = 0.0E
    CrossC = c_correlate(medspec0,medspec1,lagarray)
+;   stop
    PolyFit = poly_fit(lagarray,crossC,2)
    ShiftStars = polyFit[1]/(-2E * polyFit[2])
    xyspec = fltarr(Ngpts,nfile)
