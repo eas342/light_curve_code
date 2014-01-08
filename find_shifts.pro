@@ -16,28 +16,39 @@ function find_shifts,inArray,cutEnds=cutEnds,stopAndshow=stopAndshow
   nwavs = dims[1]
   nspec = dims[2]
 
+  ;; Eliminate bad pixels and Nans
+  for i=0l,nwavs-1l do begin
+     ;; check if whole row is Nans, in that case make it zeros
+     finites = finite(inArray[i,*])
+     if total(finites) LT nspec - 12l then begin
+        inArray[i,*] = 0E
+     endif else begin
+        rsigma = robust_sigma(inArray[i,*])
+        if rsigma EQ [-1] then stop
+        medAlong = median(inArray[i,*])
+        badp = where(finites EQ 0 OR $
+                     abs(inArray[i,*] - medAlong) GT 10E * rsigma)
+        if badp NE [-1] then inArray[i,badp] = medAlong
+     endelse
+  endfor
+
+  ;; Filter the array to get rid of broad features
+  finArray = convol(inArray,digital_filter(0.15,0.3,50,10))
+
   medspec = fltarr(nwavs)
   ;; Get a median spectrum
   for i=0l,nwavs-1l do begin
-     medspec[i] = median(inArray[i,*])
+     medspec[i] = median(finArray[i,*])
   endfor
-;  medspec = inarray[*,0]
 
   ;; Make a lag array
-  nLag = 20l
-;  nLag = 100l
+  nLag = 26l
   lagArray = lindgen(nLag) - nLag/2l
+  fitWidth = 8l ;; size of region used for parabolic fit
 
-  ;; Zero out all NaNs
-  badp = where(finite(medspec) EQ 0)
-  medspec[badp] = 0.0E
-  badp = where(finite(inArray) EQ 0)
-  inArray[badp] = 0.0E
-
-  ;; Shift Array & New image
+  ;; Make a shift Array & New image
   shiftArr = fltarr(nspec)
   outArray = fltarr(nwavs,nspec)
-
 
   ;; Cross-Correlate to find the shifts
   for j=0l,nspec-1l do begin
@@ -45,7 +56,7 @@ function find_shifts,inArray,cutEnds=cutEnds,stopAndshow=stopAndshow
      if keyword_set(cutEnds) then begin ;; cut out bottom & top 10%
         badp = where(lindgen(nwavs) LT float(nwavs)*0.1E OR $
                      lindgen(nwavs) GT float(nwavs)*0.9E OR $
-                     inArray[*,j] EQ 0 OR $
+                     finArray[*,j] EQ 0 OR $
                      medspec EQ 0,$; OR $
 ;                     (lindgen(nwavs) GE 220 and lindgen(nwavs) LT 235),$
                      numbad,complement=keepp)
@@ -53,18 +64,35 @@ function find_shifts,inArray,cutEnds=cutEnds,stopAndshow=stopAndshow
      numgood = nwavs - numbad
      if numgood LE nlag then shiftArr[j] = 0 else begin
         
-        crossCor = c_correlate(inArray[keepp,j],medspec[keepp],lagArray)
-;    peakVal = max(crossCor,peakP) 
-        PolyFit = poly_fit(lagArray,crossCor,2,yfit=polyVals)
-        shiftArr[j] = polyFit[1]/(-2E * polyFit[2])
-;     if lagArray[peakP] NE 0 then begin
+        crossCor = c_correlate(finArray[keepp,j],medspec[keepp],lagArray)
+        peakVal = max(crossCor,peakInd)
+        peakP = lagarray[peakInd]
 
+        if abs(peakP) GE nLag/2l - fitWidth/2l then begin
+           shiftArr[j] = 0
+           print,"Warning, cross correlation peak outside of range"
+        endif else begin
+           fitPoints = where(lagArray GT peakP-4l and lagarray LT peakP + 4l)
+           PolyFit = poly_fit(lagArray[fitpoints],crossCor[fitpoints],2,yfit=polyVals)
+           shiftArr[j] = polyFit[1]/(-2E * polyFit[2])
+;           plot,lagarray,crosscor
+;           oplot,lagarray,PolyFit[0] + PolyFit[1] * lagarray + PolyFit[2] * lagarray^2,color=mycol('yellow')
+;           oplot,[shiftArr[j],shiftArr[j]],!y.crange,color=mycol('red')
+;           stop
+
+        endelse
      endelse
-;;     outArray[*,j] = shift_interp(inArray[*,j],shiftArr[j])
-        
-;        outArray[*,j] = shift_interp(inArray[*,j],shiftArr[j])
-        outArray[*,j] = shift_interp(inArray[*,j],shiftArr[j])
-;        outArray[*,j] = shift_interp(inArray[*,j],-result[2])
+
+     outArray[*,j] = shift_interp(inArray[*,j],shiftArr[j])
+     if keyword_set(showEach) then begin
+        !p.multi=[0,1,2]
+        plot,medspec
+        oplot,finArray[*,j],color=mycol('red')
+        plot,medspec,title='After Shift'
+        oplot,shift(finArray[*,j],round(shiftArr[j])),color=mycol('red')
+        !p.multi=0
+        stop
+     endif
 
      if j GE 575 and keyword_set(stopAndshow) then begin
         !p.multi = [0,1,2]
@@ -101,7 +129,6 @@ function find_shifts,inArray,cutEnds=cutEnds,stopAndshow=stopAndshow
      endif
 
   endfor
-
 
   return,outArray
 end
