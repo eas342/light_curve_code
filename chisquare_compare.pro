@@ -108,7 +108,7 @@ binnedValues[*,1] = binModel2 * result2[0]
 
 fullRes = create_struct('model1wav',theowav,'model1rad',theorad * result[0],$
                        'model2wav',theowav2,'model2rad',theorad2 * result2[0])
-modName = ['Equilbrium Chemistry','TiO-Removed']
+modName = ['Equilibrium Chemistry','TiO-Removed']
 
 save,filename='data/binned_final.sav',$
      binnedValues,nmod,fullRes,binnedWav,$
