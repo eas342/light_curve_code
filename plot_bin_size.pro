@@ -1,11 +1,13 @@
 pro plot_bin_size,psplot=psplot,scalephoton=scalephoton,$
-                  wavlmode=wavlmode,photmode=photmode
+                  wavlmode=wavlmode,photmode=photmode,$
+                  custyrange=custyrange
 ;; plots the rms as a function of bin size
 ;; psplot -- makes eps, pdf and png plots
 ;; scalephoton -- scales the photon errors up to the measured RMS
 ;; wavlmode -- looks at binning as a function of wavelength, instead
 ;;             of time
 ;; photmode -- photometry mode only looks at one wavelength
+;; custyrange -- allows you to set the Y range of the plot
 
 if keyword_set(wavlmode) then begin
    bintarr = [5,7,9,12,15,25,30,60,100,0]
@@ -89,7 +91,9 @@ endelse
 ;myYrange=[min(photonfun) - max(rmstbinfun) * 0.4E,max(rmstbinfun) *
 ;                           1.2E]*100E
 ;myYrange=[2E-2,5E]
-if keyword_set(wavlmode) then myYrange= [2E-2,5E] else myYrange=[1E-3,2E]
+if n_elements(custyrange) EQ 0 then begin
+   if keyword_set(wavlmode) then myYrange= [2E-2,5E] else myYrange=[1E-3,2E]
+endif else myYrange=custyrange
 
 plot,bintdescrip,rmstbinfun[*,0]*100E,$
      xtitle=myXtitle,$
