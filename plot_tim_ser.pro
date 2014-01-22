@@ -385,7 +385,7 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
         y = y/(fitY[0] + fitY[1]*tplot)
      endif
 
-     if total(finite(y)) GT 0 and total(finite(yerr)) GT 0.0 then begin
+     if total(finite(y)) GT 2 and total(finite(yerr)) GT 2 then begin
         ;; if keyword set, replace the error w/ the off transit stddev
 
         ;find the range where 95% or more of the plots are shown
