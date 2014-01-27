@@ -1,0 +1,2 @@
+../../../Documents/kic1255/UT2013.08.15_data/proc/run02_0060.a_lincor.fits
+../../../Documents/kic1255/UT2013.08.15_data/proc/run02_0060.a_lincor_straight.fits
