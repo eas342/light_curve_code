@@ -10,7 +10,7 @@ pro plot_tim_ser,fitcurve=fitcurve,fitpoly=fitpoly,usepoly=usepoly,makestops=mak
                  custresidYrange=custresidYrange,fitepoch=fitepoch,singleplot=singleplot,$
                  showmcmc=showmcmc,deletePS=deletePS,showKep=showKep,lindetrend=lindetrend,$
                  showjump=showjump,kepfit=kepfit,skipReset=skipReset,custSep=custSep,$
-                 showNomMCMC=showNomMCMC,useGPasfit=useGPasfit
+                 showNomMCMC=showNomMCMC,useGPasfit=useGPasfit,kepdiff=kepdiff
 ;; plots the binned data as a time series and can also fit the Rp/R* changes
 ;; apPlot -- this optional keyword allows one to choose the aperture
 ;;           to plot
@@ -71,6 +71,9 @@ pro plot_tim_ser,fitcurve=fitcurve,fitpoly=fitpoly,usepoly=usepoly,makestops=mak
 ;; useGPasfit -- use the Gaussian process model as a fit (instead of
 ;;               just the mean function) The result should be like
 ;;               white noise
+;; kepfit -- use the KIC 12557458b light curve fit (scaled from the
+;;           Kepler Phot)
+;; kepdiff -- same as kepfit but for differential light curve fitting
 
 ;sigrejcrit = 6D  ;; sigma rejection criterion
 sigrejcrit = 5D  ;; sigma rejection criterion
@@ -646,6 +649,11 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
 
 ;           if keyword_set(quadfit) then begin
            case 1 of
+              keyword_set(kepdiff): begin
+;                 expr = 'parameterized_kep(X,P[0]) *  (P[5] + X *
+;                 P[6])'                 
+                 expr = '1D - (kepler_func(X,P[0]) - kepler_func(X,1D)) *  (P[5] + X * P[6])'
+              end
               keyword_set(differential): begin
                  quadlcArg ='X'
                  for m=0l,4 do begin
