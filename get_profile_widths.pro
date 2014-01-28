@@ -53,16 +53,21 @@ pro get_profile_widths,showplot=showplot,jan04corot1=jan04corot1,$
      for i=0l,1 do begin
         ;; Go through both sources
         ;; make a sub-array surrounding a peak
-        startx = posit[i] - HW
-        if startx LT 0l then startx = 0l
-        endx = posit[i] + HW
-        if endx GE n_elements(b) -1l then endx = n_elements(b) - 1l
-        subarrayX = indices[startx:endx]
-        subarrayY = b[startx:endx]
-        result = gaussfit(subarrayX,subarrayY,A,nterms=5)
-        Widths[j,i] = A[2]
-        starLocations[j,i] = A[1]
-
+        if posit[i] GT max(indices) or posit[i] LT 0 then begin
+           print,'Peak finding Failed in Image',origNm
+           starLocations[j,i] = !values.f_nan
+           Widths[j,i] = !values.f_nan
+        endif else begin
+           startx = posit[i] - HW
+           if startx LT 0l then startx = 0l
+           endx = posit[i] + HW
+           if endx GE n_elements(b) -1l then endx = n_elements(b) - 1l
+           subarrayX = indices[startx:endx]
+           subarrayY = b[startx:endx]
+           result = gaussfit(subarrayX,subarrayY,A,nterms=5)
+           Widths[j,i] = A[2]
+           starLocations[j,i] = A[1]
+        endelse
         if keyword_set(showplot) then begin
            plot,indices,b
            oplot,subarrayX,result,color=mycol('yellow'),thick=2
