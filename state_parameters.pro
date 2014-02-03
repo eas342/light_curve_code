@@ -12,7 +12,7 @@ pro state_parameters,skipInitialize=skipInitialize,psplot=psplot
      plotprenm = 'plots/spec_t_series/state_param'
      device,encapsulated=1, /helvetica,$
             filename=plotprenm+'.eps'
-           device,xsize=8, ysize=14,decomposed=1,/color
+           device,xsize=14, ysize=14,decomposed=1,/color
   endif
 
   if not keyword_set(skipInitialize) then begin
@@ -61,8 +61,8 @@ pro state_parameters,skipInitialize=skipInitialize,psplot=psplot
         else: y = tplot * 0E
      endcase
      
-     if ShowY2 then myYrange = threshold([y,y2],low=0.2,high=0.8) else begin
-        myYrange = threshold(y,low=0.2,high=0.8)
+     if ShowY2 then myYrange = threshold([y,y2],low=0.1,high=0.9) else begin
+        myYrange = threshold(y,low=0.1,high=0.9)
      endelse
      myXrange = !x.crange
 
