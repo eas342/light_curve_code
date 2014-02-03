@@ -487,7 +487,7 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
              yrange=ydynam,ystyle=1,/nodata,xstyle=1,$
              noerase=myNoErase,$
              xtickformat=tickformat,ytickformat=tickformat,$
-             xrange=myXrange,xmargin=[10,4]
+             xrange=myXrange,xmargin=[15,4]
         if k mod 2 EQ 0 then dataColor=!p.color else dataColor=mycol('red')
         if not keyword_set(differential) then begin
            if keyword_set(showclipping) then begin
