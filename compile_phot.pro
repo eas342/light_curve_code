@@ -67,7 +67,7 @@ endif else binflE[0,*] = 1E
 airmass = fltarr(npoints) + 1.E
 altitude = fltarr(npoints) + 90E
 
-morisPhase = phase
+if n_elements(phase) NE 0 then morisPhase = phase
 
 if keyword_set(removelinear) then begin
    remove_linear,utgrid,binfl,bingrid
