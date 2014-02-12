@@ -114,27 +114,31 @@ pro plot_rms_spec,psplot=psplot,tryclean=tryclean,saveclean=saveclean,$
   if keyword_set(tryclean) then begin
 ;     wait,1
      
-     ;; Make a special broadband light curve
-     specialpt = where(sigarray LT 0.01,nspecial)
+     ;; Make a special broadband light curve from the wavelengths with
+     ;; RMS in the top 30%
+     sortedp = sort(sigarray)
+     specialpt = sortedp[lindgen(round(float(nwavs) * 0.30))]
+     nspecial = n_elements(specialpt)
 
      ;; Weight the points by the rms
 ;     weights=1/sigarray^2
-     weights=1/sigarray^2
+;     weights=1/sigarray^2
      ;; discount wavelengths and/or pixels that vary wildly
 ;     badp = where(sigarray GT 0.01 OR lamgrid LT 0.87 OR lamgrid GT 2.4)
 ;     badp = where(sigarray GT 0.20)
-     if badp NE [-1] then weights[badp] = 0.0E
-     weightsCopy = rebin(weights,nwavs,ntime)
+;     if badp NE [-1] then weights[badp] = 0.0E
+;     weightsCopy = rebin(weights,nwavs,ntime)
      ;; Set all non-finite values of the cleaned curve to have NANS in the weights
-     nonfinite = where(finite(cleanedcurve) EQ 0)
-     weightsCopy[nonfinite] = !values.f_nan
+;     nonfinite = where(finite(cleanedcurve) EQ 0)
+;     weightsCopy[nonfinite] = !values.f_nan
      ;; weighted sum normalized by the weights for that spectrum
      ;; this accounts for missing data (that has NANs)
-     combinedpt = total(cleanedcurve * weightsCopy,1,/nan)/total(weightsCopy,1,/nan)
+;     combinedpt = total(cleanedcurve * weightsCopy,1,/nan)/total(weightsCopy,1,/nan)
      
      
 
      combinedpt2 = total(cleanedcurve[specialpt,*],1)/float(nspecial)
+     combinedpt2 = combinedpt2 / median(combinedpt2)
      plot,tplot,combinedpt2,ystyle=16,psym=4
 ;     plot,tplot,combinedpt2,ystyle=16,psym=4,yrange=[0.40,0.45]
 ;     oplot,tplot,combinedpt+0.01,psym=5,color=mycol('green')
@@ -142,14 +146,28 @@ pro plot_rms_spec,psplot=psplot,tryclean=tryclean,saveclean=saveclean,$
 
 
      ;try out straight avg over wavelength range
-     goodrange = where(lamgrid GE 0.9 and lamgrid LT 2.4,ngoodrange)
-     combinedpt2 = total(cleanedcurve[goodrange,*],1)/float(ngoodrange)
+;     goodrange = where(lamgrid GE 0.9 and lamgrid LT 2.4,ngoodrange)
+;     combinedpt2 = total(cleanedcurve[goodrange,*],1)/float(ngoodrange)
 
 ;     plot,tplot,combinedpt2,ystyle=16,psym=4
+
+     goodp = where(finite(combinedpt2),ngood)
+     Npoly=9
+
+     expr = 'eval_poly(X,P)'
+;     result =
+;     mpfitexpr(expr,tplot,y,yerr,start,parinfo=pi,perr=punct)
+     yerr = robust_sigma(combinedpt2[goodp]) + fltarr(ngood)
+     start = dblarr(Npoly)
+     result = mpfitexpr(expr,tplot[goodp],combinedpt2[goodp],yerr,start)
+     PolyY = expression_eval(expr,tplot,result)
+     oplot,tplot,PolyY,color=mycol('red')
+
 ;
-     if keyword_set(saveclean) then begin
-        
-     endif
+;     if keyword_set(saveclean) then begin
+        mainCurve = PolyY
+        save,mainCurve,filename='data/cleaned_curve.sav'
+;     endif
   endif
 
 
