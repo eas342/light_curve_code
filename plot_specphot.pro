@@ -1,6 +1,7 @@
 pro plot_specphot,divbymodel=divbymodel,usebin=usebin,removelin=removelin,$
                   psplot=psplot,individual=individual,skipInitialize=skipInitialize,$
-                  timebin=timebin,backg=backg,custYmargin=custYmargin
+                  timebin=timebin,backg=backg,custYmargin=custYmargin,$
+                  differential=differential
 ;; Makes an image of the spectrophotometry to get a visual sense of
 ;; the transit
 ;; divbymodel -- divide the image by the nominal transit model
@@ -12,6 +13,7 @@ pro plot_specphot,divbymodel=divbymodel,usebin=usebin,removelin=removelin,$
 ;; skipInitialize -- skips running plot_tim_ser to run faster
 ;; timebin -- uses time-binned data
 ;; custYmargin -- for use by double_specphot for shrinking Y margin
+;; differential -- use a differential lightcurve instead of absolute
 
   ;; get the time info
 
@@ -103,6 +105,12 @@ pro plot_specphot,divbymodel=divbymodel,usebin=usebin,removelin=removelin,$
      replicatedmodel = rebin(ymodel,ntime,nwavs)
      rebinmodel = transpose(replicatedmodel,[1,0])
      xypic = xypic / rebinmodel
+  endif
+  if keyword_set(differential) then begin
+     restore,'data/cleaned_curve.sav'
+     replicatedtrend = rebin(mainCurve,ntime,nwavs)
+     rebinTrend = transpose(replicatedTrend,[1,0])
+     xypic = xypic / rebinTrend
   endif
 
   if keyword_set(divbymodel) then begin
