@@ -1,7 +1,7 @@
 pro plot_specphot,divbymodel=divbymodel,usebin=usebin,removelin=removelin,$
                   psplot=psplot,individual=individual,skipInitialize=skipInitialize,$
                   timebin=timebin,backg=backg,custYmargin=custYmargin,$
-                  differential=differential
+                  differential=differential,filter=filter,noNorm=noNorm
 ;; Makes an image of the spectrophotometry to get a visual sense of
 ;; the transit
 ;; divbymodel -- divide the image by the nominal transit model
@@ -14,6 +14,8 @@ pro plot_specphot,divbymodel=divbymodel,usebin=usebin,removelin=removelin,$
 ;; timebin -- uses time-binned data
 ;; custYmargin -- for use by double_specphot for shrinking Y margin
 ;; differential -- use a differential lightcurve instead of absolute
+;; filter -- use a digital filter to take out the broad spectral shapes
+;; noNorm -- don't normalize the spectrum
 
   ;; get the time info
 
@@ -36,9 +38,14 @@ pro plot_specphot,divbymodel=divbymodel,usebin=usebin,removelin=removelin,$
         xydivspec = binfl
         wavrange = [bingrid[0],bingrid[nwavs-1]]
      end
-     keyword_set(backg): begin
+     keyword_set(backratio): begin
         nwavs = n_elements(lamgrid)
         xydivspec = transpose(backdiv[*,0,*],[0,2,1])
+        wavrange = [lamgrid[0],lamgrid[nwavs-1l]]
+     end
+     keyword_set(backg): begin
+        nwavs = n_elements(lamgrid)
+        xydivspec = transpose(backgrid[*,backg-1,*],[0,2,1])
         wavrange = [lamgrid[0],lamgrid[nwavs-1l]]
      end
      keyword_set(snrRatio): begin
@@ -58,11 +65,12 @@ pro plot_specphot,divbymodel=divbymodel,usebin=usebin,removelin=removelin,$
      meddivspec[i] = median(xydivspec[i,*])
   endfor
   replicatedspec = rebin(meddivspec,nwavs,ntime)
-  if n_elements(individual) EQ 0 then begin
+  if keyword_set(individual) OR keyword_set(noNorm) then begin
+     xypic = xydivspec
+  endif else begin
      xypic = xydivspec / replicatedspec
-  endif else xypic = xydivspec
-
-;  xypic = xydivspec
+     ;; Normalize by median spectrum
+  endelse
 
   if keyword_set(removelin) then begin
      ;;throw away all n_sigma events before de-trending
@@ -96,6 +104,10 @@ pro plot_specphot,divbymodel=divbymodel,usebin=usebin,removelin=removelin,$
 ;           ;; divide by the line to flatten out
 ;           yflat = divbycurveclip1 / yfit
      endfor
+  endif
+
+  if keyword_set(filter) then begin
+     xypic = convol(xypic,digital_filter(0.15,0.3,50,10))
   endif
 
   if keyword_set(divbymodel) then begin
