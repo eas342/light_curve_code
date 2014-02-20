@@ -466,7 +466,7 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
               tickformat='(A1)'
            endelse
            if n_elements(custSep) EQ 0 then begin
-              if keyword_set(differential) then spacing = spacing * 0.3E else begin
+              if keyword_set(differential) then spacing = 0.08E else begin
                  spacing=separationA[0]
               endelse
            endif else spacing = custSep
