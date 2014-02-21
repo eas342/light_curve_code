@@ -3,9 +3,10 @@ pro plot_stars,psplot=psplot,tryclean=tryclean,saveclean=saveclean,$
                flatten=flatten,smoothtemp=smoothtemp,choose1=choose1,$
                divide=divide,wavenum=wavenum,custXrange=custXrange,$
                showTelluric=showTelluric,custYrange=custYrange,normall=normall,$
+               noNorm=noNorm,noLegend=noLegend,$
                showback=showback,directText=directText,custXmargin=custXmargin,$
-               custYmargin=custYmargin,skipXtitle=skipXtitle
-               
+               custYmargin=custYmargin,skipXtitle=skipXtitle,$
+               choose2=choose2,digfilter=digfilter
 ;; Plots the reference star and planet host
 ;; spectrum
 ;; psplot -- makes a postscript plot of the RMS spectrum
@@ -22,10 +23,13 @@ pro plot_stars,psplot=psplot,tryclean=tryclean,saveclean=saveclean,$
 ;; custX/Yrange -- allows you to input a custom X range instead of the
 ;;               full
 ;; normall -- normalize all spectra (both the host star and reference star)
+;; noNorm - do not normalize spectra
 ;; showback -- show a background spectra
 ;; directText -- show the text directly instead of with a legend
 ;; custX/Ymargin - used by double_spec to fine-tune margins
 ;; skipXtitle - skips X title and tick labels, for use by double specphot
+;; digfilter -- apply a digital filter to the spectrum (convolve it)
+;; noLegend - don't make a plot legend
 
   ;; set the plot
   if keyword_set(psplot) then begin
@@ -120,6 +124,12 @@ pro plot_stars,psplot=psplot,tryclean=tryclean,saveclean=saveclean,$
      yhost = yhost/smooth(yhost,smoothsize)
      yref = yref/smooth(yref,smoothsize)
   endif
+  if keyword_set(digfilter) then begin
+     yhost = convol(yhost,digital_filter(0.03,0.09,50,50))
+;     yhost = convol(yhost,digital_filter(0.15,0.3,50,10))
+     NormFac = max(yhost) - min(yhost)
+     yhost = yhost/NormFac
+  endif
 
   if keyword_set(flatten) then begin
      myYrange = [0.4,1.5]
@@ -136,9 +146,11 @@ pro plot_stars,psplot=psplot,tryclean=tryclean,saveclean=saveclean,$
   if n_elements(custYrange) NE 0 then myYrange = custYrange
   if n_elements(custXmargin) EQ 0 then custXmargin = [10,4]
 
-  if keyword_set(normall) then ystarplot = yhost/max(yhost) else begin
-     ystarplot = yhost/max(yref)
-  endelse
+  case 1 of
+     keyword_set(noNorm): ystarplot = yhost
+     keyword_set(normall): ystarplot = yhost/max(yhost)
+     else: ystarplot = yhost/max(yref)
+  endcase
   
   if keyword_set(skipXtitle) then begin
      myXtitle=''
@@ -159,6 +171,13 @@ pro plot_stars,psplot=psplot,tryclean=tryclean,saveclean=saveclean,$
 
   oplot,lamgrid[goodp],yref/max(yref),color=mycol('blue'),linestyle=3
   
+  if n_elements(choose2) GT 0 then begin
+     yhost2 = flgrid[*,0,choose2]/max(yref)
+     yref2 = flgrid[*,1,choose2] /max(yref)
+     oplot,lamgrid,yhost2,color=mycol('red')
+     oplot,lamgrid,yref2,color=mycol('dgreen'),linestyle=3
+  endif
+
 ;  Show the smoothed spec
 ;  oplot,lamgrid[goodp],smooth(yhost,smoothsize),color=mycol('red')
 
@@ -194,9 +213,23 @@ pro plot_stars,psplot=psplot,tryclean=tryclean,saveclean=saveclean,$
      ybump = !D.Y_CH_SIZE * 0.5E * dataperYpix * 0.7E
      oplot,[lamgrid[goodp[midpt]],xrefText],[yref[midpt]/max(yref),yrefText + ybump],color=mycol('blue')
   endif else begin
-     legend,['Planet Host','Reference Star',name3],$
-            color=mycol(['black','blue','red']),/right,linestyle=[0,3,4],$
-            charsize=0.7
+     case 1 of 
+        keyword_set(noLegend): print,''
+        keyword_set(choose2): begin
+           legNames = ['Planet Host (Img '+strtrim(choose1,1)+')',$
+                       'Planet Host (Img '+strtrim(choose2,1)+')',$
+                       'Ref Star (Img '+strtrim(choose1,1)+')',$
+                       'Ref Star (Img '+strtrim(choose2,1)+')']
+           legend,legNames,$
+                  color=[!p.color,mycol(['red','blue','dgreen'])],/right,$
+                  linestyle=[0,0,3,3],charsize=0.45
+        end
+        else: begin
+           legend,['Planet Host','Reference Star',name3],$
+                  color=mycol(['black','blue','red']),/right,linestyle=[0,3,4],$
+                  charsize=0.7
+        end
+     endcase
   endelse
 
   ;; Read in a stellar template and over-plot
