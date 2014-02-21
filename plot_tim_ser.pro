@@ -652,7 +652,7 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
               keyword_set(kepdiff): begin
 ;                 expr = 'parameterized_kep(X,P[0]) *  (P[5] + X *
 ;                 P[6])'                 
-                 expr = '1D - (kepler_func(X,P[0]) - kepler_func(X,1D)) *  (P[5] + X * P[6])'
+                 expr = '(kepler_func(X,P[0]) / kepler_func(X,1D)) *  (P[5] + X * P[6])'
               end
               keyword_set(differential): begin
                  quadlcArg ='X'
@@ -707,7 +707,7 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
            if keyword_set(fixall) then begin
               pi[*].fixed = 1
            endif
-           if not keyword_set(kepfit) then begin
+           if not keyword_set(kepfit) and not keyword_set(kepdiff) then begin
               pi[0].limited = [1,1] ;; make sure Rp/R* is limited
               pi[0].limits = [0D,1D] ;; Keep Rp/R* between 0 and 1
            endif else begin
