@@ -8,7 +8,8 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
                      kepMORIS=kepMORIS,phot=phot,custcharS=custcharS,$
                      asymmetric=asymmetric,$
                      rightleg=rightleg,bottomleg=bottomleg,$
-                     filterCurveColor=filterCurveColor
+                     filterCurveColor=filterCurveColor,$
+                     prevChoices=prevChoices
 ;;psplot -- saves a postscript plot
 ;;showstarspec -- shows a star spectrum on the same plot
 ;;nbins -- number of points bo bin in Rp/R*
@@ -35,6 +36,8 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
 ;; asymmetric -- show asymmetric error bars
 ;; rightleg/bottomleg -- move the legend to the right/bottom
 ;; filterCurveColor -- lets you specify the filter curve color
+;; prevChoices - Use the previous choices for rad_vs_wavl files and
+;;               legend labels
 
   if keyword_set(showstar) then !x.margin = [9,9] else !x.margin=[9,3]
   ;; set the plot
@@ -51,9 +54,12 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
   ;; might be
   restore,'data/specdata.sav'
 
+  if keyword_set(prevChoices) then restore,'param_input/rad_file_choices.sav'
+
   ;; read in the radius versus wavelength file
   case 1 of
      keyword_set(custfile): radfile=custfile
+     keyword_set(prevChoices): radfile = prevRadFArr[0]
      keyword_set(choosefile): begin
         radfile = choose_file(searchDir='radius_vs_wavelength',$
                               filetype='.txt')
@@ -61,6 +67,7 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
      end
      else: radfile='radius_vs_wavelength/radius_vs_wavl.txt'
   endcase
+
 
   if keyword_set(asymmetric) then begin
      readcol,radfile,wavl,wavlsize,rad,rade,radep,radem,skipline=1,format='(F,F,F,F)'
@@ -235,13 +242,17 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
 
   ;; if undefined, only show one set of data
   if n_elements(totsets) EQ 0 then totsets=1
+  radFarrSave = replicate('',totsets)
+  radFarrSave[0] = radfile
 
 
   if totsets GT 1l then begin
      legnamearr = strarr(totsets)
      print,'Name for file '+radfile+' ?'
      tempnm=''
-     read,tempnm,format='(A)'
+     if keyword_set(prevChoices) then begin
+        tempnm = prevLegNmArr[0]
+     endif else read,tempnm,format='(A)'
      legnamearr[0l] = tempnm
      colorlist = [!p.color,mycol(['orange','purple','blue'])]
      ncolchoices = n_elements(colorlist)
@@ -251,7 +262,9 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
   for i=2l,totsets do begin
      ;; If asked to, overplot another Rad/vs wavlength file
      print,'Choose Additional file ',strtrim(i-1l,1)
-     file2 = choose_file(searchDir='radius_vs_wavelength',filetype='.txt')
+     if keyword_set(prevChoices) then begin
+        file2 = prevRadFarr[i-1]
+     endif else file2 = choose_file(searchDir='radius_vs_wavelength',filetype='.txt')
      readcol,file2,wavl2,wavl2size,rad2,rade2,skipline=1,format='(F,F,F)'
      ;; find the bin width
      wavlwidth2 = wavl2size/2E
@@ -278,9 +291,19 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
 
      print,'Legend Name for data from file '+file2+' ?'
      tempnm = ''
-     read,tempnm,format='(A)'
+     if keyword_set(prevChoices) then begin
+        tempnm = prevLegNmArr[i-1]
+     endif else read,tempnm,format='(A)'
      legnamearr[i-1l] = tempnm
+     radFarrSave[i-1] = file2
   endfor
+
+  ;; Save all the file name choices and Legend name choices in case
+  ;; you want to use them again
+  if totsets GT 1 then prevLegNmArr = legnamearr else prevLegNmArr = ''
+  prevRadFarr = radFarrSave
+  save,prevLegNmArr,prevRadFarr,filename='param_input/rad_file_choices.sav'
+
   if keyword_set(psplot) then legcharsize = 0.75 else legcharsize=1
 
   if totsets GT 1l then begin
