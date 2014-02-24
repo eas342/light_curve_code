@@ -1,6 +1,7 @@
 pro plot_tim_ser,fitcurve=fitcurve,fitpoly=fitpoly,usepoly=usepoly,makestops=makestops,$
                  fullrange=fullrange,smartbin=smartbin,oneprange=oneprange,$
-                 offtranserr=offtranserr,freelimbquad=freelimbquad,clarlimb=clarlimb,$
+                 offtranserr=offtranserr,straightupRMS=straightupRMS,$
+                 freelimbquad=freelimbquad,clarlimb=clarlimb,$
                  psplot=psplot,noreject=noreject,differential=differential,$
                  individual=individual,pngcopy=pngcopy,freeall=freeall,fixall=fixall,$
                  timebin=timebin,offreject=offreject,showclipping=showclipping,$
@@ -26,7 +27,11 @@ pro plot_tim_ser,fitcurve=fitcurve,fitpoly=fitpoly,usepoly=usepoly,makestops=mak
 ;; fullrange -- allows for plotting of the full y range
 ;; smartbin -- use the smart-binned data instead of the binned data
 ;; oneprange -- sets all the y ranges to be 1%
-;; offtranserr -- makes the error equal to the stddev of off-transit points
+;; offtranserr -- makes the error equal to the stddev of
+;;                linearly-detrended off-transit points
+;; straightupRMS -- with offtranserr set, it uses the standard
+;;                  deviation of out of transit flux (but no linear
+;;                  de-trending applied)
 ;; freelimbquad -- frees the quadratic limb darkening parameters in the fits
 ;; clarlimb -- uses the limb darkening parameters from A. Claret, averaged into wavelength bins
 ;; psplot -- makes a postscript plot instead of X windows plot
@@ -375,7 +380,9 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
         if keyword_set(offtranserr) then begin
            fitY2 = linfit(tplot[offp],y[offp])
            Offresid2 = y[offp] - (fitY2[0] + fitY2[1]*tplot[offp])
-           rstdevOff2 = robust_sigma(Offresid2)
+           if keyword_set(StraightupRMS) then begin
+              rstdevOff2 = robust_sigma(y[offp])
+           endif else rstdevOff2 = robust_sigma(Offresid2)
            yerr = fltarr(n_elements(yerr)) + rstdevOff2
         endif
 
@@ -432,7 +439,10 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
 ;        oplot,tplot,fity[0] + fity[1]*tplot,color=mycol('red')
 
         if keyword_set(offtranserr) then begin
-           rstdevOff = robust_sigma(Offresid)
+
+           if keyword_set(straightupRMS) then begin
+              rstdevOff = robust_sigma(y[offp])
+           endif else rstdevOff = robust_sigma(Offresid)
            yerr = fltarr(n_elements(goodp)) + rstdevOff
         endif
 
