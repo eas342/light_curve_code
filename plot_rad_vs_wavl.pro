@@ -131,7 +131,6 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
      myxrange = [4000,11500]
   endif else begin
      myxtitle='Wavelength ('+cgGreek('mu')+'m)'
-     myxrange = [0.8,2.55]
   endelse
 
   if n_elements(depthkep) NE 0 then begin
@@ -144,7 +143,7 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
   endif else begin
      myYtitle = 'R!Dp!N/R!D*!N'
      mylinestyle=0
-     if n_elements(custXrange) NE 0 then myXrange=custXrange
+     if n_elements(custXrange) EQ 0 then myXrange=[0.8,2.55]
      if n_elements(custYrange) EQ 0 then custYrange=[0.12,0.17]
   endelse
 
