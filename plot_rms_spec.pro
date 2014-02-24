@@ -136,8 +136,7 @@ pro plot_rms_spec,psplot=psplot,tryclean=tryclean,saveclean=saveclean,$
 ;     combinedpt = total(cleanedcurve * weightsCopy,1,/nan)/total(weightsCopy,1,/nan)
      
      
-
-     combinedpt2 = total(cleanedcurve[specialpt,*],1)/float(nspecial)
+     combinedpt2 = total(cleanedcurve[specialpt,*],1,/nan)/float(nspecial)
      combinedpt2 = combinedpt2 / median(combinedpt2)
      plot,tplot,combinedpt2,ystyle=16,psym=4
 ;     plot,tplot,combinedpt2,ystyle=16,psym=4,yrange=[0.40,0.45]
