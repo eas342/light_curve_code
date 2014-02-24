@@ -33,7 +33,7 @@ function find_shifts,inArray,cutEnds=cutEnds,stopAndshow=stopAndshow
   endfor
 
   ;; Filter the array to get rid of broad features
-  finArray = convol(inArray,digital_filter(0.15,0.3,50,10))
+  finArray = convol(inArray,digital_filter(0.03,0.09,50,25))
 
   medspec = fltarr(nwavs)
   ;; Get a median spectrum

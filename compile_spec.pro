@@ -330,16 +330,23 @@ if keyword_set(specshift) then begin
    if badp NE [-1] then medspec0[badp] = 0.0E
    badp = where(finite(medspec1) EQ 0)
    if badp NE [-1] then medspec1[badp] = 0.0E
+   ;; trim the bottom 15% and top 15% of data to avoids edges
+   TrimPts = where(lindgen(Ngpts) LT float(Ngpts) * 0.15 OR $
+                   lindgen(Ngpts) GE float(Ngpts) * 0.85)
+   medspec0[TrimPts] = 0E
+   medspec1[TrimPts] = 0E
    ;; Filter the specta
-   fmedspec0 = convol(medspec0,digital_filter(0.15,0.3,50,10))
-   fmedspec1 = convol(medspec1,digital_filter(0.15,0.3,50,10))
-   lagarray = lindgen(9l) - 4l
+   fmedspec0 = convol(medspec0,digital_filter(0.03,0.09,50,25))
+   fmedspec1 = convol(medspec1,digital_filter(0.03,0.09,50,25))
+
+   lagarray = lindgen(25l) - 12l
    CrossC = c_correlate(fmedspec0,fmedspec1,lagarray)
    PolyFit = poly_fit(lagarray,crossC,2)
    ShiftStars = polyFit[1]/(-2E * polyFit[2])
 
    xyspec = fltarr(Ngpts,nfile)
    xyspec[*,*] = flgrid[*,0,*]
+
    shiftedGrid = shift_interp(xyspec,ShiftStars)
 ;   shiftedGrid = shift_interp(xyspec,0)
    flgrid[*,0,*] = shiftedGrid
