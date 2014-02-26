@@ -11,7 +11,8 @@ pro plot_tim_ser,fitcurve=fitcurve,fitpoly=fitpoly,usepoly=usepoly,makestops=mak
                  custresidYrange=custresidYrange,fitepoch=fitepoch,singleplot=singleplot,$
                  showmcmc=showmcmc,deletePS=deletePS,showKep=showKep,lindetrend=lindetrend,$
                  showjump=showjump,kepfit=kepfit,skipReset=skipReset,custSep=custSep,$
-                 showNomMCMC=showNomMCMC,useGPasfit=useGPasfit,kepdiff=kepdiff
+                 showNomMCMC=showNomMCMC,useGPasfit=useGPasfit,kepdiff=kepdiff,$
+                 custyrange=custyrange
 ;; plots the binned data as a time series and can also fit the Rp/R* changes
 ;; apPlot -- this optional keyword allows one to choose the aperture
 ;;           to plot
@@ -79,6 +80,8 @@ pro plot_tim_ser,fitcurve=fitcurve,fitpoly=fitpoly,usepoly=usepoly,makestops=mak
 ;; kepfit -- use the KIC 12557458b light curve fit (scaled from the
 ;;           Kepler Phot)
 ;; kepdiff -- same as kepfit but for differential light curve fitting
+;; custyrange -- custom y range for time series plots
+
 
 ;sigrejcrit = 6D  ;; sigma rejection criterion
 sigrejcrit = 5D  ;; sigma rejection criterion
@@ -490,6 +493,7 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
            tickformat='(G0)'
            myXtitle='Orbital Phase'
         endelse
+        if keyword_set(custyrange) then ydynam = custyrange
         plot,tplot,y,psym=4,$
              xtitle=myXtitle,$
              title=myTitle,$
