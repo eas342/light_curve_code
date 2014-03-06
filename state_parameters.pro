@@ -1,9 +1,12 @@
-pro state_parameters,skipInitialize=skipInitialize,psplot=psplot
+pro state_parameters,skipInitialize=skipInitialize,psplot=psplot,$
+                     timSerRange=timSerRange,seeingDiff=seeingDiff
 ;; Plots the time series and then also a lot of other parameters below
 ;; to see if flux changes can be attributed to the FWHM changes,
 ;; drifts, airmass etc.
 ;; skipInitialize -- skip the initialization process
 ;; psplot -- save a postscript plot
+;; timSerRange -- show a custom time series range
+;; seeingDiff - show the difference in seeing between the two stars
 
   ;; set the plot
   if keyword_set(psplot) then begin
@@ -24,7 +27,7 @@ pro state_parameters,skipInitialize=skipInitialize,psplot=psplot
 
   !p.multi=[0,1,nparams+1]
 
-  plot_tim_ser,/singlep,/skipReset
+  plot_tim_ser,/singlep,/skipReset,custyrange=TimSerRange
 
   ;; get the phase information
   restore,'data/timedata.sav'
@@ -42,9 +45,18 @@ pro state_parameters,skipInitialize=skipInitialize,psplot=psplot
            ShowY2 = 0
         end
         "FWHM (px)": begin
-           y = widths[*,0] * 2.35E
-           y2 = widths[*,1] * 2.35E
-           showY2 = 1
+           if keyword_set(seeingDiff) then begin
+              y1 = widths[*,0] * 2.35E
+              y2 = widths[*,1] * 2.35E
+              showY2 = 0
+              y = y2 - y1
+              badp = where(y LT -5)
+              if badp NE [-1] then y[badp] = !values.f_nan
+           endif else begin
+              y = widths[*,0] * 2.35E
+              y2 = widths[*,1] * 2.35E
+              showY2 = 1
+           endelse
         end
         "Relative Position (px)": begin
            y = starLocations[*,0]
