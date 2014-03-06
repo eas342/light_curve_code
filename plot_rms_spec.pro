@@ -157,8 +157,10 @@ pro plot_rms_spec,psplot=psplot,tryclean=tryclean,saveclean=saveclean,$
 ;     result =
 ;     mpfitexpr(expr,tplot,y,yerr,start,parinfo=pi,perr=punct)
      yerr = robust_sigma(combinedpt2[goodp]) + fltarr(ngood)
+     SigRejPts = where(abs(combinedpt2 - median(combinedpt2)) LT 10E * yerr[0],nkept)
+     yerr2 = yerr[0] + fltarr(nkept)
      start = dblarr(Npoly)
-     result = mpfitexpr(expr,tplot[goodp],combinedpt2[goodp],yerr,start)
+     result = mpfitexpr(expr,tplot[SigRejPts],combinedpt2[SigRejPts],yerr2,start)
      PolyY = expression_eval(expr,tplot,result)
      oplot,tplot,PolyY,color=mycol('red')
 
