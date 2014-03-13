@@ -5,7 +5,8 @@ pro compile_spec,extraction2=extraction2,sum=sum,nwavbins=nwavbins,$
                  custmask=custmask,molecbin=molecbin,trycurved=trycurved,$
                  matchgrid=matchgrid,readCurrent=readCurrent,skipBJD=skipBJD,$
                  masktelluric=masktelluric,showall=showall,irafnoise=irafnoise,$
-                 longwavname=longwavname,trycorrect=trycorrect,removelinear=removelinear
+                 longwavname=longwavname,trycorrect=trycorrect,removelinear=removelinear,$
+                 backRatio=backRatio,alreadyDivided=alreadyDivided
 ;; Compiles the spectra into a few simple arrays to look at the spectrophotometry
 ;; extraction2 -- uses whatever spectra are in the data directory
 ;; sum -- uses the variance weighted (optimal) extraction by
@@ -39,6 +40,10 @@ pro compile_spec,extraction2=extraction2,sum=sum,nwavbins=nwavbins,$
 ;; longwavname -- use longer wavelength name (describe wavelength range)
 ;; trycorrect -- tries to correct the flux by the background ratio
 ;; removelinear -- remove linear trends in the spectra before binning
+;; backRatio -- use the ratio of backgrounds as a time series instead
+;;              of ratio of fluxes
+;; alreadyDivided -- the spectra are already divided so ignore the
+;;                   DIVISOR keyword
 
 ;Nwavbins = 35 ;; number of wavelength bins
 ;Nwavbins = 9 ;; number of wavelength bins
@@ -126,9 +131,11 @@ itimegrid = dblarr(nfile)
 airmass = dblarr(nfile)
 Altitude = dblarr(nfile,Nap) ;; Altitude of each star
 
-if keyword_set(sum) then begin
-   SpecKey = 0
-endif else SpecKey = 1
+case 1 of 
+   keyword_set(sum): SpecKey = 0
+   keyword_set(BackRatio): SpecKey = 2
+   else: SpecKey=1
+endcase
 
 for i=0l,nfile-1l do begin
    ;; Read all files into the grid
@@ -160,7 +167,10 @@ for i=0l,nfile-1l do begin
 
    ;; Get the # non-destructive reads IMPORTANT b/c flux must be divided by NDR
    NDR = double(fxpar(header2,'NDR'))
-   if keyword_set(irafnoise) then divisor=1.0E else divisor = NDR
+   if keyword_set(irafnoise) or keyword_set(alreadyDivided) then begin
+      divisor=1.0E
+   endif else divisor = NDR
+
 
 ;   divisor = divisor / 1.5E ;; b/c of fowler sampling w/ n_max reads
 ;   divisor = 1.0E
@@ -194,7 +204,11 @@ for i=0l,nfile-1l do begin
 ;   errgrid[*,*,i] = CorFac * errgrid[*,*,i]
    ;; Terminology straight from Garnett & Forrest 1993
    FluxGF = flGrid[*,*,i] / Teff
-   BackGF = backGrid[*,*,i] / Teff
+   if keyword_set(backratio) then begin
+      ;; If we're going to call the flux the same as the
+      ;; background flux, then the actual background flux will be zero
+      BackGF = 0E * backGrid[*,*,i]
+   endif else BackGF = backGrid[*,*,i] / Teff
    Signal = FluxGF * Teff
    NoisePhoton = sqrt((FluxGF + BackGF) * Tint * (1E - 2E * eta/3E + 1E/(6E * eta * nmax^2)))
 

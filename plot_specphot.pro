@@ -1,13 +1,15 @@
 pro plot_specphot,divbymodel=divbymodel,usebin=usebin,removelin=removelin,$
                   psplot=psplot,individual=individual,skipInitialize=skipInitialize,$
                   timebin=timebin,backg=backg,custYmargin=custYmargin,$
-                  differential=differential,filter=filter,noNorm=noNorm
+                  differential=differential,filter=filter,noNorm=noNorm,$
+                  backratio=backratio
 ;; Makes an image of the spectrophotometry to get a visual sense of
 ;; the transit
 ;; divbymodel -- divide the image by the nominal transit model
 ;; usebin -- use the wavelength bins
 ;; individual -- specifies which of the inidividual spectra to look at
 ;; backg -- use the background instead of the star flux
+;; backratio -- look at the ratio fo the background between the two stars
 ;; removelin -- remove the linear trend in each time series
 ;; psplot -- makes a postscript plot
 ;; skipInitialize -- skips running plot_tim_ser to run faster
