@@ -2,7 +2,7 @@ pro plot_specphot,divbymodel=divbymodel,usebin=usebin,removelin=removelin,$
                   psplot=psplot,individual=individual,skipInitialize=skipInitialize,$
                   timebin=timebin,backg=backg,custYmargin=custYmargin,$
                   differential=differential,filter=filter,noNorm=noNorm,$
-                  backratio=backratio
+                  backratio=backratio,custxrange=custxrange
 ;; Makes an image of the spectrophotometry to get a visual sense of
 ;; the transit
 ;; divbymodel -- divide the image by the nominal transit model
@@ -18,6 +18,7 @@ pro plot_specphot,divbymodel=divbymodel,usebin=usebin,removelin=removelin,$
 ;; differential -- use a differential lightcurve instead of absolute
 ;; filter -- use a digital filter to take out the broad spectral shapes
 ;; noNorm -- don't normalize the spectrum
+;; custxrange -- set a custom x range for the dynamic spectrum plot
 
   ;; get the time info
 
@@ -61,6 +62,8 @@ pro plot_specphot,divbymodel=divbymodel,usebin=usebin,removelin=removelin,$
         wavrange = [lamgrid[0],lamgrid[nwavs-1l]]
      end
   endcase
+  if n_elements(custxrange) NE 0 then wavrange = custxrange
+
   ;; Make a median spectrum to divide out
   meddivspec = fltarr(nwavs)
   for i=0l,nwavs-1l do begin
@@ -73,6 +76,13 @@ pro plot_specphot,divbymodel=divbymodel,usebin=usebin,removelin=removelin,$
      xypic = xydivspec / replicatedspec
      ;; Normalize by median spectrum
   endelse
+
+  ;; Take a subset of the image using the X range
+  tabinv,lamgrid,wavrange,indexEffXrange
+  startXImg = round(indexEffXrange[0])
+  endXimg = round(indexEffXrange[1])
+  xypic = xypic[startXimg:endXimg,*]
+  nwavs = n_elements(xypic[*,0])
 
   if keyword_set(removelin) then begin
      ;;throw away all n_sigma events before de-trending
@@ -183,7 +193,7 @@ pro plot_specphot,divbymodel=divbymodel,usebin=usebin,removelin=removelin,$
   ;; Additional parameters
   addedParams = ['XSTART','XFINISH','DELTAX',$
                  'YSTART','YFINISH','DELTAY']
-  addedValues = [lamgrid[0],lamgrid[nwavs-1l],lamgrid[1]-lamgrid[0],$
+  addedValues = [wavrange[0],wavrange[1],lamgrid[1]-lamgrid[0],$
                  tplot[0],tplot[ntime-1l],tplot[1]-tplot[0]]
 
   addedComments = [' / Microns start wavelength',$
