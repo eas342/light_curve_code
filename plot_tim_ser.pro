@@ -252,6 +252,7 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
      if not keyword_set(nonormalize) then begin
         yerr = yerr / median(y[offp])
         y = y / median(y[offp])
+        if n_elements(y2) GT 0 then y2 = y2/median(y2[offp])
      endif
 
      if not keyword_set(noreject) then begin
@@ -396,6 +397,10 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
      if keyword_set(lindetrend) then begin
         fitY = linfit(tplot[offp],y[offp])
         y = y/(fitY[0] + fitY[1]*tplot)
+        if n_elements(y2) NE 0 then begin
+           fitY2 = linfit(tplot[offp],y2[offp])
+           y2 = y2/(fitY[0] + fitY[1]*tplot)
+        endif
      endif
 
      if total(finite(y)) GT 2 and total(finite(yerr)) GT 2 then begin
@@ -406,8 +411,8 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
            ycomb = [y,y2] ;; combine both stars into one array
            sorty = sort(ycomb)
            ylength = n_elements(ycomb)
-           ylowerL = ycomb[sorty[ceil(5E/100E*float(ylength))]] * 0.7
-           yUpperL = ycomb[sorty[ceil(95E/100E*float(ylength))]] * 1.3
+           ylowerL = ycomb[sorty[ceil(5E/100E*float(ylength))]] * 0.8
+           yUpperL = ycomb[sorty[ceil(95E/100E*float(ylength))]] * 1.1
            ydynam = [ylowerL,yUpperL]
         endif else begin
            sorty = sort(y)
@@ -519,7 +524,7 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
         endif
         if keyword_set(individual) then begin
            oplot,tplot,y2,psym=4,color=mycol('blue')
-           legend,['Planet Host','Reference Star X '+strtrim(reffactor,1)],$
+           al_legend,['Planet Host','Reference Star'],$
                   psym=[4,4],color=mycol(['black','blue']),$
                   /right,/clear
         endif
