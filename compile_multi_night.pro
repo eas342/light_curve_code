@@ -1,9 +1,22 @@
-pro compile_multi_night
+pro compile_multi_night,differential=differential,$
+                        mnwavbins=mnwavbins,noremovelinear=noremovelinear
+;; Puts together multiple nights of data into one time series
+;; differential - do differential spectroscopy and re-read in the
+;;                cleaned time series
+;; mnwavbins - pass on to compile_spec the number of spectral
+;;             wavelength bins
+;; noremovelinear - by default, it removes the linear trend in each
+;;                  data set before adding them together,
+;;                  Noremovelinear will skip this step
+
+if n_elements(noremovelinear) EQ 0 then noremovelinear=0
 
 ;; get the list of speclists
   readcol,'file_lists/multi_night.txt',listFile,format='(A)'
 
-for i=0l,3l-1l do begin
+nNights = n_elements(listFile)
+
+for i=0l,nNights-1l do begin
    spawn,'cp '+listFile[i]+' file_lists/current_speclist.txt'
 
    ;; If it's KIC 1255 data, search for an associated date to
@@ -15,8 +28,8 @@ for i=0l,3l-1l do begin
    endif
 
    ;; Get the spectral data, removing linear trends in the time series
-   compile_both,/readC,/removelinear
-;   compile_spec,/readC,/removelinear
+;   compile_both,/readC,/removelinear,custwavbins=mnwavbins
+   compile_both,/readC,removelinear=(1-noremovelinear),custwavbins=mnwavbins
    restore,'data/specdata.sav'
 
    if i EQ 0l then begin
