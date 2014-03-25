@@ -78,11 +78,13 @@ pro plot_specphot,divbymodel=divbymodel,usebin=usebin,removelin=removelin,$
   endelse
 
   ;; Take a subset of the image using the X range
-  tabinv,lamgrid,wavrange,indexEffXrange
-  startXImg = round(indexEffXrange[0])
-  endXimg = round(indexEffXrange[1])
-  xypic = xypic[startXimg:endXimg,*]
-  nwavs = n_elements(xypic[*,0])
+  if not keyword_set(usebin) then begin
+     tabinv,lamgrid,wavrange,indexEffXrange
+     startXImg = round(indexEffXrange[0])
+     endXimg = round(indexEffXrange[1])
+     xypic = xypic[startXimg:endXimg,*]
+     nwavs = n_elements(xypic[*,0])
+  endif
 
   if keyword_set(removelin) then begin
      ;;throw away all n_sigma events before de-trending
