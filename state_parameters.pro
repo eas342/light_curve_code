@@ -22,12 +22,12 @@ pro state_parameters,skipInitialize=skipInitialize,psplot=psplot,$
      get_profile_widths
   endif
 
-  paramnames = ["Airmass","FWHM (px)","Relative Position (px)","Raw Flux"]
+  paramnames = ["Airmass","FWHM (px)","Relative Position (px)","Individual Flux"]
   nparams = n_elements(paramnames)
 
   !p.multi=[0,1,nparams+1]
 
-  plot_tim_ser,/singlep,/skipReset,custyrange=TimSerRange
+  plot_tim_ser,/singlep,/skipReset,custyrange=TimSerRange,custsep=0.02
 
   ;; get the phase information
   restore,'data/timedata.sav'
@@ -65,23 +65,25 @@ pro state_parameters,skipInitialize=skipInitialize,psplot=psplot,$
            y2 = y2 - median(y2)
            showY2 = 1
         end
-        "Raw Flux": begin
+        "Individual Flux": begin
            y = double(transpose(binind[0,0,*]))
+           y = y/median(y)
            y2 = double(transpose(binind[0,1,*]))
+           y2 = y2/median(y2)
            showY2 = 1
         end
         else: y = tplot * 0E
      endcase
      
-     if ShowY2 then myYrange = threshold([y,y2],low=0.1,high=0.9) else begin
-        myYrange = threshold(y,low=0.1,high=0.9)
+     if ShowY2 then myYrange = threshold([y,y2],low=0.1,high=0.9,mult=0.4) else begin
+        myYrange = threshold(y,low=0.1,high=0.9,mult=0.4)
      endelse
      myXrange = !x.crange
 
      plot,tplot,y,ytitle=paramnames[i],$
           xtitle="Orbital phase",$
           yrange=myYrange,$
-          xrange=myXrange,xstyle=1,psym=4
+          xrange=myXrange,xstyle=1,psym=4,ystyle=1
      if ShowY2 then begin
         ;; For some variables we show the background AND reference
         oplot,tplot,y2,color=mycol('blue'),psym=4
@@ -89,6 +91,7 @@ pro state_parameters,skipInitialize=skipInitialize,psplot=psplot,$
                /right,/bottom,linestyle=[0,0],$
                color=[!p.color,mycol('blue')],charsize=0.3
      endif
+
   endfor
 
   if keyword_set(psplot) then begin
