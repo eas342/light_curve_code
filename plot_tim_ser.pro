@@ -671,7 +671,7 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
               keyword_set(kepdiff): begin
 ;                 expr = 'parameterized_kep(X,P[0]) *  (P[5] + X *
 ;                 P[6])'                 
-                 expr = '(kepler_func(X,P[0]) / kepler_func(X,1D)) *  (P[5] + X * P[6])'
+                 expr = '(kepler_func(X,P[0]) / kepler_func(X,1D)) *  eval_legendre(X,P[5:10])'
               end
               keyword_set(differential): begin
                  quadlcArg ='X'
@@ -683,9 +683,7 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
                  
               end
               keyword_set(kepfit): begin
-;                 expr = 'parameterized_kep(X,P[0]) *  (P[5] + X *
-;                 P[6])'                 
-                 expr = 'kepler_func(X,P[0]) *  (P[5] + X * P[6])'                 
+                 expr = 'kepler_func(X,P[0]) *  eval_legendre(X,P[5:10])'
               end
               else: begin
                  expr = 'quadlc(X-P[11],P[0],P[1],P[2],P[3],P[4])* ( P[5] + '+$
