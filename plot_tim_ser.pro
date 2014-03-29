@@ -459,7 +459,7 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
            device,encapsulated=1, /helvetica,$
                   filename=plotnmpre+'.eps'
            if keyword_set(singleplot) then begin
-              device,xsize=12, ysize=14.5,decomposed=1,/color
+              device,xsize=12, ysize=9,decomposed=1,/color
            endif else device,xsize=14, ysize=10,decomposed=1,/color
         endif
 ;        plot,tplot,y,psym=2,$
