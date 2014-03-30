@@ -383,9 +383,9 @@ SNR = Divspec / DivspecE
 backdiv = backgrid[*,0,*] / backgrid[*,1,*]
 
 if keyword_set(trycorrect) then begin
-   C0 = 1.15E
-   C1 = -0.2E
-   Divspec = Divspec / (C0 + C1 * backdiv)
+;   C0 = 1.15E
+;   C1 = -0.2E
+   Divspec = flgrid[*,0,*] / (1.45E * flgrid[*,1,*] - 2105E)
    DivspecE = fracE * Divspec
 endif
 
