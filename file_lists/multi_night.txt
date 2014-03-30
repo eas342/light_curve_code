@@ -1,4 +1,4 @@
 file_lists/speclist_kic1255_2013aug13_redo.txt
-file_lists/speclist_kic1255_2013aug15_redo.txt
-file_lists/speclist_kic1255_2013aug17_redo.txt
+#file_lists/speclist_kic1255_2013aug15_redo.txt
+#file_lists/speclist_kic1255_2013aug17_redo.txt
 file_lists/speclist_kic1255_2013sep03_redo.txt
