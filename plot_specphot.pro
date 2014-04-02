@@ -168,14 +168,14 @@ pro plot_specphot,divbymodel=divbymodel,usebin=usebin,removelin=removelin,$
             charsize=1,$
             xmargin=[9,12],ymargin=custYmargin
   ;; Back an outline for thick axes
-  axis,xaxis=1,xrange=!x.crange,color=mycol('black'),xstyle=1,xthick=4,xtickname=replicate(' ',7)
-  axis,xaxis=1,xrange=!x.crange,color=mycol('orange'),xstyle=1,xtickname=replicate(' ',7)
-  axis,xaxis=0,xrange=!x.crange,color=mycol('black'),xstyle=1,xthick=4,xtickname=replicate(' ',7)
-  axis,xaxis=0,xrange=!x.crange,color=mycol('orange'),xstyle=1,xtickname=replicate(' ',7)
-  axis,yaxis=1,yrange=!y.crange,color=mycol('black'),ystyle=1,ythick=4,ytickname=replicate(' ',7)
-  axis,yaxis=1,yrange=!y.crange,color=mycol('orange'),ystyle=1,ytickname=replicate(' ',7)
-  axis,yaxis=0,yrange=!y.crange,color=mycol('black'),ystyle=1,ythick=4,ytickname=replicate(' ',7)
-  axis,yaxis=0,yrange=!y.crange,color=mycol('orange'),ystyle=1,ytickname=replicate(' ',7)
+  axis,xaxis=1,xrange=!x.crange,color=mycol('black'),xstyle=1,xthick=4,xtickname=replicate(' ',8)
+  axis,xaxis=1,xrange=!x.crange,color=mycol('orange'),xstyle=1,xtickname=replicate(' ',8)
+  axis,xaxis=0,xrange=!x.crange,color=mycol('black'),xstyle=1,xthick=4,xtickname=replicate(' ',8)
+  axis,xaxis=0,xrange=!x.crange,color=mycol('orange'),xstyle=1,xtickname=replicate(' ',8)
+  axis,yaxis=1,yrange=!y.crange,color=mycol('black'),ystyle=1,ythick=4,ytickname=replicate(' ',8)
+  axis,yaxis=1,yrange=!y.crange,color=mycol('orange'),ystyle=1,ytickname=replicate(' ',8)
+  axis,yaxis=0,yrange=!y.crange,color=mycol('black'),ystyle=1,ythick=4,ytickname=replicate(' ',8)
+  axis,yaxis=0,yrange=!y.crange,color=mycol('orange'),ystyle=1,ytickname=replicate(' ',8)
 
   loadct,0
   ;; Show ingress and egress
