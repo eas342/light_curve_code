@@ -761,7 +761,7 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
            modelPts = 512l
            ntpoints = n_elements(tplot)
            modelY = expression_eval(expr,tplot,result)
-           modelX = findgen(modelPts)/(modelPts-1l) * (tplot[ntpoints-1] - tplot[0]) + tplot[0]
+           modelX = findgen(modelPts)/(modelPts-1l) * (tplot[ntpoints-1] - min(tplot,/nan)) + min(tplot,/nan)
            modelY1 = expression_eval(expr,modelX,result)
            oplot,modelX,modelY1-offset,color=mycol('blue'),thick=2
 
