@@ -68,7 +68,7 @@ pro plot_stars,psplot=psplot,tryclean=tryclean,saveclean=saveclean,$
   cleanfactor = 4E
   if n_elements(choose1) EQ 0 then begin
      for i=0l,nwavs-1l do begin
-;        hostspec[i] = median(flgrid[i,0,*])
+ ;       hostspec[i] = median(flgrid[i,0,*])
 ;        refspec[i] = median(flgrid[i,1,*])
         hostspec[i] = mean(flgrid[i,0,*],/nan)
         refspec[i] = mean(flgrid[i,1,*],/nan)
@@ -148,7 +148,10 @@ pro plot_stars,psplot=psplot,tryclean=tryclean,saveclean=saveclean,$
 
   case 1 of
      keyword_set(noNorm): ystarplot = yhost
-     keyword_set(normall): ystarplot = yhost/max(yhost)
+     keyword_set(normall): begin
+        middle80 = threshold(yhost,mult=0.05)
+        ystarplot = yhost/middle80[1]
+     end
      else: ystarplot = yhost/max(yref)
   endcase
   
@@ -169,7 +172,12 @@ pro plot_stars,psplot=psplot,tryclean=tryclean,saveclean=saveclean,$
 ;,ystyle=16;,xrange=[1.15,1.35]
 ;,xrange=[1.45,1.75]
 
-  oplot,lamgrid[goodp],yref/max(yref),color=mycol('blue'),linestyle=3
+  if keyword_set(normall) then begin
+     middle60ref = threshold(yref,mult=0.05)
+     yrefNorm = yref/middle60ref[1]
+
+  endif else yrefNorm = yref/max(yref)
+  oplot,lamgrid[goodp],yrefNorm,color=mycol('blue'),linestyle=3
   
   if n_elements(choose2) GT 0 then begin
      yhost2 = flgrid[*,0,choose2]/max(yref)
