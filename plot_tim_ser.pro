@@ -12,7 +12,7 @@ pro plot_tim_ser,fitcurve=fitcurve,fitpoly=fitpoly,usepoly=usepoly,makestops=mak
                  showmcmc=showmcmc,deletePS=deletePS,showKep=showKep,lindetrend=lindetrend,$
                  showjump=showjump,kepfit=kepfit,skipReset=skipReset,custSep=custSep,$
                  showNomMCMC=showNomMCMC,useGPasfit=useGPasfit,kepdiff=kepdiff,$
-                 custyrange=custyrange
+                 custyrange=custyrange,tryAlt=tryAlt
 ;; plots the binned data as a time series and can also fit the Rp/R* changes
 ;; apPlot -- this optional keyword allows one to choose the aperture
 ;;           to plot
@@ -81,7 +81,8 @@ pro plot_tim_ser,fitcurve=fitcurve,fitpoly=fitpoly,usepoly=usepoly,makestops=mak
 ;;           Kepler Phot)
 ;; kepdiff -- same as kepfit but for differential light curve fitting
 ;; custyrange -- custom y range for time series plots
-
+;; tryAlt - try an alternative time series that has been corrected to
+;;          a non-linear trend between stars 1 and 2
 
 ;sigrejcrit = 6D  ;; sigma rejection criterion
 sigrejcrit = 5D  ;; sigma rejection criterion
@@ -179,6 +180,15 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
   save,tmid,tend,tstart,tplot,hstart,hend,$
        planetdat,u1parm,u2parm,$
        filename='data/timedata.sav'
+
+  ;; try the alternate flux grid
+  if keyword_set(tryAlt) then begin
+     two_star_corr
+     restore,'data/alt_tim_ser.sav'
+     binfl = fltarr(1,n_elements(tplot))
+     binfl[0,*] = altY
+  endif
+          
 
   ;; For any binfl error that are zero, set to 0.01
   zerobinp = where(binfle LE 1E-7)
