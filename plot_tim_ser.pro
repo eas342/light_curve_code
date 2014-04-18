@@ -12,7 +12,7 @@ pro plot_tim_ser,fitcurve=fitcurve,fitpoly=fitpoly,usepoly=usepoly,makestops=mak
                  showmcmc=showmcmc,deletePS=deletePS,showKep=showKep,lindetrend=lindetrend,$
                  showjump=showjump,kepfit=kepfit,skipReset=skipReset,custSep=custSep,$
                  showNomMCMC=showNomMCMC,useGPasfit=useGPasfit,kepdiff=kepdiff,$
-                 custyrange=custyrange,tryAlt=tryAlt
+                 custyrange=custyrange,tryAlt=tryAlt,secondary=secondary
 ;; plots the binned data as a time series and can also fit the Rp/R* changes
 ;; apPlot -- this optional keyword allows one to choose the aperture
 ;;           to plot
@@ -83,6 +83,7 @@ pro plot_tim_ser,fitcurve=fitcurve,fitpoly=fitpoly,usepoly=usepoly,makestops=mak
 ;; custyrange -- custom y range for time series plots
 ;; tryAlt - try an alternative time series that has been corrected to
 ;;          a non-linear trend between stars 1 and 2
+;; secondary -- designed for secondary eclipse
 
 ;sigrejcrit = 6D  ;; sigma rejection criterion
 sigrejcrit = 5D  ;; sigma rejection criterion
@@ -170,7 +171,7 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
 
   ;; add or subtract integers to phase so that's it's sort of centered
   ;; at 0
-  tplot = fold_phase(tplot)
+  tplot = fold_phase(tplot,secondary=secondary)
 
   ;; calculate start and end
   hstart = (tstart - tmid)/planetdat.period
@@ -207,7 +208,7 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
      ;; Reset the x axis (orbital phase, in case it was modified below)
      tplot = (utgrid - tmid)/planetdat.period     
      ;; fold back to 0
-     tplot = fold_phase(tplot)
+     tplot = fold_phase(tplot,secondary=secondary)
      airmass = airmassOrig
 
      offp = where(tplot LT hstart OR tplot GT hend)

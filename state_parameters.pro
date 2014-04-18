@@ -1,5 +1,6 @@
 pro state_parameters,skipInitialize=skipInitialize,psplot=psplot,$
-                     timSerRange=timSerRange,seeingDiff=seeingDiff
+                     timSerRange=timSerRange,seeingDiff=seeingDiff,$
+                     secondary=secondary
 ;; Plots the time series and then also a lot of other parameters below
 ;; to see if flux changes can be attributed to the FWHM changes,
 ;; drifts, airmass etc.
@@ -7,6 +8,7 @@ pro state_parameters,skipInitialize=skipInitialize,psplot=psplot,$
 ;; psplot -- save a postscript plot
 ;; timSerRange -- show a custom time series range
 ;; seeingDiff - show the difference in seeing between the two stars
+;; secondary -- looks at secondary eclipse data
 
   ;; set the plot
   if keyword_set(psplot) then begin
@@ -27,7 +29,7 @@ pro state_parameters,skipInitialize=skipInitialize,psplot=psplot,$
 
   !p.multi=[0,1,nparams+1]
 
-  plot_tim_ser,/singlep,/skipReset,custyrange=TimSerRange,custsep=0.02
+  plot_tim_ser,/singlep,/skipReset,custyrange=TimSerRange,custsep=0.02,secondary=secondary
 
   ;; get the phase information
   restore,'data/timedata.sav'
