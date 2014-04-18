@@ -1,0 +1,4 @@
+# HJD Times from Gillon et al. 2010. for transit center and then I take transit width and divide by two for 1/4th contacts. I converted from HJD to BJD with (http://astroutils.astronomy.ohio-state.edu/time/hjd2bjd.html)
+First_Contact	2454237.489066D
+Fourth_Cont	2454237.583526D
+Tmid		2454237.536296D

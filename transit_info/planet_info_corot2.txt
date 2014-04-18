@@ -1,0 +1,7 @@
+# Corot-1b Data from Guillot and Havel 2011 A&A 527, A20. For b_impact, I'm using Gillon et al. 2010's b_transit (which is only a tiny bit different from that of a circular orbit)
+p		0.1711
+a_o_Rstar	6.64
+b_impact	0.221
+Period	   	1.7429935
+TargStarNum	1
+RefStarNum	0
