@@ -107,6 +107,14 @@ readcol,'data/object_coordinates.txt',skipline=1,$
         objname,raHr,decDeg,format='(A,D,D)'
 raDeg = raHr / 24D * 360D
 
+;; get the planet info
+readcol,'transit_info/planet_info.txt',info,data,format='(A,D)',$
+        skipline=1
+planetdat = create_struct('null','')
+for l=0l,n_elements(info)-1l do begin
+   planetdat = create_struct(planetdat,info[l],data[l])
+endfor
+
 ;;Get the observatory
 readcol,'data/observatory_info.txt',obscode,obsnm,$
         format='(A,A)',skipline=1
@@ -136,6 +144,9 @@ case 1 of
    keyword_set(BackRatio): SpecKey = 2
    else: SpecKey=1
 endcase
+
+;; Set up the aperture keys
+ApKey = round([planetdat.TargStarNum[0],planetdat.RefStarNum[0]])
 
 for i=0l,nfile-1l do begin
    ;; Read all files into the grid
@@ -176,9 +187,9 @@ for i=0l,nfile-1l do begin
 ;   divisor = 1.0E
 
    for j=0,Nap-1 do begin
-      flgrid[*,j,i] = a2[*,j,SpecKey] * Gain / divisor
-      backgrid[*,j,i] = a2[*,j,2] * Gain / divisor;; multiply by gain divide by divisor
-      errgrid[*,j,i] = a2[*,j,3] * Gain / divisor
+      flgrid[*,j,i] = a2[*,ApKey[j],SpecKey] * Gain / divisor
+      backgrid[*,j,i] = a2[*,ApKey[j],2] * Gain / divisor;; multiply by gain divide by divisor
+      errgrid[*,j,i] = a2[*,ApKey[j],3] * Gain / divisor
    endfor
 
 ;; CORRECTION FACTOR - the errors must be scaled for a variety of
@@ -366,6 +377,10 @@ if keyword_set(specshift) then begin
    flgrid[*,0,*] = shiftedGrid
 endif
 
+if keyword_set(trycorrect) then begin
+   flgrid[*,0,*] = median(flgrid[*,0,*]) * 3E + flgrid[*,0,*]
+endif
+
 ;; Divide the two spectra
 Divspec = flgrid[*,0,*] / flgrid[*,1,*]
 
@@ -385,7 +400,8 @@ backdiv = backgrid[*,0,*] / backgrid[*,1,*]
 if keyword_set(trycorrect) then begin
 ;   C0 = 1.15E
 ;   C1 = -0.2E
-   Divspec = flgrid[*,0,*] / (1.45E * flgrid[*,1,*] - 2105E)
+   Divspec = (median(flgrid[*,0,*]) * 0E + flgrid[*,0,*]) / (flgrid[*,1,*])
+
    DivspecE = fracE * Divspec
 endif
 

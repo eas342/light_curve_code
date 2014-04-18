@@ -3,3 +3,5 @@ p		0.01
 a_o_Rstar	4.35
 b_impact	0.0
 Period	   	0.6535556
+TargStarNum	0
+RefStarNum	1
