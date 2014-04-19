@@ -2,7 +2,7 @@ pro plot_specphot,divbymodel=divbymodel,usebin=usebin,removelin=removelin,$
                   psplot=psplot,individual=individual,skipInitialize=skipInitialize,$
                   timebin=timebin,backg=backg,custYmargin=custYmargin,$
                   differential=differential,filter=filter,noNorm=noNorm,$
-                  backratio=backratio,custxrange=custxrange
+                  backratio=backratio,custxrange=custxrange,secondary=secondary
 ;; Makes an image of the spectrophotometry to get a visual sense of
 ;; the transit
 ;; divbymodel -- divide the image by the nominal transit model
@@ -23,7 +23,7 @@ pro plot_specphot,divbymodel=divbymodel,usebin=usebin,removelin=removelin,$
   ;; get the time info
 
   if not keyword_set(skipInitialize) then begin
-     plot_tim_ser
+     plot_tim_ser,secondary=secondary
   endif
   restore,'data/timedata.sav'
   restore,'data/specdata.sav'
