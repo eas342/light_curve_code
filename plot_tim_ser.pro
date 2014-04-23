@@ -12,7 +12,8 @@ pro plot_tim_ser,fitcurve=fitcurve,fitpoly=fitpoly,usepoly=usepoly,makestops=mak
                  showmcmc=showmcmc,deletePS=deletePS,showKep=showKep,lindetrend=lindetrend,$
                  showjump=showjump,kepfit=kepfit,skipReset=skipReset,custSep=custSep,$
                  showNomMCMC=showNomMCMC,useGPasfit=useGPasfit,kepdiff=kepdiff,$
-                 custyrange=custyrange,tryAlt=tryAlt,secondary=secondary
+                 custyrange=custyrange,tryAlt=tryAlt,secondary=secondary,$
+                 presentation=presentation
 ;; plots the binned data as a time series and can also fit the Rp/R* changes
 ;; apPlot -- this optional keyword allows one to choose the aperture
 ;;           to plot
@@ -84,6 +85,7 @@ pro plot_tim_ser,fitcurve=fitcurve,fitpoly=fitpoly,usepoly=usepoly,makestops=mak
 ;; tryAlt - try an alternative time series that has been corrected to
 ;;          a non-linear trend between stars 1 and 2
 ;; secondary -- designed for secondary eclipse
+;; presentation -- makes things bigger for a power point presentation
 
 ;sigrejcrit = 6D  ;; sigma rejection criterion
 sigrejcrit = 5D  ;; sigma rejection criterion
@@ -136,6 +138,18 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
              skipline=1,format='(A,A)',$
              instrumentkernRef,kernchoice
   endif
+
+  if keyword_set(presentation) then begin
+     PSplotXSize = 9
+     PSplotYSize = 6
+     PSSingleXsize = 9
+     PSSingleYsize = 6
+  endif else begin
+     PSplotXSize = 14
+     PSplotYSize = 10
+     PSSingleXsize = 12
+     PSSingleYsize = 9
+  endelse
 
   u1parm = 0.0E         
   u2parm = 0.0E
@@ -470,8 +484,8 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
            device,encapsulated=1, /helvetica,$
                   filename=plotnmpre+'.eps'
            if keyword_set(singleplot) then begin
-              device,xsize=12, ysize=9,decomposed=1,/color
-           endif else device,xsize=14, ysize=10,decomposed=1,/color
+              device,xsize=PSSingleXsize, ysize=PSSingleYsize,decomposed=1,/color
+           endif else device,xsize=PSplotXsize, ysize=PSplotYsize,decomposed=1,/color
         endif
 ;        plot,tplot,y,psym=2,$
         custXrange=[-0.1,0.1]
@@ -481,7 +495,7 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
               myNoerase=0
               yptitle= yptitle + ' + Offset'
               myXtitle='Orbital Phase'
-              tickformat='(G0)'
+              tickformat=''
               myXrange=[min(tplot),max(tplot)+0.25*(max(tplot)-min(tplot))]
               ;; If it's Dec 23, make an adjustment to avoid
               ;; squishing numbers
@@ -506,7 +520,7 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
            myNoErase=0
            offset = 0
            myTitle=wavname[k]+' um Flux'
-           tickformat='(G0)'
+           tickformat=''
            myXtitle='Orbital Phase'
         endelse
         if keyword_set(custyrange) then ydynam = custyrange
@@ -600,7 +614,7 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
               plotnmpre = 'plots/error_distrib/error_hist_'+wavname[k]
               device,encapsulated=1, /helvetica,$
                      filename=plotnmpre+'.eps'
-              device,xsize=14, ysize=10,decomposed=1,/color
+              device,xsize=PSplotXsize, ysize=PSplotYsize,decomposed=1,/color
 
            endif
            binsize=0.25E
@@ -807,7 +821,7 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
                  plotnmpre = 'plots/residual_series/residuals_'+wavname[k]
                  device,encapsulated=1, /helvetica,$
                         filename=plotnmpre+'.eps'
-                 device,xsize=14, ysize=10,decomposed=1,/color
+                 device,xsize=PSplotXsize, ysize=PSplotYsize,decomposed=1,/color
                  
               endif
               
