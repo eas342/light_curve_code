@@ -9,7 +9,7 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
                      asymmetric=asymmetric,$
                      rightleg=rightleg,bottomleg=bottomleg,$
                      filterCurveColor=filterCurveColor,$
-                     prevChoices=prevChoices
+                     prevChoices=prevChoices,secondary=secondary
 ;;psplot -- saves a postscript plot
 ;;showstarspec -- shows a star spectrum on the same plot
 ;;nbins -- number of points bo bin in Rp/R*
@@ -38,6 +38,7 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
 ;; filterCurveColor -- lets you specify the filter curve color
 ;; prevChoices - Use the previous choices for rad_vs_wavl files and
 ;;               legend labels
+;; secondary - secondary eclipse depth labels (instead of radius)
 
   if keyword_set(showstar) then !x.margin = [9,9] else !x.margin=[9,3]
   ;; set the plot
@@ -133,19 +134,30 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
      myxtitle='Wavelength ('+cgGreek('mu')+'m)'
   endelse
 
-  if n_elements(depthkep) NE 0 then begin
-     myYtitle='Transit Depth / Mean Kepler'
-     mylinestyle=1
-     wavlwidth = wavlwidth * 0E
-     ;; change the default ranges
-     if n_elements(custYrange) EQ 0 then custYrange = [-3,9]
-     if n_elements(custXrange) EQ 0 then custxrange=[0.5,2.5]
-  endif else begin
-     myYtitle = 'R!Dp!N/R!D*!N'
-     mylinestyle=0
-     if n_elements(custXrange) EQ 0 then custxrange=[0.8,2.55]
-     if n_elements(custYrange) EQ 0 then custYrange=[0.12,0.17]
-  endelse
+  case 1 of 
+     (n_elements(depthkep) NE 0): begin
+        myYtitle='Transit Depth / Mean Kepler'
+        mylinestyle=1
+        wavlwidth = wavlwidth * 0E
+        ;; change the default ranges
+        if n_elements(custYrange) EQ 0 then custYrange = [-3,9]
+        if n_elements(custXrange) EQ 0 then custxrange=[0.5,2.5]
+     end
+     keyword_set(secondary): begin
+        myYtitle='Secondary Eclipse Depth'
+        mylinestyle=1
+        wavlwidth = wavlwidth * 0E
+        ;; change the default ranges
+        if n_elements(custYrange) EQ 0 then custYrange = [-0.002,0.006]
+        if n_elements(custXrange) EQ 0 then custxrange=[0.5,2.5]
+     end
+     else: begin
+        myYtitle = 'R!Dp!N/R!D*!N'
+        mylinestyle=0
+        if n_elements(custXrange) EQ 0 then custxrange=[0.8,2.55]
+        if n_elements(custYrange) EQ 0 then custYrange=[0.12,0.17]
+     end
+  endcase
 
   if n_elements(custcharS) EQ 0 then custcharS = 1E
 
