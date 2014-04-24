@@ -710,6 +710,10 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
               keyword_set(kepfit): begin
                  expr = 'kepler_func(X,P[0]) *  eval_legendre(X,P[5:10])'
               end
+              keyword_set(secondary): begin
+                 expr = 'quadlc(X-P[11],P[0],P[1],0.0,0.0,P[4]) * eval_legendre(X,P[5:10])'
+                 
+              end
               else: begin
                  expr = 'quadlc(X-P[11],P[0],P[1],P[2],P[3],P[4])* ( P[5] + '+$
                         'Legendre((2D * X - Max(X) - Min(X))/(Max(X) - Min(X) + 3D-16),1) * P[6] + '+$
