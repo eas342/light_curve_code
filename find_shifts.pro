@@ -130,5 +130,8 @@ function find_shifts,inArray,cutEnds=cutEnds,stopAndshow=stopAndshow
 
   endfor
 
+  ;; save the shifted array
+  save,shiftArr,filename='data/wavelength_shifts/temp_shift_list.sav'
+
   return,outArray
 end

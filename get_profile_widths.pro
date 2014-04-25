@@ -10,10 +10,6 @@ pro get_profile_widths,showplot=showplot,jan04corot1=jan04corot1,$
           stringskip='#'
   ;; also get the speclist name
   restore,'data/used_date.sav'
-  splitName = strsplit(speclistname,'/',/extract)
-  nsplitNames = n_elements(splitName)
-  splitFileName = strsplit(splitName[nsplitNames-1],'.',/extract)
-  fileNamePrefix = splitFileName[0]
 
   nfile = n_elements(fileL)
 
@@ -88,11 +84,11 @@ pro get_profile_widths,showplot=showplot,jan04corot1=jan04corot1,$
         endfor
      endfor
      save,Widths,starLocations,filename='data/state_parameters/widths/widths_'+$
-          fileNamePrefix+'.sav'
+          specfileListNamePrefix+'.sav'
   endif
 
   restore,'data/state_parameters/widths/widths_'+$
-          fileNamePrefix+'.sav'
+          specfileListNamePrefix+'.sav'
   save,widths,starLocations,filename='data/prof_widths.sav'
      
   end

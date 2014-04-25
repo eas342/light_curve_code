@@ -11,6 +11,12 @@ if startpos NE -1 then begin
    useDate = strmid(fchoice,startpos,9)
 endif else useDate = 'NA'
 SpecListName = fchoice
-save,useDate,SpecListName,filename='data/used_date.sav'
+
+splitName = strsplit(speclistname,'/',/extract)
+nsplitNames = n_elements(splitName)
+splitFileName = strsplit(splitName[nsplitNames-1],'.',/extract)
+specfileListNamePrefix = splitFileName[0]
+
+save,useDate,SpecListName,specfileListNamePrefix,filename='data/used_date.sav'
 
 end

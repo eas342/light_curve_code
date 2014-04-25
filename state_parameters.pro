@@ -21,7 +21,7 @@ pro state_parameters,reInitialize=reInitialize,psplot=psplot,$
   endif
 
 
-  paramnames = ["Airmass","FWHM (px)","Relative Position (px)","Individual Flux"]
+  paramnames = ["Airmass","FWHM (px)","Relative Position (px)","Individual Flux","Spectral Shift (~px)"]
   nparams = n_elements(paramnames)
 
   !p.multi=[0,1,nparams+1]
@@ -43,6 +43,10 @@ pro state_parameters,reInitialize=reInitialize,psplot=psplot,$
 
   ;; get the spectral info
   restore,'data/specdata.sav
+
+  ;; get the spec list name for the observation
+  restore,'data/used_date.sav'
+  restore,'data/shift_data/shift_'+specfileListNamePrefix+'.sav'
 
   for i=0l,nparams-1l do begin
      case paramnames[i] of 
@@ -76,6 +80,11 @@ pro state_parameters,reInitialize=reInitialize,psplot=psplot,$
            y = y/median(y)
            y2 = double(transpose(binind[0,1,*]))
            y2 = y2/median(y2)
+           showY2 = 1
+        end
+        "Spectral Shift (~px)": begin
+           y = double(transpose(specShiftArr[0,*]))
+           y2 = double(transpose(specShiftArr[1,*]))
            showY2 = 1
         end
         else: y = tplot * 0E

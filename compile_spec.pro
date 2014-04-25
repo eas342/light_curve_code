@@ -6,7 +6,7 @@ pro compile_spec,extraction2=extraction2,sum=sum,nwavbins=nwavbins,$
                  matchgrid=matchgrid,readCurrent=readCurrent,skipBJD=skipBJD,$
                  masktelluric=masktelluric,showall=showall,irafnoise=irafnoise,$
                  longwavname=longwavname,trycorrect=trycorrect,removelinear=removelinear,$
-                 backRatio=backRatio,alreadyDivided=alreadyDivided
+                 backRatio=backRatio,alreadyDivided=alreadyDivided,saveshifts=saveshifts
 ;; Compiles the spectra into a few simple arrays to look at the spectrophotometry
 ;; extraction2 -- uses whatever spectra are in the data directory
 ;; sum -- uses the variance weighted (optimal) extraction by
@@ -44,6 +44,7 @@ pro compile_spec,extraction2=extraction2,sum=sum,nwavbins=nwavbins,$
 ;;              of ratio of fluxes
 ;; alreadyDivided -- the spectra are already divided so ignore the
 ;;                   DIVISOR keyword
+;; SaveShifts -- saves the shifts instead of trying to correct for them
 
 ;Nwavbins = 35 ;; number of wavelength bins
 ;Nwavbins = 9 ;; number of wavelength bins
@@ -326,7 +327,7 @@ shiftedGrid = shift_interp(xygrid,starshift)
 flgrid[*,1,*] = shiftedGrid
 
 ;; Shift arrays
-if keyword_set(specshift) then begin
+if keyword_set(specshift) or keyword_set(saveShifts) then begin
    ;; Align the stars within their bins
 
    if keyword_set(trystraight) then begin
@@ -336,14 +337,27 @@ if keyword_set(specshift) then begin
       flgrid[badp,*,*] = !values.f_nan
    endif
 
+   specShiftArr = fltarr(Nap,nfile)
+
    for i=0l,Nap-1l do begin
       xyspec = fltarr(Ngpts,nfile)
       xyspec[*,*] = flgrid[*,i,*]
 
       ShiftedGrid1 = find_shifts(xyspec,/cutEnds)
-      flgrid[*,i,*] = ShiftedGrid1
+      if keyword_set(specshift) then flgrid[*,i,*] = ShiftedGrid
+      if keyword_set(saveShifts) then begin
+         restore,'data/wavelength_shifts/temp_shift_list.sav'
+         specshiftArr[i,*] = shiftArr
+      endif
    endfor
 
+   ;; Save the shift arr
+   if keyword_set(saveShifts) then begin
+      ;; also get the speclist name
+      restore,'data/used_date.sav'
+      save,specshiftArr,filename='data/shift_data/shift_'+specfileListNamePrefix+'.sav'
+   endif
+   
    ;; Align the stars with each other
    medspec0 = fltarr(Ngpts)
    medspec1 = fltarr(Ngpts)
@@ -374,7 +388,7 @@ if keyword_set(specshift) then begin
 
    shiftedGrid = shift_interp(xyspec,ShiftStars)
 ;   shiftedGrid = shift_interp(xyspec,0)
-   flgrid[*,0,*] = shiftedGrid
+   if keyword_set(specshift) then flgrid[*,0,*] = shiftedGrid
 endif
 
 if keyword_set(trycorrect) then begin
