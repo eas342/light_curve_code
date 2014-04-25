@@ -1,10 +1,10 @@
-pro state_parameters,skipInitialize=skipInitialize,psplot=psplot,$
+pro state_parameters,reInitialize=reInitialize,psplot=psplot,$
                      timSerRange=timSerRange,seeingDiff=seeingDiff,$
                      secondary=secondary
 ;; Plots the time series and then also a lot of other parameters below
 ;; to see if flux changes can be attributed to the FWHM changes,
 ;; drifts, airmass etc.
-;; skipInitialize -- skip the initialization process
+;; reInitialize -- find both the spectral shifts and FWHMs
 ;; psplot -- save a postscript plot
 ;; timSerRange -- show a custom time series range
 ;; seeingDiff - show the difference in seeing between the two stars
@@ -20,9 +20,6 @@ pro state_parameters,skipInitialize=skipInitialize,psplot=psplot,$
            device,xsize=14, ysize=14,decomposed=1,/color
   endif
 
-  if not keyword_set(skipInitialize) then begin
-     get_profile_widths
-  endif
 
   paramnames = ["Airmass","FWHM (px)","Relative Position (px)","Individual Flux"]
   nparams = n_elements(paramnames)
@@ -34,11 +31,18 @@ pro state_parameters,skipInitialize=skipInitialize,psplot=psplot,$
   ;; get the phase information
   restore,'data/timedata.sav'
 
-  ;; get the spectral info
-  restore,'data/specdata.sav'
+  if keyword_set(reInitialize) then begin
+     get_profile_widths
+  endif else begin
+     ;; get the spectral info
+     get_profile_widths,/useSaved
+  endelse
 
   ;; get the profile widths and locations
   restore,'data/prof_widths.sav'
+
+  ;; get the spectral info
+  restore,'data/specdata.sav
 
   for i=0l,nparams-1l do begin
      case paramnames[i] of 

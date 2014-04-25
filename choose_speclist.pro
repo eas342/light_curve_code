@@ -9,7 +9,8 @@ spawn,'cp '+fchoice+' file_lists/current_speclist.txt'
 startpos = strpos(fchoice,'kic1255') + 8
 if startpos NE -1 then begin
    useDate = strmid(fchoice,startpos,9)
-   save,useDate,filename='data/used_date.sav'
-endif
+endif else useDate = 'NA'
+SpecListName = fchoice
+save,useDate,SpecListName,filename='data/used_date.sav'
 
 end
