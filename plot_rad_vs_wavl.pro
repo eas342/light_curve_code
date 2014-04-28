@@ -9,7 +9,8 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
                      asymmetric=asymmetric,$
                      rightleg=rightleg,bottomleg=bottomleg,$
                      filterCurveColor=filterCurveColor,$
-                     prevChoices=prevChoices,secondary=secondary
+                     prevChoices=prevChoices,secondary=secondary,$
+                     showAlonso=showalonso
 ;;psplot -- saves a postscript plot
 ;;showstarspec -- shows a star spectrum on the same plot
 ;;nbins -- number of points bo bin in Rp/R*
@@ -21,6 +22,7 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
 ;;wavnum -- changes the units on wavelength to wavenumber
 ;;custXrange -- set a custom range for the plot instead of defualt
 ;;showOptical -- show the optical transit radius
+;;showAlonso -- show the optical transit radius from Alonso 2008 on corot2
 ;;custYrange -- set a custom range fot eh plot instead of default
 ;;powerErr -- takes all radius errors to a specified power
 ;;multErr -- takes all radius errors and multiples by a specified constant
@@ -228,11 +230,18 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
 ;     binModel = avg_series(theowav,theorad *mult2,fltarr(ntheo)+0.2E,wavl-wavlwidth,wavlwidth * 2E,weighted=0)
 
      if keyword_set(showOptical) then begin
+        if keyword_set(showAlonso) then begin
+           CorRad = 0.1667 ;;Rp/R*
+           CorErr = 0.0006
+           CorWav = 0.65 ;; microns, approximately
+           CorWid = 0.20 ;; microns, approx
+        endif else begin
         ;; Show the Bean 2009 result if asked to
-        CorRad = 0.1433 ;;Rp/R*
-        CorErr = 0.0010
-        CorWav = 0.65 ;; microns, approximately
-        CorWid = 0.20 ;; microns, approx
+           CorRad = 0.1433 ;;Rp/R*
+           CorErr = 0.0010
+           CorWav = 0.65 ;; microns, approximately
+           CorWid = 0.20 ;; microns, approx
+        endelse
 ;        binModel2 = avg_series(theowav,theorad * mult2,fltarr(ntheo)+0.2E,CorWav-CorWid/2E,CorWid,weighted=0)
 ;        oplot,[CorWav],[binModel2],psym=2,color=mycol('blue'),symsize=2
         if keyword_set(phot) then begin

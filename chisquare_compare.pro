@@ -1,25 +1,38 @@
-pro chisquare_compare,alt=alt,modchoose=modchoose
+pro chisquare_compare,alt=alt,modchoose=modchoose,addbean=addbean,ironly=ironly,$
+                      addalonso=addalonso
 ;; Calculates the chi-squared of spectral models with the data stored
 ;; in avg rp_rs
 ;; alt - use the alternate planet radius from Barge et al. 2008
+;; addbean - add the Bean 2009 data
+;; addalonso - add the Alonso et al. 2008 data
+;; ironly - the data is only SpeX data - no photometry is included
 
 readcol,'radius_vs_wavelength/avg_rp_rs.txt',wavl,wavlsize,rad,rade,$
         skipline=1,format='(F,F,F,F)'
 
+if keyword_set(addbean) or keyword_set(addalonso) then begin
 ;; Add the Bean 2009 result
-CorWav = 0.65         ;; microns, approximately
-CorWid = 0.20         ;; microns, approx
-if keyword_set(alt) then begin
-   CorRad = 0.1388 ;;Rp/R*, Barge 2008
-   CorErr = 0.0021
-endif else begin
-   CorRad = 0.1433 ;;Rp/R*, Bean 2009
-   CorErr = 0.0010
-endelse
-wavl = [CorWav,wavl]
-wavlsize = [CorWid,wavlsize]
-rad = [CorRad,rad]
-rade = [CorErr,rade]
+   CorWav = 0.65         ;; microns, approximately
+   CorWid = 0.20         ;; microns, approx
+   case 1 of
+      keyword_set(alt): begin
+         CorRad = 0.1388 ;;Rp/R*, Barge 2008
+         CorErr = 0.0021
+      end
+      keyword_set(addalonso): begin
+         CorRad = 0.1667 ;; Rp/R* Alonso et al. 2008
+         CorErr = 0.0006
+      end
+      else: begin
+         CorRad = 0.1433 ;;Rp/R*, Bean 2009
+         CorErr = 0.0010
+      end
+   endcase
+   wavl = [CorWav,wavl]
+   wavlsize = [CorWid,wavlsize]
+   rad = [CorRad,rad]
+   rade = [CorErr,rade]
+endif   
 
 wavlwidth = wavlsize
 
@@ -30,10 +43,10 @@ if keyword_set(modchoose) then begin
 endif else begin
 ;   readcol,'../models/fortney_g10mps_2500K_isothermal.csv',theowav,theorad,$
 ;           skipline=6,format='(F,F)'
-
+   
    readcol,'../models/transit_models/lambda_R_P_iso_g10_2500.dat',theowav,theorad,$
            skipline=6,format='(F,F)'
-
+   
 endelse
 
 ;; Get the zprime filter curves
@@ -47,9 +60,11 @@ CoRoTtransWav = CoRoTtransWav * 1E-3
 ntheo=n_elements(theorad)
 binModel1 = avg_series(theowav,theorad,fltarr(ntheo)+0.2E,wavl-wavlwidth/2E,wavlwidth,weighted=0)
 
+if not keyword_set(ironly) then begin
 ;; Correct the photometry bins, starting with the CoRoT response
-binModel1[0] = photobin(theowav,theorad,CoRoTtransWav,CoRoTtrans)
-binModel1[1] = photobin(theowav,theorad,zprimeWavl,zprimeResp)
+   binModel1[0] = photobin(theowav,theorad,CoRoTtransWav,CoRoTtrans)
+   binModel1[1] = photobin(theowav,theorad,zprimeWavl,zprimeResp)
+endif
 
 binModel = binModel1
 save,wavl,binModel,filename='data/binned_model.sav'
