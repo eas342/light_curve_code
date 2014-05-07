@@ -42,7 +42,7 @@ pro state_parameters,reInitialize=reInitialize,psplot=psplot,$
   restore,'data/prof_widths.sav'
 
   ;; get the spectral info
-  restore,'data/specdata.sav
+  restore,'data/specdata.sav'
 
   ;; get the spec list name for the observation
   restore,'data/used_date.sav'
@@ -102,9 +102,9 @@ pro state_parameters,reInitialize=reInitialize,psplot=psplot,$
      if ShowY2 then begin
         ;; For some variables we show the background AND reference
         oplot,tplot,y2,color=mycol('blue'),psym=4
-        legend,['Planet Host','Reference'],$
+        al_legend,['Planet Host','Reference'],$
                /right,/bottom,linestyle=[0,0],$
-               color=[!p.color,mycol('blue')],charsize=0.3
+               color=[!p.color,mycol('blue')],charsize=0.5
      endif
 
   endfor
