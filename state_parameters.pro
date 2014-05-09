@@ -21,7 +21,8 @@ pro state_parameters,reInitialize=reInitialize,psplot=psplot,$
   endif
 
 
-  paramnames = ["Airmass","FWHM (px)","Relative Position (px)","Individual Flux","Spectral Shift (~px)"]
+  paramnames = ["Airmass","FWHM (px)","Relative Position (px)","Individual Flux",$
+                "Spectral Shift (~px)","Slit Model (fraction)"]
   nparams = n_elements(paramnames)
 
   !p.multi=[0,1,nparams+1]
@@ -48,11 +49,15 @@ pro state_parameters,reInitialize=reInitialize,psplot=psplot,$
   restore,'data/used_date.sav'
   restore,'data/shift_data/shift_'+specfileListNamePrefix+'.sav'
 
+  ;; Make a structure with all state parameters
+  statePStruct = create_struct('JD',utgrid,'phase',tplot,'FluxRatio',binfl[0,*])
+
   for i=0l,nparams-1l do begin
      case paramnames[i] of 
         "Airmass": begin
            y = airmass
            ShowY2 = 0
+           shorthand = 'airmass'
         end
         "FWHM (px)": begin
            if keyword_set(seeingDiff) then begin
@@ -67,6 +72,7 @@ pro state_parameters,reInitialize=reInitialize,psplot=psplot,$
               y2 = widths[*,1] * 2.35E
               showY2 = 1
            endelse
+           shorthand = 'fwhm'
         end
         "Relative Position (px)": begin
            y = starLocations[*,0]
@@ -74,6 +80,7 @@ pro state_parameters,reInitialize=reInitialize,psplot=psplot,$
            y2 = starLocations[*,1]
            y2 = y2 - median(y2)
            showY2 = 1
+           shorthand = 'position'
         end
         "Individual Flux": begin
            y = double(transpose(binind[0,0,*]))
@@ -81,17 +88,38 @@ pro state_parameters,reInitialize=reInitialize,psplot=psplot,$
            y2 = double(transpose(binind[0,1,*]))
            y2 = y2/median(y2)
            showY2 = 1
+           shorthand = 'individualFlux'
         end
         "Spectral Shift (~px)": begin
            y = double(transpose(specShiftArr[0,*]))
            y2 = double(transpose(specShiftArr[1,*]))
            showY2 = 1
+           shorthand = 'specshift'
+        end
+        "Slit Model (fraction)": begin
+           d1 = double(transpose(specShiftArr[0,*]))
+           d2 = double(transpose(specShiftArr[1,*]))
+           H = 20.49E /2E
+           sigma1 = widths[*,0]
+           sigma2 = widths[*,1]
+           trans1 = gauss_slit(d1 - 4D,H,sigma1 * 3E)
+           trans2 = gauss_slit(d2 - 2D,H,sigma2 * 3E)
+;           y = trans1 / trans2
+;           showY2 = 0
+           y = trans1
+           y2 = trans2
+           showY2 = 1
+           shorthand = 'slitmodel'
         end
         else: y = tplot * 0E
      endcase
      
-     if ShowY2 then myYrange = threshold([y,y2],low=0.1,high=0.9,mult=0.4) else begin
+     if ShowY2 then begin 
+        myYrange = threshold([y,y2],low=0.1,high=0.9,mult=0.4) 
+        statePStruct = create_struct(statePStruct,shorthand+'1',y,shorthand+'2',y2)
+     endif else begin
         myYrange = threshold(y,low=0.1,high=0.9,mult=0.4)
+        statePStruct = create_struct(statePStruct,shorthand,y)
      endelse
      myXrange = !x.crange
 
@@ -106,9 +134,9 @@ pro state_parameters,reInitialize=reInitialize,psplot=psplot,$
                /right,/bottom,linestyle=[0,0],$
                color=[!p.color,mycol('blue')],charsize=0.5
      endif
+     
 
   endfor
-
   if keyword_set(psplot) then begin
      device, /close
      cgPS2PDF,plotprenm+'.eps'
@@ -120,4 +148,6 @@ pro state_parameters,reInitialize=reInitialize,psplot=psplot,$
 
   !p.multi=0
 
+  write_csv,'data/state_parameters/full_parameters/'+specfileListNamePrefix+'.csv',$
+            statePStruct,header=tag_names(statePstruct)
 end
