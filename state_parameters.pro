@@ -150,4 +150,7 @@ pro state_parameters,reInitialize=reInitialize,psplot=psplot,$
 
   write_csv,'data/state_parameters/full_parameters/'+specfileListNamePrefix+'.csv',$
             statePStruct,header=tag_names(statePstruct)
+  save,statePStruct,$
+       filename='data/state_parameters/full_parameters/'+specfileListNamePrefix+'.sav'
+  
 end
