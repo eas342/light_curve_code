@@ -1,4 +1,4 @@
-function vslit_approx,a,x,sigma,H
+function vslit_approx,x,H,sigma,a
 
 GHW = sigma * 1.17741 ;; Gaussian Half Width at Half Max
 LHW = GHW * a ;; Lorentzian Half width at Half Max
