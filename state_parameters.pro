@@ -22,7 +22,7 @@ pro state_parameters,reInitialize=reInitialize,psplot=psplot,$
 
 
   paramnames = ["Airmass","FWHM (px)","Relative Position (px)","Individual Flux",$
-                "Spectral Shift (~px)","Slit Model (fraction)"]
+                "Spectral Shift (~px)","Voigt a"]
   nparams = n_elements(paramnames)
 
   !p.multi=[0,1,nparams+1]
@@ -96,19 +96,25 @@ pro state_parameters,reInitialize=reInitialize,psplot=psplot,$
            showY2 = 1
            shorthand = 'specshift'
         end
+        "Voigt a": begin
+           y = transpose(voigts[*,0])
+           y2 = transpose(voigts[*,1])
+           showY2 = 1
+           shorthand = 'voigtdamp'
+        end
         "Slit Model (fraction)": begin
            d1 = double(transpose(specShiftArr[0,*]))
            d2 = double(transpose(specShiftArr[1,*]))
            H = 20.49E /2E
            sigma1 = widths[*,0]
            sigma2 = widths[*,1]
-           trans1 = gauss_slit(d1 - 4D,H,sigma1 * 3E)
-           trans2 = gauss_slit(d2 - 2D,H,sigma2 * 3E)
-;           y = trans1 / trans2
-;           showY2 = 0
-           y = trans1
-           y2 = trans2
-           showY2 = 1
+           trans1 = gauss_slit(d1 - 0D,H,sigma1)
+           trans2 = gauss_slit(d2 + 9D,H,sigma2)
+           y = trans1 / trans2
+           showY2 = 0
+;           y = trans1
+;           y2 = trans2
+;           showY2 = 1
            shorthand = 'slitmodel'
         end
         else: y = tplot * 0E
@@ -135,7 +141,6 @@ pro state_parameters,reInitialize=reInitialize,psplot=psplot,$
                color=[!p.color,mycol('blue')],charsize=0.5
      endif
      
-
   endfor
   if keyword_set(psplot) then begin
      device, /close
