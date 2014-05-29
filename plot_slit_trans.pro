@@ -1,8 +1,11 @@
-pro plot_slit_trans,psplot=psplot,voigt=voigt,closerparams=closerparams
+pro plot_slit_trans,psplot=psplot,voigt=voigt,$
+                    closerparams=closerparams,$
+                    avoigt=avoigt
 ;; Shows the slit transmission as a function of other parameters
 ;; psplot - saves postscript & png plots
 ;; voigt - use a voigt profile with a damping parameter a=voigt instead of Gaussian
 ;; closerparams - parameters close to the measured ones
+;; avoigt -- use the simple analytic approximation to the Voigt function
 
   ;; set the plot
   if keyword_set(psplot) then begin
@@ -33,9 +36,15 @@ pro plot_slit_trans,psplot=psplot,voigt=voigt,closerparams=closerparams
   nlines = n_elements(sigma)
   farray = dblarr(nlines,npts)
   for i=0l,nlines-1l do begin
-     if keyword_set(voigt) then begin
-        farray[i,*] = voigt_slit(y,H,sigma[i],voigt)
-     endif else farray[i,*] = gauss_slit(y,H,sigma[i])
+     case 1 of
+        keyword_set(voigt): begin
+           farray[i,*] = voigt_slit(y,H,sigma[i],voigt)
+        end
+        keyword_set(avoigt): begin
+           farray[i,*] = vslit_approx(y,H,sigma[i],avoigt)
+        end
+        else: farray[i,*] = gauss_slit(y,H,sigma[i])
+     endcase
   endfor
   
   colorArray = [!p.color,mycol(['red','blue','dgreen'])]
@@ -51,12 +60,19 @@ pro plot_slit_trans,psplot=psplot,voigt=voigt,closerparams=closerparams
 
   al_legend,sigmastring,color=colorArray,linestyle=linestyleArray,$
             charsize=myCharsize
-  if keyword_set(voigt) then begin
-     al_legend,['H = 10px','a = '+string(voigt[0],format='(F6.2)')],$
-               /right,charsize=myCharsize
-  endif else begin
-     al_legend,['H = 10px'],/right,charsize=myCharsize
-  endelse
+  case 1 of 
+     keyword_set(voigt): begin
+        al_legend,['H = 10px','a = '+string(voigt[0],format='(F6.2)')],$
+                  /right,charsize=myCharsize
+     end
+     keyword_set(avoigt): begin
+        al_legend,['H = 10px','a = '+string(avoigt[0],format='(F6.2)')],$
+                  /right,charsize=myCharsize
+     end
+     else: begin
+        al_legend,['H = 10px'],/right,charsize=myCharsize
+     end
+  endcase
 
   if keyword_set(psplot) then begin
      device, /close
