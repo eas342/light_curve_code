@@ -99,6 +99,7 @@ fitexpr = 'vslit_approx(X[0,*] - P[0],P[2],X[2,*],X[5,*])/'+$
           ' * eval_legendre(X[4,*],P[3:4])'
 ;fitexpr = 'voigt_slit(X[0,*] - P[0],P[2],X[2,*],0.4)/gauss_slit(X[1,*] - P[1],P[2],X[3,*]) *'+$
 ;          ' eval_legendre(X[4,*],P[3:4])'
+
 result = mpfitexpr(fitexpr,inputX,y,yerr,start,parinfo=pi,perr=perr)
 
 ;; Show the model
