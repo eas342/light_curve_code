@@ -1,7 +1,11 @@
-pro fit_state_param_model,psplot=psplot,fixspatial=fixspatial
+pro fit_state_param_model,psplot=psplot,fixspatial=fixspatial,$
+                          psmooth=psmooth
 ;; Fits the state parameter model to the observed flux ratio time
 ;; series
 ;; psplot - saves a postscript plot
+;; fixspatial - fixes the FWHM and voigt parameters in time (with the
+;;              median value)
+;; psmooth - smooth the parameters in time
 
   if keyword_set(psplot) then begin
      set_plot,'ps'
@@ -58,21 +62,24 @@ endfor
 AllGood = where(badArray EQ 0,ngood)
 y = y[AllGood]
 inputX = inputX[*,AllGood]
+yerr = robust_sigma(y) + fltarr(ngood)
 
 ;; For now smooth the state parameters
-for i=0l,3l do begin
-;   inputX[i,*] = smooth(inputX[i,*],20)
-endfor
+if keyword_set(psmooth) then begin
+   smoothP = [0,1,2,3,5,6]
+   nsmoothP = n_elements(smoothP)
+   for i=0l,nsmoothP-1l do begin
+      inputX[smoothP[i],*] = smooth(inputX[smoothP[i],*],30)
+   endfor
+endif
 
 if keyword_set(fixspatial) then begin
 ;inputX[1,*] = smooth(inputX[0,*],20)
 ;; For now set the FWHM & voigt Damp to be constant with time
-
-inputX[2,*] = dblarr(ngood) + median(inputX[2,*])
-inputX[3,*] = dblarr(ngood) + median(inputX[3,*])
-inputX[5,*] = dblarr(ngood) + median(inputX[5,*])
-inputX[6,*] = dblarr(ngood) + median(inputX[6,*])
-
+   inputX[2,*] = dblarr(ngood) + median(inputX[2,*])
+   inputX[3,*] = dblarr(ngood) + median(inputX[3,*])
+   inputX[5,*] = dblarr(ngood) + median(inputX[5,*])
+   inputX[6,*] = dblarr(ngood) + median(inputX[6,*])
 end
 
 Start = [0D,-1D,10.5D,1.0D,0D,0.3D,1.0D]
@@ -92,7 +99,7 @@ fitexpr = 'vslit_approx(X[0,*] - P[0],P[2],X[2,*],X[5,*])/'+$
           ' * eval_legendre(X[4,*],P[3:4])'
 ;fitexpr = 'voigt_slit(X[0,*] - P[0],P[2],X[2,*],0.4)/gauss_slit(X[1,*] - P[1],P[2],X[3,*]) *'+$
 ;          ' eval_legendre(X[4,*],P[3:4])'
-result = mpfitexpr(fitexpr,inputX,y,fltarr(npts,4)+0.1,start,parinfo=pi)
+result = mpfitexpr(fitexpr,inputX,y,yerr,start,parinfo=pi,perr=perr)
 
 ;; Show the model
 ;result = [1.5E,-1E,14E,0.985,-0.001D]
@@ -105,7 +112,13 @@ plot,xplot,y,yrange=[0.98,1.02],psym=4,$
      xtitle='Phase',ytitle='Normalized Flux'
 oplot,xplot,ymodel,color=mycol('blue')
 
-
+;; Print the parameters and errors
+print,fitexpr
+for i=0l,nparams-1l do begin
+   print,'P['+strtrim(i,1)+'] = ',$
+         strtrim(result[i],1),' +/- ',$
+         strtrim(perr[i],1)
+endfor
 
 ycorrected = y / ymodel
 print,'Robust sigma corrected = ',robust_sigma(y)
