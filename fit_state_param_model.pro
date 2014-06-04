@@ -58,6 +58,9 @@ endfor
 ;badArray[earlyPt] = 1
 
 
+;; Trim out the bad points, but make a copy of the original
+originalX = inputX
+originalY = y
 
 AllGood = where(badArray EQ 0,ngood)
 y = y[AllGood]
@@ -140,5 +143,11 @@ plot,xplot,ycorrected,yrange=[0.98,1.02],psym=4,$
      !y.thick=1
   endif
 !p.multi=0
+
+yfullmodel = expression_eval(fitexpr,originalX,result)
+yfullcorrected = originalY /yfullmodel
+
+save,yfullcorrected,$
+     filename='data/state_parameters/alt_tim_ser.sav'
 
 end
