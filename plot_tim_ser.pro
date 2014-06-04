@@ -12,7 +12,8 @@ pro plot_tim_ser,fitcurve=fitcurve,fitpoly=fitpoly,usepoly=usepoly,makestops=mak
                  showmcmc=showmcmc,deletePS=deletePS,showKep=showKep,lindetrend=lindetrend,$
                  showjump=showjump,kepfit=kepfit,skipReset=skipReset,custSep=custSep,$
                  showNomMCMC=showNomMCMC,useGPasfit=useGPasfit,kepdiff=kepdiff,$
-                 custyrange=custyrange,tryAlt=tryAlt,secondary=secondary,$
+                 custyrange=custyrange,tryAlt=tryAlt,trycorrect=trycorrect,$
+                 secondary=secondary,$
                  presentation=presentation
 ;; plots the binned data as a time series and can also fit the Rp/R* changes
 ;; apPlot -- this optional keyword allows one to choose the aperture
@@ -84,6 +85,8 @@ pro plot_tim_ser,fitcurve=fitcurve,fitpoly=fitpoly,usepoly=usepoly,makestops=mak
 ;; custyrange -- custom y range for time series plots
 ;; tryAlt - try an alternative time series that has been corrected to
 ;;          a non-linear trend between stars 1 and 2
+;; trycorrect - try a corrected time series where a model using the state
+;;              parameters was fit to the data and then divided out
 ;; secondary -- designed for secondary eclipse
 ;; presentation -- makes things bigger for a power point presentation
 
@@ -203,7 +206,12 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
      binfl = fltarr(1,n_elements(tplot))
      binfl[0,*] = altY
   endif
-          
+
+  if keyword_set(trycorrect) then begin
+     restore,'data/state_parameters/alt_tim_ser.sav'
+     binfl = fltarr(1,n_elements(tplot))
+     binfl[0,*] = yfullcorrected
+  endif
 
   ;; For any binfl error that are zero, set to 0.01
   zerobinp = where(binfle LE 1E-7)
