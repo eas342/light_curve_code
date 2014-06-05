@@ -1,11 +1,12 @@
 pro fit_state_param_model,psplot=psplot,fixspatial=fixspatial,$
-                          psmooth=psmooth
+                          psmooth=psmooth,widthfix=widthfix
 ;; Fits the state parameter model to the observed flux ratio time
 ;; series
 ;; psplot - saves a postscript plot
 ;; fixspatial - fixes the FWHM and voigt parameters in time (with the
 ;;              median value)
 ;; psmooth - smooth the parameters in time
+;; widthfix - fixes the slit width at an estimated size
 
   if keyword_set(psplot) then begin
      set_plot,'ps'
@@ -31,8 +32,10 @@ restore,'data/state_parameters/full_parameters/'+$
 
 npts = n_elements(statePstruct.phase)
 inputX = dblarr(7,npts)
-inputX[0,*] = statePstruct.position1
-inputX[1,*] = statePstruct.position2
+;inputX[0,*] = statePstruct.position1 ;; Ack! Wrong position (spatial)
+;inputX[1,*] = statePstruct.position2
+inputX[0,*] = statePstruct.specshift1
+inputX[1,*] = statePstruct.specshift2
 inputX[2,*] = statePstruct.fwhm1
 inputX[3,*] = statePstruct.fwhm2
 inputX[4,*] = statePstruct.phase
@@ -93,7 +96,7 @@ Start = [0D,-1D,10.5D,1.0D,0D,0.3D,1.0D]
 
 nparams = n_elements(start)
 pi = replicate({fixed:0, limited:[0,0], limits:[0.0E,0.0E]},nparams)
-;pi[2].fixed = 1
+if keyword_set(widthfix) then pi[2].fixed = 1
 pi[5].fixed = 1
 ;pi[5].limited = [1,1]
 ;pi[5].limits = [0E,1E]
