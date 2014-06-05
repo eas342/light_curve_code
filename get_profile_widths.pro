@@ -113,7 +113,7 @@ pro get_profile_widths,showplot=showplot,jan04corot1=jan04corot1,$
            endwhile
            free_lun,1
         endelse
-        HW = 40 ;; Half width
+        HW = 40 ;; Half width for looking at individual stars
 
         if abs(posit[1] - posit[0]) LT HW then begin
            ;; If the two stars are close, we'll need to fit
@@ -124,10 +124,10 @@ pro get_profile_widths,showplot=showplot,jan04corot1=jan04corot1,$
               Widths[j,i] = !values.f_nan
            endif
            
-           HW = 80
-           startx = min(posit) - HW
+           HWBoth = 80 ;; half width of baseline for two stars
+           startx = min(posit) - HWboth
            if startX LT 0l then startx=0l
-           endx = max(posit) + HW
+           endx = max(posit) + HWboth
            if endx GE n_elements(b) -1l then endx = n_elements(b) - 1l
 
            ;; Estimate outside points for error
@@ -138,18 +138,9 @@ pro get_profile_widths,showplot=showplot,jan04corot1=jan04corot1,$
            expr = '(voigt_approx(P[0],X - P[1],P[2]) * P[6]+'+$
                   ' P[7] * voigt_approx(P[3],X - P[4],P[5]))'+$
                   '+ eval_legendre(X,P[8:10])'
-;           expr = '(voigt_approx(P[0],X - P[1],P[2]) * P[6]+'+$
-;                  ' P[7] * voigt_approx(P[0],X - P[4],P[2]))'+$
-;                  '+ eval_legendre(X,P[8:10])'
-
-;           start = [0.1E,posit[0],3E,0.1E,posit[1],3E,max(b) *
-;           3E,max(b) * 3E,max(b) * 3E,0E,0E]
            start = [0.1E,posit[0],3E,0.1E,posit[1],3E,max(b) * 3E,max(b) * 3E,max(b) * 3E,0E,0E]
            nparams = n_elements(start)
            pi = replicate({fixed:0, limited:[0,0], limits:[0.0E,0.0E]},nparams)
-;           fixedP = [0]
-;           pi[fixedP].fixed = 1
-;           pi[10].fixed=1
            indV = [0E,3E] ;; voigt parameter Indices
            pi[indV].limited = [1,0]
            pi[indV].limits = [0E,0E]
@@ -158,7 +149,7 @@ pro get_profile_widths,showplot=showplot,jan04corot1=jan04corot1,$
            pi[indPos].limits = [-startx,endx]
            indSig = [2,5] ;; Sigma indices
            pi[indSig].limited = [1,1]
-           pi[indSig].limits = [-HW/2E,HW/2E]
+           pi[indSig].limits = [-HWboth/2E,HWboth/2E]
            
            result = mpfitexpr(expr,subarrayX,subarrayY,yerr,start,parinfo=pi,perr=perr,/quiet)
            yfit = expression_eval(expr,subarrayX,result)
@@ -205,14 +196,10 @@ pro get_profile_widths,showplot=showplot,jan04corot1=jan04corot1,$
            voigtsE[j,1] = perr[0];perr[3]
 
            acheck = widths[0:j,0]
-;           if j GT 20 and $
-;              acheck[j] - median(acheck) GT 10E *
-;                          robust_sigma(acheck)then stop
-;           if j GT 71 then stop
-;           if result[0] GT 3E then stop
         endif else begin
            for i=0l,1 do begin
-              ;; Go through both sources
+              ;; Go through both sources as long as they're
+              ;; sufficiently far apart
               ;; make a sub-array surrounding a peak
               if posit[i] GT max(indices) or posit[i] LT 0 then begin
                  print,'Peak finding Failed in Image',origNm
@@ -225,26 +212,89 @@ pro get_profile_widths,showplot=showplot,jan04corot1=jan04corot1,$
                  if endx GE n_elements(b) -1l then endx = n_elements(b) - 1l
                  subarrayX = indices[startx:endx]
                  subarrayY = b[startx:endx]
-                 result = gaussfit(subarrayX,subarrayY,A,nterms=5)
-                 Widths[j,i] = A[2]
-                 starLocations[j,i] = A[1]
+                 expr = 'voigt_approx(P[0],X - P[1],P[2]) * P[3]'+$
+                        '+ eval_legendre(X,P[4:6])'
+                 start = [0.1E,posit[i],3E,max(b) * 3E,median(b),0E,0E]
+                 nparams = n_elements(start)
+                 pi = replicate({fixed:0, limited:[0,0], limits:[0.0E,0.0E]},nparams)
+                 pi[0].limited = [1,0]
+                 pi[0].limits = [0E,0E] ;; don't let the Voigt parameter be less than 0
+                 ;; don't let the star be farther from the slit than the slit length
+                 pi[1].limits = [1,1]
+                 pi[1].limits = [startx,endx]
+                 pi[2].limited = [1,1]
+                 pi[2].limits = [-HW/2E,HW/2E] ;; don't let the width be too extreme
+                 
+                 ;; Estimate outside points for error +/- the baseline
+                 ;;                                       half width
+                 outp = where((indices LT startx and indices GE startx - HW) or $
+                              (indices GE endx   and indices LT endx + HW))
+                 yerr = robust_sigma(b[outp]) + fltarr(endx-startx+1)
+
+                 result = mpfitexpr(expr,subarrayX,subarrayY,yerr,start,parinfo=pi,perr=perr,/quiet)
+                 yfit = expression_eval(expr,subarrayX,result)
+                 resid = yfit - b[startx:endx]
+
+;                 result = gaussfit(subarrayX,subarrayY,A,nterms=5)
+;                 Widths[j,i] = A[2]
+;                 starLocations[j,i] = A[1]
+
+                 ;;save the results
+                 Widths[j,i] = result[2]
+                 WidthsE[j,i] = perr[2]
+                 starlocations[j,i] = result[1]
+                 starlocationsE[j,i] = perr[1]
+                 voigts[j,i] = result[0]
+                 voigtsE[j,i] = perr[0]
+
               endelse
               if keyword_set(showplot) then begin
+                 !p.multi = [0,1,2]
+                 
                  if i EQ 0 then begin
                     zsubarrayX = subarrayX
                     zresult = result
+                    zyfit = yfit
+                    zresid = resid
                  endif else begin
-                    plot,indices,b
-                    oplot,subarrayX,result,color=mycol('blue'),thick=thickline
+                    plot,indices,b,xtitle='Y position (px)',$
+                         ytitle='Flux'
+                    oplot,subarrayX,yfit,color=mycol('blue'),thick=thickline
+                    oplot,zsubarrayX,zyfit,color=mycol('blue'),thick=thickline
+                    
+                    al_legend,['Measured','Model'],linestyle=[0,0],$
+                              color=[!p.color,mycol('blue')],$
+                              thick=[thinline,thickline]
+                    al_legend,[cgGreek('sigma')+' = '+$
+                               string(result[2],format='(F6.2)')+' +/- '+$
+                               string(perr[2],format='(F6.2)'),$
+                               'a = '+$
+                               string(result[0],format='(F6.2)')+' +/- '+$
+                               string(perr[0],format=('(F6.2)'))],$
+                              /right
+;                         'a = '+string(result[
+                    plot,indices,b,xtitle='Y position (px)',$
+                         ytitle='Residual',yrange=threshold(resid),/nodata
+                    oplot,subarrayX,resid
+                    oplot,zsubarrayX,zresid
+                    for i=0l,nparams-1l do begin
+                       print,'P['+strtrim(i,1)+'] = ',$
+                             strtrim(result[i],1),' +/- ',$
+                             strtrim(perr[i],1)
+                    endfor
+                    !p.multi = 0
+
+;                    oplot,subarrayX,result,color=mycol('blue'),thick=thickline
 ;     oplot,subarrayX,A[0] * exp(-((subarrayX - A[1])/A[2])^2) + A[3]
 ;                                               + A[4] *
 ;                                               SubarrayX,thick=2,color=mycol('blue')
                     ;; stop
-                    oplot,zsubarrayX,zresult,color=mycol('lblue'),thick=thickline
+;                    oplot,zsubarrayX,zresult,color=mycol('lblue'),thick=thickline
 ;                    if j GE 50 then stop
                  endelse
               endif
            endfor
+           
         endelse
         
      endfor
