@@ -1,5 +1,5 @@
 FUNCTION quadlc,ph,p,b,u1,u2,AoR,periodP,binP=binP,smooth=smooth
-assert,p,'>',0,"Warning! Rp/Rs is <= 0"
+assert,p,'>=',0,"Warning! Rp/Rs is < 0"
 ; ph is the phase
 ; p is the planet size
 ; b is the impact parameter
