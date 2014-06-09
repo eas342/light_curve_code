@@ -74,8 +74,9 @@ yerr = robust_sigma(y) + fltarr(ngood)
 if keyword_set(psmooth) then begin
    smoothP = [0,1,2,3,5,6]
    nsmoothP = n_elements(smoothP)
+   if psmooth EQ 1 then smoothsize = 30 else smoothsize=psmooth
    for i=0l,nsmoothP-1l do begin
-      inputX[smoothP[i],*] = smooth(inputX[smoothP[i],*],30)
+      inputX[smoothP[i],*] = smooth(inputX[smoothP[i],*],smoothsize)
    endfor
 endif
 
