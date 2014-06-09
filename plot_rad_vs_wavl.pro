@@ -42,7 +42,7 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
 ;;               legend labels
 ;; secondary - secondary eclipse depth labels (instead of radius)
 
-  if keyword_set(showstar) then !x.margin = [9,9] else !x.margin=[9,3]
+  if keyword_set(showstar) then !x.margin = [9,9] else !x.margin=[15,4]
   ;; set the plot
   if keyword_set(psplot) then begin
      set_plot,'ps'
