@@ -707,19 +707,24 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
                  expr = '(kepler_func(X,P[0]) / kepler_func(X,1D)) *  eval_legendre(X,P[5:10])'
               end
               keyword_set(differential): begin
-                 quadlcArg ='X'
-                 for m=0l,4 do begin
-                    quadlcArg=quadlcArg+','+strtrim(start[m],1)
-                 endfor
-                 expr = 'quadlc(X,P[0],P[1],P[2],P[3],P[4])* (P[5] + X * P[6] + X^2 * P[7] + X^3'+$
-                        ' * P[8])/quadlc('+quadlcArg+')'
+                 if keyword_set(secondary) then begin
+                    expr = 'sec_eclipse(X-P[11],P[0],P[1],P[4]) * eval_legendre(X,P[5:10])'
+                    start[0] = 0.002E
+                 endif else begin
+                    quadlcArg ='X'
+                    for m=0l,4 do begin
+                       quadlcArg=quadlcArg+','+strtrim(start[m],1)
+                    endfor
+                    expr = 'quadlc(X,P[0],P[1],P[2],P[3],P[4])* (P[5] + X * P[6] + X^2 * P[7] + X^3'+$
+                           ' * P[8])/quadlc('+quadlcArg+')'
+                 endelse
                  
               end
               keyword_set(kepfit): begin
                  expr = 'kepler_func(X,P[0]) *  eval_legendre(X,P[5:10])'
               end
               keyword_set(secondary): begin
-                 expr = 'quadlc(X-P[11],sqrt(P[0]),P[1],0.0,0.0,P[4]) * eval_legendre(X,P[5:10])'
+                 expr = 'sec_eclipse(X-P[11],P[0],P[1],P[4]) * eval_legendre(X,P[5:10])'
                  start[0] = 0.002E
               end
               else: begin
@@ -761,7 +766,9 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
            if keyword_set(fixall) then begin
               pi[*].fixed = 1
            endif
-           if not keyword_set(kepfit) and not keyword_set(kepdiff) then begin
+           if not keyword_set(kepfit) and $
+              not keyword_set(kepdiff) and $
+              not keyword_set(secondary) then begin
               pi[0].limited = [1,1] ;; make sure Rp/R* is limited
               pi[0].limits = [0D,1D] ;; Keep Rp/R* between 0 and 1
            endif else begin
@@ -805,7 +812,7 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
            ;; save the planet radius and all data
            plrad[k] = result[0]
            plrade[k] = punct[0]
-           
+
            resultarr[*,k] = result
            resultarrE[*,k] = punct
            

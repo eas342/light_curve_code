@@ -150,7 +150,7 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
         mylinestyle=1
         wavlwidth = wavlwidth * 0E
         ;; change the default ranges
-        if n_elements(custYrange) EQ 0 then custYrange = [-0.002,0.006]
+        if n_elements(custYrange) EQ 0 then custYrange = [-0.002,0.01]
         if n_elements(custXrange) EQ 0 then custxrange=[0.5,2.5]
      end
      else: begin
