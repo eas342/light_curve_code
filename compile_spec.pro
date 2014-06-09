@@ -6,7 +6,8 @@ pro compile_spec,extraction2=extraction2,sum=sum,nwavbins=nwavbins,$
                  matchgrid=matchgrid,readCurrent=readCurrent,skipBJD=skipBJD,$
                  masktelluric=masktelluric,showall=showall,irafnoise=irafnoise,$
                  longwavname=longwavname,trycorrect=trycorrect,removelinear=removelinear,$
-                 backRatio=backRatio,alreadyDivided=alreadyDivided,saveshifts=saveshifts
+                 backRatio=backRatio,alreadyDivided=alreadyDivided,saveshifts=saveshifts,$
+                 wavWeights=wavWeights
 ;; Compiles the spectra into a few simple arrays to look at the spectrophotometry
 ;; extraction2 -- uses whatever spectra are in the data directory
 ;; sum -- uses the variance weighted (optimal) extraction by
@@ -45,6 +46,7 @@ pro compile_spec,extraction2=extraction2,sum=sum,nwavbins=nwavbins,$
 ;; alreadyDivided -- the spectra are already divided so ignore the
 ;;                   DIVISOR keyword
 ;; SaveShifts -- saves the shifts instead of trying to correct for them
+;; wavWeights -- weight the wavelength bins?
 
 ;Nwavbins = 35 ;; number of wavelength bins
 ;Nwavbins = 9 ;; number of wavelength bins
@@ -53,6 +55,8 @@ pro compile_spec,extraction2=extraction2,sum=sum,nwavbins=nwavbins,$
 if n_elements(Nwavbins) EQ 0 then Nwavbins = 9
 
 SigRejCrit = 3 ;; number of sigma to reject when binning
+
+if n_elements(wavWeights) EQ 0 then wavWeights=1
 
 if keyword_set(psplot) then begin
    if keyword_set(divide) then begin
@@ -93,6 +97,11 @@ if keyword_set(trycurved) then begin
 endif
 if keyword_set(readCurrent) then begin
    readcol,'file_lists/current_speclist.txt',filen,format='(A)',stringskip='#'
+   ;; in the case that your in the "readcurrent" mode, it's
+   ;; probably with the latest pipeline that uses the IRAF-calculated
+   ;; noise for optimal extraction. Still, if the use specifies that
+   ;; the irafnoise keyword should be zero, then it will be left as such
+   if n_elements(irafnoise) EQ 0 then irafnoise=1
 endif
 nfile = n_elements(filen)
 
@@ -248,7 +257,6 @@ for i=0l,nfile-1l do begin
       altitude[i,j] = alt[j]
    endfor
 endfor
-
 
 ;; Reset all zeros and negative flux values
 badp = where(flgrid LE 0)
@@ -521,14 +529,14 @@ endif else begin
       binindE[*,*,*] = Errgrid[startIndmatch:EndIndmatch,*,*]
    endif else begin
       for i=0,nfile-1 do begin
-         y = avg_series(lamgrid,Divspec[*,0,i],SNR[*,0,i],binGrid,binsizes,weighted=1,$
+         y = avg_series(lamgrid,Divspec[*,0,i],SNR[*,0,i],binGrid,binsizes,weighted=wavWeights,$
                         oreject=sigRejCrit,eArr=yerr,/silent,errIn=divSpecE[*,0,i])
          binfl[*,i] = y
          binflE[*,i] = yerr
-         
+
          for k=0,Nap-1 do begin
             y2 = avg_series(lamgrid,flgrid[*,k,i],flgrid[*,k,i]/Errgrid[*,k,i],binGrid,$
-                            binsizes,weighted=1,$
+                            binsizes,weighted=wavWeights,$
                             oreject=sigRejCrit,eArr=yerr2,/silent,errIn=Errgrid[*,k,i])
             binind[*,k,i] = y2
             binindE[*,k,i] = yerr2
@@ -536,7 +544,6 @@ endif else begin
       endfor
    endelse
 endelse
-
 
 if keyword_set(psplot) then begin
    device,/close
