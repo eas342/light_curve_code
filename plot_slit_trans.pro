@@ -1,11 +1,15 @@
 pro plot_slit_trans,psplot=psplot,voigt=voigt,$
                     closerparams=closerparams,$
-                    avoigt=avoigt
+                    avoigt=avoigt,differential=differential,$
+                    starsep=starsep,FWHM=FWHM
 ;; Shows the slit transmission as a function of other parameters
 ;; psplot - saves postscript & png plots
 ;; voigt - use a voigt profile with a damping parameter a=voigt instead of Gaussian
 ;; closerparams - parameters close to the measured ones
 ;; avoigt -- use the simple analytic approximation to the Voigt function
+;; differential  - show a two star differential (b/c that's what matters)
+;; starsep - set the number of pixels the two stars are offset
+;; FWHM -- show the FWHM instead of sigma
 
   ;; set the plot
   if keyword_set(psplot) then begin
@@ -15,43 +19,75 @@ pro plot_slit_trans,psplot=psplot,voigt=voigt,$
      device,encapsulated=1, /helvetica,$
             filename=plotprenm+'.eps'
      device,xsize=15, ysize=10,decomposed=1,/color
-     !p.thick=2
-     !x.thick=2
-     !y.thick=2
+     !p.thick=3
+     !x.thick=3
+     !y.thick=3
   endif
 
   ;; Make array of positions
   npts = 64
   H = 10E ;; half slit width
-  if keyword_set(closerParams) then begin
-     sigma = [1E,2E,3E,4E]
-     y = dindgen(npts)/double(npts) * 6E - 3E
-     myYrange = [80,97]
+  if n_elements(starSep) EQ 0 then starSep = 1E ;; default separation between the two stars
+
+  case 1 of
+     keyword_set(voigt): vdamp = voigt
+     keyword_set(avoigt): vdamp = avoigt
+     else: vdamp = 0.0E
+  endcase
+
+  case 1 of
+     keyword_set(closerParams): begin
+        sigma = [0.7E,1E,1.5E,2E]
+        y = dindgen(npts)/double(npts) * 6E - 3E
+        myYrange = [80,97]
+     end
+     else: begin
+        y = dindgen(npts)/double(npts) * 30E - 15E
+        sigma = [3E,5E,10E,15E]
+        myYrange=[0,0]
+     end
+  endcase
+
+
+  if keyword_set(FWHM) then begin
+     GHW = sigma * 1.17741 ;; Gaussian Half Width at Half Max
+     LHW = GHW * vdamp         ;; Lorentzian Half width at Half Max
+     FWHMvoigt = (0.5346E * LHW + sqrt(0.2166E * LHW^2 + GHW^2)) * 2E
+     sigmaString = 'FWHM = '+string(FWHMvoigt,format='(F6.1)')+' px '
   endif else begin
-     y = dindgen(npts)/double(npts) * 30E - 15E
-     sigma = [3E,5E,10E,15E]
-     myYrange=[0,0]
+     sigmaString = cgGreek('sigma')+' = '+string(sigma,format='(F6.1)')+' px '
   endelse
-  sigmaString = cgGreek('sigma')+' = '+string(sigma,format='(F8.1)')+' px '
+
   nlines = n_elements(sigma)
   farray = dblarr(nlines,npts)
+
+  case 1 of 
+     keyword_set(voigt): expr = 'voigt_slit(X,P[0],P[1],P[2])'
+     keyword_set(avoigt): expr = 'vslit_approx(X,P[0],P[1],P[2])'
+     else: expr = 'gauss_slit(X,P[0],P[1])'
+  endcase
+
   for i=0l,nlines-1l do begin
-     case 1 of
-        keyword_set(voigt): begin
-           farray[i,*] = voigt_slit(y,H,sigma[i],voigt)
-        end
-        keyword_set(avoigt): begin
-           farray[i,*] = vslit_approx(y,H,sigma[i],avoigt)
-        end
-        else: farray[i,*] = gauss_slit(y,H,sigma[i])
-     endcase
+     if keyword_set(differential) then begin
+        farray[i,*] = expression_eval(expr,y,[H,sigma[i],vdamp]) - $
+                      expression_eval(expr,y - starsep,[H,sigma[i],vdamp])
+     endif else begin
+        farray[i,*] = expression_eval(expr,y,[H,sigma[i],vdamp])
+     endelse     
   endfor
   
   colorArray = [!p.color,mycol(['red','blue','dgreen'])]
   linestyleArray = [0,1,3,4]
-  plot,y,farray[0,*] * 100E,ytitle='Transmission (%)',$
+  if keyword_set(differential) then begin
+     myYtitle = 'Differential Transmission (%)'
+  endif else myYtitle='Transmission (%)'
+
+  myYextent = max(farray) - min(farray)
+  myYrange = [min(farray),max(farray) + myYextent * 0.2] * 100E
+
+  plot,y,farray[0,*] * 100E,ytitle=myYtitle,$
        xtitle='Position (pixels)',$
-       ystyle=16,/nodata,yrange=myYrange
+       ystyle=16+1,/nodata,yrange=myYrange
   for i=0l,nlines-1l do begin
      oplot,y,farray[i,*]*100E,color=colorArray[i],linestyle=lineStyleArray[i]
   endfor
@@ -60,19 +96,16 @@ pro plot_slit_trans,psplot=psplot,voigt=voigt,$
 
   al_legend,sigmastring,color=colorArray,linestyle=linestyleArray,$
             charsize=myCharsize
-  case 1 of 
-     keyword_set(voigt): begin
-        al_legend,['H = 10px','a = '+string(voigt[0],format='(F6.2)')],$
-                  /right,charsize=myCharsize
-     end
-     keyword_set(avoigt): begin
-        al_legend,['H = 10px','a = '+string(avoigt[0],format='(F6.2)')],$
-                  /right,charsize=myCharsize
-     end
-     else: begin
-        al_legend,['H = 10px'],/right,charsize=myCharsize
-     end
-  endcase
+  ;; second legend for explanatory text
+  exptext = ['H = '+string(H,format='(F4.1)')+'px']
+  
+  if keyword_set(voigt) OR keyword_set(avoigt) then begin
+     exptext = [exptext,'a = '+string(vdamp[0],format='(F6.2)')]
+  endif
+  if keyword_set(differential) then begin
+     exptext = [exptext,cgGreek('Delta')+'y = '+string(starsep,format='(F6.2)')+'px']
+  endif
+  al_legend,exptext,/right,charsize=myCharsize
 
   if keyword_set(psplot) then begin
      device, /close
