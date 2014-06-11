@@ -346,12 +346,12 @@ if keyword_set(specshift) or keyword_set(saveShifts) then begin
    endif
 
    specShiftArr = fltarr(Nap,nfile)
-
+   masterspec = median(flgrid[*,0,*],dimension=2)
    for i=0l,Nap-1l do begin
       xyspec = fltarr(Ngpts,nfile)
       xyspec[*,*] = flgrid[*,i,*]
 
-      ShiftedGrid1 = find_shifts(xyspec,/cutEnds)
+      ShiftedGrid = find_shifts(xyspec,/cutEnds)
       if keyword_set(specshift) then flgrid[*,i,*] = ShiftedGrid
       if keyword_set(saveShifts) then begin
          restore,'data/wavelength_shifts/temp_shift_list.sav'
@@ -365,38 +365,7 @@ if keyword_set(specshift) or keyword_set(saveShifts) then begin
       restore,'data/used_date.sav'
       save,specshiftArr,filename='data/shift_data/shift_'+specfileListNamePrefix+'.sav'
    endif
-   
-   ;; Align the stars with each other
-   medspec0 = fltarr(Ngpts)
-   medspec1 = fltarr(Ngpts)
-   for i=0l,Ngpts-1l do begin
-      medspec0[i] = median(flgrid[i,0,*])
-      medspec1[i] = median(flgrid[i,1,*])
-   endfor
-   badp = where(finite(medspec0) EQ 0)
-   if badp NE [-1] then medspec0[badp] = 0.0E
-   badp = where(finite(medspec1) EQ 0)
-   if badp NE [-1] then medspec1[badp] = 0.0E
-   ;; trim the bottom 15% and top 15% of data to avoids edges
-   TrimPts = where(lindgen(Ngpts) LT float(Ngpts) * 0.15 OR $
-                   lindgen(Ngpts) GE float(Ngpts) * 0.85)
-   medspec0[TrimPts] = 0E
-   medspec1[TrimPts] = 0E
-   ;; Filter the specta
-   fmedspec0 = convol(medspec0,digital_filter(0.03,0.09,50,25))
-   fmedspec1 = convol(medspec1,digital_filter(0.03,0.09,50,25))
 
-   lagarray = lindgen(25l) - 12l
-   CrossC = c_correlate(fmedspec0,fmedspec1,lagarray)
-   PolyFit = poly_fit(lagarray,crossC,2)
-   ShiftStars = polyFit[1]/(-2E * polyFit[2])
-
-   xyspec = fltarr(Ngpts,nfile)
-   xyspec[*,*] = flgrid[*,0,*]
-
-   shiftedGrid = shift_interp(xyspec,ShiftStars)
-;   shiftedGrid = shift_interp(xyspec,0)
-   if keyword_set(specshift) then flgrid[*,0,*] = shiftedGrid
 endif
 
 if keyword_set(trycorrect) then begin
