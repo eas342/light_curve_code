@@ -352,11 +352,24 @@ if keyword_set(specshift) or keyword_set(saveShifts) then begin
       xyspec[*,*] = flgrid[*,i,*]
 
       ShiftedGrid = find_shifts(xyspec,/cutEnds)
-      if keyword_set(specshift) then flgrid[*,i,*] = ShiftedGrid
-      if keyword_set(saveShifts) then begin
-         restore,'data/wavelength_shifts/temp_shift_list.sav'
-         specshiftArr[i,*] = shiftArr
+      restore,'data/wavelength_shifts/temp_shift_list.sav'
+      specshiftArr[i,*] = shiftArr
+
+      if keyword_set(specshift) then begin
+         if i EQ 0 then begin
+            flgrid[*,0,*] = ShiftedGrid
+         endif else begin
+            ;; Shift the second star the same
+;            flgrid[*,1,*] = ShiftedGrid
+;            stop
+            for j=0l,nfile-1l do begin
+               flgrid[*,1,j] = shift_interp(xyspec[*,j],specshiftarr[1,j])
+            endfor
+
+         endelse
       endif
+
+      
    endfor
 
    ;; Save the shift arr
