@@ -1,4 +1,5 @@
-function find_shifts,inArray,cutEnds=cutEnds,stopAndshow=stopAndshow
+function find_shifts,inArray,cutEnds=cutEnds,stopAndshow=stopAndshow,$
+                     masterspec=masterspec
 ;pro find_shifts
 ;; Finds the wavelength shifts for a series of spectra
 ;; Assumes that the X direction is wavelength & Y Direction is
@@ -6,6 +7,8 @@ function find_shifts,inArray,cutEnds=cutEnds,stopAndshow=stopAndshow
 ;; cutEnds - trims the bottom & top 10% of spectrum before cross-correlating
 ;; stopAndshow - stops the cross-correlation to show
 ;;               cross-correlations, peaks and the spectrum
+;; masterspec -- an input master spectrum to cross-correlate,
+;;               otherwise it uses a median spectrum
 
   restore,'data/specdata.sav'
 
@@ -35,11 +38,10 @@ function find_shifts,inArray,cutEnds=cutEnds,stopAndshow=stopAndshow
   ;; Filter the array to get rid of broad features
   finArray = convol(inArray,digital_filter(0.03,0.09,50,25))
 
-  medspec = fltarr(nwavs)
-  ;; Get a median spectrum
-  for i=0l,nwavs-1l do begin
-     medspec[i] = median(finArray[i,*])
-  endfor
+  if keyword_set(masterspec) then medspec = masterspec else begin
+     ;; Get a median spectrum
+     medspec = median(finarray,dimension=2)
+  endelse
 
   ;; Make a lag array
   nLag = 26l
@@ -96,8 +98,6 @@ function find_shifts,inArray,cutEnds=cutEnds,stopAndshow=stopAndshow
 
      if j GE 575 and keyword_set(stopAndshow) then begin
         !p.multi = [0,1,2]
-;     endif
-;     if j GE 0 then begin
         plot,lagArray,crossCor,ystyle=16,$
              xtitle='Shift (px)',ytitle='Cross Cor',psym=2
         oplot,lagArray,PolyVals,color=mycol('green')
