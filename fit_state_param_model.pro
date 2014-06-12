@@ -1,5 +1,7 @@
 pro fit_state_param_model,psplot=psplot,fixspatial=fixspatial,$
-                          psmooth=psmooth,widthfix=widthfix
+                          psmooth=psmooth,widthfix=widthfix,$
+                          avgtwo=avgtwo,custyrange=custyrange,$
+                          transit=transit,fixpos=fixpos
 ;; Fits the state parameter model to the observed flux ratio time
 ;; series
 ;; psplot - saves a postscript plot
@@ -7,6 +9,9 @@ pro fit_state_param_model,psplot=psplot,fixspatial=fixspatial,$
 ;;              median value)
 ;; psmooth - smooth the parameters in time
 ;; widthfix - fixes the slit width at an estimated size
+;; avgtwo - Average the two stars' parameters
+;; custyrange - set the y range of the plots
+;; transit - fit light curve with transit
 
   if keyword_set(psplot) then begin
      set_plot,'ps'
@@ -19,6 +24,9 @@ pro fit_state_param_model,psplot=psplot,fixspatial=fixspatial,$
      !x.thick=2
      !y.thick=2
   endif
+
+SlitH = 10.5E
+if n_elements(custyrange) EQ 0 then custyrange=[0.98,1.02]
   
 ;; get the spectral info
 restore,'data/specdata.sav'
@@ -26,9 +34,20 @@ restore,'data/specdata.sav'
 ;; get the spec list name for the observation
 restore,'data/used_date.sav'
 
+;; get the planet info
+readcol,'transit_info/planet_info.txt',info,data,format='(A,D)',$
+        skipline=1
+planetdat = create_struct('null','')
+for l=0l,n_elements(info)-1l do begin
+   planetdat = create_struct(planetdat,info[l],data[l])
+endfor
+
+
 ;; Read in the state parameters
 restore,'data/state_parameters/full_parameters/'+$
    specfileListNamePrefix+'.sav'
+
+
 
 npts = n_elements(statePstruct.phase)
 inputX = dblarr(7,npts)
@@ -41,6 +60,17 @@ inputX[3,*] = statePstruct.fwhm2
 inputX[4,*] = statePstruct.phase
 inputX[5,*] = statePstruct.voigtdamp1
 inputX[6,*] = statePstruct.voigtdamp2
+
+if keyword_set(avgtwo) then begin
+   star1ind = [0,2,5]
+   star2ind = [1,3,6]
+   nstarts = n_elements(star1ind)
+   for i=0l,nstarts-1l do begin
+      avgX = (inputX[star1ind[i],*] + inputX[star2ind[i],*])/2E
+      inputX[star1ind[i],*] = avgX
+      inputX[star2ind[i],*] = avgX
+   endfor
+endif
 
 y = statePstruct.fluxratio
 ;; Normalize
@@ -56,6 +86,12 @@ for i=0l,3+1l do begin
       badArray[badp] = 1
    endif
 endfor
+
+;;clip all 4-sigma outliers in flux
+rsigmaY = robust_sigma(y)
+goodp = where(abs(y - median(y)) LT 4E * rsigmaY,complement=badp)
+badArray[badp] = 1
+
 ;;; also try clipping ht e fist part of array
 ;earlyPt = where(statePstruct.phase LT 0.47)
 ;badArray[earlyPt] = 1
@@ -64,8 +100,9 @@ endfor
 ;; Trim out the bad points, but make a copy of the original
 originalX = inputX
 originalY = y
+noriginal = n_elements(originalY)
 
-AllGood = where(badArray EQ 0,ngood)
+AllGood = where(badArray EQ 0,ngood,complement=allbad)
 y = y[AllGood]
 inputX = inputX[*,AllGood]
 yerr = robust_sigma(y) + fltarr(ngood)
@@ -89,16 +126,40 @@ if keyword_set(fixspatial) then begin
    inputX[6,*] = dblarr(ngood) + median(inputX[6,*])
 end
 
-Start = [0D,-1D,10.5D,1.0D,0D,0.3D,1.0D]
+if keyword_set(fixpos) then begin
+   inputX[0,*] = 0E;dblarr(ngood) + median(inputX[0,*])
+   inputX[1,*] = 1E;dblarr(
+endif
+
+Start = [0D,-1D,slitH,1.0D,0D,0.3D,1.0D]
 ;Start = [1.5D,-1D,14D,0.985D,0D,0D,0D]
 ;fitexpr = 'gauss_slit(X[0,*] - P[0],P[2],X[2,*])/gauss_slit(X[1,*] - P[1],P[2],X[3,*]) *'+$
 ;          ' eval_legendre(X[4,*],P[3:4])'
 
+if keyword_set(transit) then begin
+   u1parm = 0.1E
+   u2parm = 0.0E
+   ;; Include the primary transit in model
+   start = [start,0E,planetdat.p,planetdat.b_impact,u1parm,u2parm,$
+            planetdat.a_o_rstar]
+endif
 
 nparams = n_elements(start)
 pi = replicate({fixed:0, limited:[0,0], limits:[0.0E,0.0E]},nparams)
 if keyword_set(widthfix) then pi[2].fixed = 1
 pi[5].fixed = 1
+
+if keyword_set(transit) then begin
+   pi[9].fixed=1 ;; b_impact
+   pi[11].fixed=1 ;; quadratic limb darkening
+   pi[12].fixed=1 ;; a/R*
+endif
+
+;; Make ethe stars be within the slit
+positionInd = [0,1]
+pi[positionInd].limited=[1,1]
+pi[positionInd].limits = [-slitH,slitH]
+
 ;pi[5].limited = [1,1]
 ;pi[5].limits = [0E,1E]
 fitexpr = 'vslit_approx(X[0,*] - P[0],P[2],X[2,*],X[5,*])/'+$
@@ -106,6 +167,10 @@ fitexpr = 'vslit_approx(X[0,*] - P[0],P[2],X[2,*],X[5,*])/'+$
           ' * eval_legendre(X[4,*],P[3:4])'
 ;fitexpr = 'voigt_slit(X[0,*] - P[0],P[2],X[2,*],0.4)/gauss_slit(X[1,*] - P[1],P[2],X[3,*]) *'+$
 ;          ' eval_legendre(X[4,*],P[3:4])'
+
+if keyword_set(transit) then begin
+   fitexpr = fitexpr + ' * quadlc(X[4,*] - P[7],P[8],P[9],P[10],P[11],P[12])'
+endif
 
 result = mpfitexpr(fitexpr,inputX,y,yerr,start,parinfo=pi,perr=perr)
 
@@ -116,8 +181,11 @@ ymodel = expression_eval(fitexpr,inputX,result)
 xplot = statePstruct.phase
 
 !p.multi = [0,1,2]
-plot,xplot,y,yrange=[0.98,1.02],psym=4,$
+plot,xplot,y,yrange=custyrange,psym=4,$
      xtitle='Phase',ytitle='Normalized Flux'
+if n_elements(allbad) NE [-1] then begin
+   oplot,originalX[allbad],originalY[allbad],color=mycol('red'),psym=2
+endif
 oplot,xplot,ymodel,color=mycol('blue')
 
 ;; Print the parameters and errors
@@ -129,10 +197,11 @@ for i=0l,nparams-1l do begin
 endfor
 
 ycorrected = y / ymodel
+yresid = y - ymodel
 print,'Robust sigma corrected = ',robust_sigma(y)
 print,'Robust sigma corrected = ',robust_sigma(ycorrected)
 
-plot,xplot,ycorrected,yrange=[0.98,1.02],psym=4,$
+plot,xplot,ycorrected,yrange=custyrange,psym=4,$
      xtitle='Phase',ytitle='Corrected Flux'
 
   if keyword_set(psplot) then begin
@@ -148,10 +217,14 @@ plot,xplot,ycorrected,yrange=[0.98,1.02],psym=4,$
   endif
 !p.multi=0
 
-yfullmodel = expression_eval(fitexpr,originalX,result)
-yfullcorrected = originalY /yfullmodel
+;yfullmodel = expression_eval(fitexpr,originalX,result)
+;; Since we smoothed, averaged and modified inputX, I think it makes
+;; sense to use the corrected time series and then !values.f_nan for
+;; the points not included
+yfullcorrected = !values.f_nan + fltarr(noriginal)
+yfullcorrected[allgood] = ycorrected
 
 save,yfullcorrected,$
      filename='data/state_parameters/alt_tim_ser.sav'
-
+;stop
 end
