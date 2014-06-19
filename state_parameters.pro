@@ -1,6 +1,6 @@
 pro state_parameters,reInitialize=reInitialize,psplot=psplot,$
                      timSerRange=timSerRange,seeingDiff=seeingDiff,$
-                     secondary=secondary
+                     secondary=secondary,differential=differential
 ;; Plots the time series and then also a lot of other parameters below
 ;; to see if flux changes can be attributed to the FWHM changes,
 ;; drifts, airmass etc.
@@ -9,6 +9,7 @@ pro state_parameters,reInitialize=reInitialize,psplot=psplot,$
 ;; timSerRange -- show a custom time series range
 ;; seeingDiff - show the difference in seeing between the two stars
 ;; secondary -- looks at secondary eclipse data
+;; differential - find the differential parameters between the two stars
 
   ;; set the plot
   if keyword_set(psplot) then begin
@@ -120,6 +121,12 @@ pro state_parameters,reInitialize=reInitialize,psplot=psplot,$
         else: y = tplot * 0E
      endcase
      
+     if keyword_set(differential) and showY2 then begin
+        showY2 = 0
+        y = y2 - y
+        myYtitle = 'Diff '+paramnames[i]
+     endif else myYtitle = paramnames[i]
+     
      if ShowY2 then begin 
         myYrange = threshold([y,y2],low=0.1,high=0.9,mult=0.4) 
         statePStruct = create_struct(statePStruct,shorthand+'1',y,shorthand+'2',y2)
@@ -129,7 +136,7 @@ pro state_parameters,reInitialize=reInitialize,psplot=psplot,$
      endelse
      myXrange = !x.crange
 
-     plot,tplot,y,ytitle=paramnames[i],$
+     plot,tplot,y,ytitle=myYtitle,$
           xtitle="Orbital phase",$
           yrange=myYrange,$
           xrange=myXrange,xstyle=1,psym=4,ystyle=1
