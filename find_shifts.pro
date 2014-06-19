@@ -38,7 +38,12 @@ function find_shifts,inArray,cutEnds=cutEnds,stopAndshow=stopAndshow,$
   ;; Filter the array to get rid of broad features
   finArray = convol(inArray,digital_filter(0.03,0.09,50,25))
 
-  if keyword_set(masterspec) then medspec = masterspec else begin
+  if keyword_set(masterspec) then begin
+     badp = where(finite(masterspec) EQ 0)
+     cmasterspec = masterspec 
+     cmasterspec[badp] = 0E ;; cleaned masters spec
+     medspec = convol(cmasterspec,digital_filter(0.03,0.09,50,25))
+  endif else begin
      ;; Get a median spectrum
      medspec = median(finarray,dimension=2)
   endelse
@@ -74,7 +79,7 @@ function find_shifts,inArray,cutEnds=cutEnds,stopAndshow=stopAndshow,$
            shiftArr[j] = 0
            print,"Warning, cross correlation peak outside of range"
         endif else begin
-           fitPoints = where(lagArray GT peakP-4l and lagarray LT peakP + 4l)
+           fitPoints = where(lagArray GT peakP-5l and lagarray LT peakP + 5l)
            PolyFit = poly_fit(lagArray[fitpoints],crossCor[fitpoints],2,yfit=polyVals)
            shiftArr[j] = polyFit[1]/(-2E * polyFit[2])
 ;           plot,lagarray,crosscor
@@ -96,11 +101,11 @@ function find_shifts,inArray,cutEnds=cutEnds,stopAndshow=stopAndshow,$
         stop
      endif
 
-     if j GE 575 and keyword_set(stopAndshow) then begin
+     if j GE 350 and keyword_set(stopAndshow) then begin
         !p.multi = [0,1,2]
         plot,lagArray,crossCor,ystyle=16,$
              xtitle='Shift (px)',ytitle='Cross Cor',psym=2
-        oplot,lagArray,PolyVals,color=mycol('green')
+        oplot,lagArray[fitpoints],PolyVals,color=mycol('green')
         oplot,[shiftArr[j],shiftArr[j]],!y.crange,color=mycol('yellow')
         fitExpr = 'P[0] * SinC(P[1] * (X -P[2])) + P[3] + P[4] *  EXP(-0.5E * ((X - P[2])/P[5])^2)'
         startParams = [1,0.3,0,8,0,3]
@@ -124,8 +129,8 @@ function find_shifts,inArray,cutEnds=cutEnds,stopAndshow=stopAndshow,$
                color=mycol(['white','green','red','yellow']),$
                linestyle=[0,0,0,0],/right
 
-        stop
         !p.multi = 0
+        stop
      endif
 
   endfor

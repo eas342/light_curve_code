@@ -1,7 +1,8 @@
 pro compile_spec,extraction2=extraction2,sum=sum,nwavbins=nwavbins,$
                  dec23=dec23,dec29=dec29,nyquist=nyquist,extremeRange=extremeRange,$
                  maskwater=maskwater,custRange=custRange,widewatermask=widewatermask,$
-                 cleanbyeye=cleanbyeye,specshift=specshift,starshift=starshift,$
+                 cleanbyeye=cleanbyeye,specshift=specshift,sameshift=sameshift,$
+                 starshift=starshift,$
                  custmask=custmask,molecbin=molecbin,trycurved=trycurved,$
                  matchgrid=matchgrid,readCurrent=readCurrent,skipBJD=skipBJD,$
                  masktelluric=masktelluric,showall=showall,irafnoise=irafnoise,$
@@ -26,6 +27,7 @@ pro compile_spec,extraction2=extraction2,sum=sum,nwavbins=nwavbins,$
 ;;               bad spectra by eye
 ;; specshift -- use the shifting procedure where each specturm is
 ;;                shifted w/ cross-correlation
+;; sameshift -- force both stars to have the same wavelength shifts applied
 ;; starshift -- allows integer shifts of the host star vs reference star
 ;; custmask -- creates a custom max over a specified wavelength rage
 ;;             such as [1.45,1.55]
@@ -346,31 +348,37 @@ if keyword_set(specshift) or keyword_set(saveShifts) then begin
    endif
 
    specShiftArr = fltarr(Nap,nfile)
-   masterspec = median(flgrid[*,0,*],dimension=2)
+   masterspec = median(flgrid[*,0,*],dimension=3)
    for i=0l,Nap-1l do begin
       xyspec = fltarr(Ngpts,nfile)
       xyspec[*,*] = flgrid[*,i,*]
 
-      ShiftedGrid = find_shifts(xyspec,/cutEnds)
+      ShiftedGrid = find_shifts(xyspec,/cutEnds,masterspec=masterspec)
+;      ShiftedGrid = find_shifts(xyspec,/cutEnds)
       restore,'data/wavelength_shifts/temp_shift_list.sav'
       specshiftArr[i,*] = shiftArr
 
-      if keyword_set(specshift) then begin
-         if i EQ 0 then begin
-            flgrid[*,0,*] = ShiftedGrid
-         endif else begin
-            ;; Shift the second star the same
-;            flgrid[*,1,*] = ShiftedGrid
-;            stop
-            for j=0l,nfile-1l do begin
-               flgrid[*,1,j] = shift_interp(xyspec[*,j],specshiftarr[1,j])
-            endfor
-
-         endelse
-      endif
-
-      
+;      if keyword_set(specshift) then flgrid[*,i,*] = shiftedgrid
    endfor
+   ;; Shift the two stars by their average, with an average offset
+   if keyword_set(specshift) then begin
+      avgShifts = total(specshiftarr,1)/2E
+      medDiff = median(specshiftarr[1,*] - specshiftarr[0,*])
+
+      bestshifts = fltarr(Nap,nfile) ;; well maybe not the best after all!
+      bestshifts[0,*] = avgShifts
+      bestshifts[1,*] = avgShifts + medDiff
+stop
+      for i=0l,Nap-1l do begin
+         for j=0l,nfile-1l do begin
+            if keyword_set(sameshift) then begin
+               flgrid[*,i,j] = shift_interp(flgrid[*,i,j],bestshifts[i,j])
+            endif else begin
+               flgrid[*,i,j] = shift_interp(flgrid[*,i,j],specshiftarr[i,j])
+            endelse
+         endfor
+      endfor
+   endif
 
    ;; Save the shift arr
    if keyword_set(saveShifts) then begin
