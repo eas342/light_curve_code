@@ -368,7 +368,7 @@ if keyword_set(specshift) or keyword_set(saveShifts) then begin
       bestshifts = fltarr(Nap,nfile) ;; well maybe not the best after all!
       bestshifts[0,*] = avgShifts
       bestshifts[1,*] = avgShifts + medDiff
-stop
+
       for i=0l,Nap-1l do begin
          for j=0l,nfile-1l do begin
             if keyword_set(sameshift) then begin
