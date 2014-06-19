@@ -1,5 +1,5 @@
 pro state_parameters,reInitialize=reInitialize,psplot=psplot,$
-                     timSerRange=timSerRange,seeingDiff=seeingDiff,$
+                     timSerRange=timSerRange,$
                      secondary=secondary,differential=differential
 ;; Plots the time series and then also a lot of other parameters below
 ;; to see if flux changes can be attributed to the FWHM changes,
@@ -7,7 +7,6 @@ pro state_parameters,reInitialize=reInitialize,psplot=psplot,$
 ;; reInitialize -- find both the spectral shifts and FWHMs
 ;; psplot -- save a postscript plot
 ;; timSerRange -- show a custom time series range
-;; seeingDiff - show the difference in seeing between the two stars
 ;; secondary -- looks at secondary eclipse data
 ;; differential - find the differential parameters between the two stars
 
@@ -61,24 +60,15 @@ pro state_parameters,reInitialize=reInitialize,psplot=psplot,$
            shorthand = 'airmass'
         end
         "FWHM (px)": begin
-           if keyword_set(seeingDiff) then begin
-              y1 = widths[*,0] * 2.35E
-              y2 = widths[*,1] * 2.35E
-              showY2 = 0
-              y = y2 - y1
-              badp = where(y LT -5)
-              if badp NE [-1] then y[badp] = !values.f_nan
-           endif else begin
-              y = widths[*,0] * 2.35E
-              y2 = widths[*,1] * 2.35E
-              showY2 = 1
-           endelse
+           y = widths[*,apkey[0]] * 2.35E
+           y2 = widths[*,apkey[1]] * 2.35E
+           showY2 = 1
            shorthand = 'fwhm'
         end
         "Relative Position (px)": begin
-           y = starLocations[*,0]
+           y = starLocations[*,apkey[0]]
            y = y - median(y)
-           y2 = starLocations[*,1]
+           y2 = starLocations[*,apkey[1]]
            y2 = y2 - median(y2)
            showY2 = 1
            shorthand = 'position'
@@ -98,8 +88,8 @@ pro state_parameters,reInitialize=reInitialize,psplot=psplot,$
            shorthand = 'specshift'
         end
         "Voigt a": begin
-           y = transpose(voigts[*,0])
-           y2 = transpose(voigts[*,1])
+           y = transpose(voigts[*,apkey[0]])
+           y2 = transpose(voigts[*,apkey[1]])
            showY2 = 1
            shorthand = 'voigtdamp'
         end
@@ -131,7 +121,9 @@ pro state_parameters,reInitialize=reInitialize,psplot=psplot,$
         myYrange = threshold([y,y2],low=0.1,high=0.9,mult=0.4) 
         statePStruct = create_struct(statePStruct,shorthand+'1',y,shorthand+'2',y2)
      endif else begin
-        myYrange = threshold(y,low=0.1,high=0.9,mult=0.4)
+        if shorthand EQ 'airmass' then myYrange = [min(y)-0.1,max(y)+0.1] else begin
+           myYrange = threshold(y,low=0.1,high=0.9,mult=0.4)
+        endelse
         statePStruct = create_struct(statePStruct,shorthand,y)
      endelse
      myXrange = !x.crange

@@ -567,6 +567,6 @@ save,flgrid,lamgrid,bingrid,binfl,binflE,backdiv,$
      utgrid,itimegrid,wavname,$
      ErrGrid,SNR,Divspec,DivspecE,backgrid,$
      Nwavbins,binsizes,binind,binindE,filen,$
-     airmass,altitude,backgrid,header,$
+     airmass,altitude,backgrid,header,apkey,$
      filename='data/specdata.sav'
 end
