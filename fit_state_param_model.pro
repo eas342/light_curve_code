@@ -1,7 +1,9 @@
 pro fit_state_param_model,psplot=psplot,fixspatial=fixspatial,$
                           psmooth=psmooth,widthfix=widthfix,$
                           avgtwo=avgtwo,custyrange=custyrange,$
-                          transit=transit,fixpos=fixpos
+                          transit=transit,fixpos=fixpos,$
+                          measuredDiff=measuredDiff,slitPos=slitPos,$
+                          secondary=secondary
 ;; Fits the state parameter model to the observed flux ratio time
 ;; series
 ;; psplot - saves a postscript plot
@@ -12,6 +14,10 @@ pro fit_state_param_model,psplot=psplot,fixspatial=fixspatial,$
 ;; avgtwo - Average the two stars' parameters
 ;; custyrange - set the y range of the plots
 ;; transit - fit light curve with transit
+;; secondary - fit light curve w/ secondary eclipse
+;; measuredDiff - use this to set the stars' separation at the
+;;                measured value from the cross-correlation
+;; slitPos - use a given fixed slit position instead of fitting for it
 
   if keyword_set(psplot) then begin
      set_plot,'ps'
@@ -62,8 +68,8 @@ inputX[5,*] = statePstruct.voigtdamp1
 inputX[6,*] = statePstruct.voigtdamp2
 
 if keyword_set(avgtwo) then begin
-   star1ind = [0,2,5]
-   star2ind = [1,3,6]
+   star1ind = [2,5]
+   star2ind = [3,6]
    nstarts = n_elements(star1ind)
    for i=0l,nstarts-1l do begin
       avgX = (inputX[star1ind[i],*] + inputX[star2ind[i],*])/2E
@@ -76,20 +82,22 @@ y = statePstruct.fluxratio
 ;; Normalize
 y = y/median(y)
 
-;; Reject all 10 sigma outliers
+;; Reject all n sigma outliers in state parameters
+sigthreshS=5E
 badArray = intarr(npts)
-for i=0l,3+1l do begin
+for i=0l,6l do begin
    if i EQ 4l then tempArray = y else tempArray = inputX[i,*]
    rsigma = robust_sigma(tempArray)
-   goodp = where(abs(tempArray - median(tempArray)) LT 10E * rsigma,complement=badp)
+   goodp = where(abs(tempArray - median(tempArray)) LT sigthreshS * rsigma,complement=badp)
    if badP NE [-1] then begin
       badArray[badp] = 1
    endif
 endfor
 
-;;clip all 4-sigma outliers in flux
+;;clip all n-sigma outliers in flux
+sigthreshF=5E
 rsigmaY = robust_sigma(y)
-goodp = where(abs(y - median(y)) LT 4E * rsigmaY,complement=badp)
+goodp = where(abs(y - median(y)) LT sigthreshF * rsigmaY,complement=badp)
 badArray[badp] = 1
 
 ;;; also try clipping ht e fist part of array
@@ -128,10 +136,10 @@ end
 
 if keyword_set(fixpos) then begin
    inputX[0,*] = 0E;dblarr(ngood) + median(inputX[0,*])
-   inputX[1,*] = 1E;dblarr(
+   inputX[1,*] = 0E;dblarr(
 endif
 
-Start = [0D,-1D,slitH,1.0D,0D,0.3D,1.0D]
+Start = [0D,0D,slitH,1.0D,0D,0.0D,1.0D]
 ;Start = [1.5D,-1D,14D,0.985D,0D,0D,0D]
 ;fitexpr = 'gauss_slit(X[0,*] - P[0],P[2],X[2,*])/gauss_slit(X[1,*] - P[1],P[2],X[3,*]) *'+$
 ;          ' eval_legendre(X[4,*],P[3:4])'
@@ -143,16 +151,32 @@ if keyword_set(transit) then begin
    start = [start,0E,planetdat.p,planetdat.b_impact,u1parm,u2parm,$
             planetdat.a_o_rstar]
 endif
+if keyword_set(secondary) then begin
+   u1parm = 0E
+   u2parm = 0E
+   start = [start,0E,0.001E,planetdat.b_impact,u1parm,u2parm,$
+           planetdat.a_o_rstar]
+endif
 
 nparams = n_elements(start)
-pi = replicate({fixed:0, limited:[0,0], limits:[0.0E,0.0E]},nparams)
+pi = replicate({fixed:0, limited:[0,0], limits:[0.0E,0.0E],tied:''},nparams)
 if keyword_set(widthfix) then pi[2].fixed = 1
 pi[5].fixed = 1
 
-if keyword_set(transit) then begin
+if keyword_set(transit) or keyword_set(secondary) then begin
    pi[9].fixed=1 ;; b_impact
    pi[11].fixed=1 ;; quadratic limb darkening
    pi[12].fixed=1 ;; a/R*
+   if keyword_set(secondary) then pi[10].fixed=1 ;; linear limb darkening
+endif
+
+if keyword_set(measuredDiff) then begin
+   pi[1].tied = 'P[0]'
+endif
+
+if n_elements(slitPos) NE 0 then begin
+   start[0] = slitPos
+   pi[0].fixed = 1
 endif
 
 ;; Make ethe stars be within the slit
@@ -172,12 +196,22 @@ if keyword_set(transit) then begin
    fitexpr = fitexpr + ' * quadlc(X[4,*] - P[7],P[8],P[9],P[10],P[11],P[12])'
 endif
 
+if keyword_set(secondary) then begin
+   fitexpr = fitexpr + ' * sec_eclipse(X[4,*] - P[7],P[8],P[9],P[12])'
+endif
+
 result = mpfitexpr(fitexpr,inputX,y,yerr,start,parinfo=pi,perr=perr)
 
 ;; Show the model
 ;result = [1.5E,-1E,14E,0.985,-0.001D]
 ;result = [0E,-1E,10.5E,0.995D,-0.001D,0.3D]
-ymodel = expression_eval(fitexpr,inputX,result)
+if keyword_set(secondary) then begin
+   tempresult = result
+   tempresult[8] = 0E
+   ymodel = expression_eval(fitexpr,inputX,tempresult)
+endif else begin
+   ymodel = expression_eval(fitexpr,inputX,result)
+endelse
 xplot = statePstruct.phase
 
 !p.multi = [0,1,2]
@@ -201,8 +235,8 @@ yresid = y - ymodel
 print,'Robust sigma corrected = ',robust_sigma(y)
 print,'Robust sigma corrected = ',robust_sigma(ycorrected)
 
-plot,xplot,ycorrected,yrange=custyrange,psym=4,$
-     xtitle='Phase',ytitle='Corrected Flux'
+plot,xplot,yresid,yrange=custyrange - 1.0E,psym=4,$
+     xtitle='Phase',ytitle='Residual'
 
   if keyword_set(psplot) then begin
      device, /close
