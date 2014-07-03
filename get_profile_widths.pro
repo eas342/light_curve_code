@@ -44,6 +44,8 @@ pro get_profile_widths,showplot=showplot,jan04corot1=jan04corot1,$
      starLocationsE = starlocations
      voigts = fltarr(nfile,2)
      voigtsE = voigts
+     starAmps = fltarr(nfile,2) ;; amplitudes of the stars
+     starAmpsE = fltarr(nfile,2) 
 
      case 1 of 
         keyword_set(jan04corot1): begin
@@ -194,6 +196,10 @@ pro get_profile_widths,showplot=showplot,jan04corot1=jan04corot1,$
            voigtsE[j,0] = perr[0]
            voigts[j,1] = result[0];result[3]
            voigtsE[j,1] = perr[0];perr[3]
+           staramps[j,0] = result[6]
+           starampsE[j,0] = perr[6]
+           staramps[j,1] = result[7]
+           starampsE[j,1] = perr[7]
 
            acheck = widths[0:j,0]
         endif else begin
@@ -246,7 +252,8 @@ pro get_profile_widths,showplot=showplot,jan04corot1=jan04corot1,$
                  starlocationsE[j,i] = perr[1]
                  voigts[j,i] = result[0]
                  voigtsE[j,i] = perr[0]
-
+                 staramps[j,i] = result[3]
+                 starampsE[j,i] = perr[3]
               endelse
               if keyword_set(showplot) then begin
                  !p.multi = [0,1,2]
@@ -301,6 +308,7 @@ pro get_profile_widths,showplot=showplot,jan04corot1=jan04corot1,$
      if not keyword_set(specific) then begin
         save,Widths,starLocations,voigts,$
              widthsE,starlocationsE,voigtsE,$
+             starAmps,$
              filename='data/state_parameters/widths/widths_'+$
              specfileListNamePrefix+'.sav'
      endif
@@ -310,6 +318,7 @@ pro get_profile_widths,showplot=showplot,jan04corot1=jan04corot1,$
           specfileListNamePrefix+'.sav'
   save,Widths,starLocations,voigts,$
        widthsE,starlocationsE,voigtsE,$
+       starAmps,$
        filename='data/prof_widths.sav'
 
   if keyword_set(psplot) then begin
