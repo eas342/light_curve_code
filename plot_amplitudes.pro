@@ -1,9 +1,11 @@
-pro plot_amplitudes,psplot=psplot,secondary=secondary
+pro plot_amplitudes,psplot=psplot,secondary=secondary,$
+                    zoom=zoom
 ;; Plots the amplitudes of the fitted profiles
 ;; this is an alternative to IRAF extraction
 ;; psplot -- make a postscript plot
 ;; secondary -- use secondary eclipse timing (centered around 0.5
 ;;              instead of 0.0)
+;; zoom - zoom in closer (not showing some of the outliers)
 
   restore,'data/used_date.sav'
 
@@ -30,7 +32,12 @@ pro plot_amplitudes,psplot=psplot,secondary=secondary
   y = fltarr(ntime) * !values.f_nan
   y[goodp] = staramps[goodp,0] / staramps[goodp,1]
   y = y/median(y)
-  plot,tplot,y,psym=4,yrange=threshold(y),$
+  if keyword_set(zoom) then begin
+     myYrange=threshold(y,low=0.15,high=0.85)
+  endif else begin
+     myYrange=threshold(y)
+  endelse
+  plot,tplot,y,psym=4,yrange=myYrange,$
        xtitle='Orbital Phase',$
        ytitle='Normalized Amplitude',$
        xstyle=1
