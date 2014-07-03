@@ -3,7 +3,7 @@ pro fit_state_param_model,psplot=psplot,fixspatial=fixspatial,$
                           avgtwo=avgtwo,custyrange=custyrange,$
                           transit=transit,fixpos=fixpos,$
                           measuredDiff=measuredDiff,slitPos=slitPos,$
-                          secondary=secondary
+                          secondary=secondary,determslit=determslit
 ;; Fits the state parameter model to the observed flux ratio time
 ;; series
 ;; psplot - saves a postscript plot
@@ -18,6 +18,7 @@ pro fit_state_param_model,psplot=psplot,fixspatial=fixspatial,$
 ;; measuredDiff - use this to set the stars' separation at the
 ;;                measured value from the cross-correlation
 ;; slitPos - use a given fixed slit position instead of fitting for it
+;; determslit -- use a determinate slit model (no fitted parameters)
 
   if keyword_set(psplot) then begin
      set_plot,'ps'
@@ -174,6 +175,14 @@ if keyword_set(measuredDiff) then begin
    pi[1].tied = 'P[0]'
 endif
 
+if keyword_set(determslit) then begin
+   pi[0].fixed=1 ;; slit pos
+   pi[1].fixed=1 ;; slit pos 2
+   pi[2].fixed=1 ;; slit width
+;   pi[4].fixed=1 ;; let's start with no linear
+;   pi[6].fixed=1 ;; no offset in stellar profile
+endif
+
 if n_elements(slitPos) NE 0 then begin
    start[0] = slitPos
    pi[0].fixed = 1
@@ -187,7 +196,7 @@ pi[positionInd].limits = [-slitH,slitH]
 ;pi[5].limited = [1,1]
 ;pi[5].limits = [0E,1E]
 fitexpr = 'vslit_approx(X[0,*] - P[0],P[2],X[2,*],X[5,*])/'+$
-          'vslit_approx(X[1,*] - P[1],P[2],X[3,*]*P[6],X[6,*])'+$
+          'vslit_approx(X[1,*] - P[0] - P[1],P[2],X[3,*]*P[6],X[6,*])'+$
           ' * eval_legendre(X[4,*],P[3:4])'
 ;fitexpr = 'voigt_slit(X[0,*] - P[0],P[2],X[2,*],0.4)/gauss_slit(X[1,*] - P[1],P[2],X[3,*]) *'+$
 ;          ' eval_legendre(X[4,*],P[3:4])'
@@ -207,7 +216,7 @@ result = mpfitexpr(fitexpr,inputX,y,yerr,start,parinfo=pi,perr=perr)
 ;result = [0E,-1E,10.5E,0.995D,-0.001D,0.3D]
 if keyword_set(secondary) then begin
    tempresult = result
-   tempresult[8] = 0E
+;   tempresult[8] = 0E ;; sometimes I like to see the effect of the transit
    ymodel = expression_eval(fitexpr,inputX,tempresult)
 endif else begin
    ymodel = expression_eval(fitexpr,inputX,result)
