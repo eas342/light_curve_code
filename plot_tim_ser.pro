@@ -169,10 +169,10 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
 
   ;; Prepare to save all the planet transit data as a function of wavelength
   if keyword_set(slitmod) then begin
-     paramnames = ['Rp/R*','b_impact','u1','u2','a/R*','legendre0','legendre1','c_0','c_2',$
-                   'B','H','Phase Offset']
-     paramfiles = ['rad'  ,'b_impact','u1','u2','a','legendre0','legendre1',   'c_0','c_2',$
-                   'B','H','phase_offset']
+     paramnames = ['Rp/R*','b_impact','u1','u2','a/R*','c_0','c_2',$
+                   'B','H','Phase Offset','legendre0','legendre1','legendre2']
+     paramfiles = ['rad'  ,'b_impact','u1','u2','a',   'c_0','c_2',$
+                   'B','H','phase_offset','legendre0','legendre1','legendre2']
   endif else begin
      paramnames = ['Rp/R*','b_impact','u1','u2','a/R*','legendre0','legendre1','legendre2','legendre3',$
                    'legendre4','legendre5','Phase Offset']
@@ -761,30 +761,28 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
 
         if keyword_set(fitcurve) then begin
            ;; fit the data curve
-
-;           start=double([planetdat.p,planetdat.b_impact,u1parm,u2parm,$
-;                         planetdat.a_o_rstar,1.0D,0D,0D,0D])
            start=double([planetdat.p,planetdat.b_impact,u1parm,u2parm,$
                          planetdat.a_o_rstar,1.0D,0D,0D,0D,0D,0D,0D])
 
 
-;           if keyword_set(quadfit) then begin
+           ;; Here's where you choose the model to fit to the data
            case 1 of
               keyword_set(kepdiff): begin
-;                 expr = 'parameterized_kep(X,P[0]) *  (P[5] + X *
-;                 P[6])'                 
                  expr = '(kepler_func(X,P[0]) / kepler_func(X,1D)) *  eval_legendre(X,P[5:10])'
               end
               keyword_set(slitmod): begin
-                 expr = 'vslit_approx(X[0,*] - P[7],P[10],X[2,*],X[5,*])/'+$
-                        'vslit_approx(X[1,*] - P[7] - P[8],P[10],X[3,*] * P[9],X[6,*])'
-                 start[9] = 1.0E ;; start the relative FWHM ratio as 1.0
-                 start[10] = 10.5E ;; slit width
+                 expr = 'vslit_approx(X[0,*] - P[5],P[8],X[2,*],X[5,*])/'+$
+                        'vslit_approx(X[1,*] - P[5] - P[6],P[8],X[3,*] * P[7],X[6,*])'
+                 start[5] = 0.0E ;; start the position as 0
+                 start[7] = 1.0E ;; start the relative FWHM ratio as 1.0
+                 start[8] = 10.5E ;; start the slit width at 10.5E
+                 start[10] = 1E ;; start the offset parameter as 1.0
+                 start = [start,0E] ;; last Legendre parameter should be 0E as a start
                  if keyword_set(secondary) then begin
                     start[0] = 0.002E
-                    expr = expr+' * sec_eclipse(X[4,*]-P[11],P[0],P[1],P[4]) * eval_legendre(X,P[5:6])'
+                    expr = expr+' * sec_eclipse(X[4,*]-P[9],P[0],P[1],P[4]) * eval_legendre(X,P[10:12])'
                  endif else begin
-                    expr = expr+' * quadlc(X[4,*]-P[11],P[0],P[1],P[2],P[3],P[4])* eval_legendre(X,P[5:6])'
+                    expr = expr+' * quadlc(X[4,*]-P[9],P[0],P[1],P[2],P[3],P[4])* eval_legendre(X,P[10:12])'
                  endelse
               end
               keyword_set(differential): begin
@@ -810,38 +808,31 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
               end
               else: begin
                  expr = 'quadlc(X-P[11],P[0],P[1],P[2],P[3],P[4])* eval_legendre(X,P[5:10])'
-                 
-                                ;expr =
-                                ;'quadlc(X,P[0],P[1],P[2],P[3],P[4])*
-                                ;(P[5] + X * P[6] + X^2 * P[7] + X^3 *
-                                ;P[8])'
               end
            endcase
-;              pi = replicate({fixed:1, limited:[1,0], limits:[0.0E,0.0E]},8)
-;           endif else begin
-;              expr = 'quadlc(X,P[0],P[1],P[2],P[3],P[4])* (P[5] + X * P[6])'
-;           pi = replicate({fixed:1, limited:[1,0],limits:[0.0E,0.0E]},9)
+           
+           ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+           ;; Here's the long parameter setting section - fixed, free or limited
+
+           ;; By default all parameters start out as fixed and >=0
            pi = replicate({fixed:1, limited:[1,0], limits:[0.0E,0.0E]},nparams)
-;           endelse
+
            ;; make sure the Rp/R* parameter is free
            if not keyword_set(fixrad) then pi[0].fixed = 0 
-           ;; fix the impact parameter, limb darkening and AoR*
-           case 1 of
-              keyword_set(freelimbquad): begin
-                 ;; if asked to, free the quadratic limb darkening parameter
-                 pi[2].fixed = 0
-                 pi[3].fixed = 0
-              end
-              keyword_set(freelimblin): pi[2].fixed = 0
-              else: junk=junk
-           endcase
 
-           if keyword_set(freeall) then begin
-              pi[*].fixed = 0
-           endif ;; free all parameters
-           if keyword_set(fixall) then begin
-              pi[*].fixed = 1
+           ;; Limb Darkening parameter adjustment (3 options)
+           if keyword_set(freelimbquad) then begin
+              ;; if asked to, free the quadratic limb darkening parameter
+              pi[2].fixed = 0
+              pi[3].fixed = 0
            endif
+           if keyword_set(freelimblin) then pi[2].fixed = 0
+           ;; Let the limb darkening be + or -
+           pi[2].limited = [0,0]
+           pi[3].limited = [0,0]
+
+           ;; Here are a few modifications to the Rp/R* parameter
+           ;; (letting it be <0 for differential Rp/R* fitting)
            if not keyword_set(kepfit) and $
               not keyword_set(kepdiff) and $
               not keyword_set(secondary) then begin
@@ -851,35 +842,48 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
               pi[0].limited = [0,0]
               pi[0].limits = [0D,0D]
            endelse
-           ;; make sure the flux ratio offset is free
+
+           ;; Transit epoch fitting
            if keyword_set(fitepoch) then begin
               pi[11].fixed = 0
               pi[11].limited = [0,0]
            endif
+           
+           ;; Details of slit model adjustments (making them free)
            if keyword_set(slitmod) then begin
-              pi[7:9].fixed=0 ;; free the slit model params
-              pi[7].limited = [1,1] ;; free the 
+              pi[5:7].fixed=0 ;; free the slit model params
+              pi[5:6].limited = [1,1] ;; limit the slit position from going to far
+              pi[5:6].limits = [-start[8],start[8]] ;; slit half width
            endif
-           if not keyword_set(fixoffset) then pi[5].fixed = 0 
-           ;; Let the limb darkening be + or -
-           pi[2].limited = [0,0]
-           pi[3].limited = [0,0]
-           for i=6,10-1 do pi[i].limited = [0,0] ;; let the polynomial coefficients be + or -
 
-           case 1 of 
-              n_elements(legOrder) NE 0: begin
-                 for i=5l,legOrder+5l do begin
-                    pi[i].fixed = 0 ;; let the i-th Legendre coefficient vary
-                 endfor
-              end
-              else: pi[6].fixed = 0 ;; let the linear coefficient vary by default
-           endcase
+           ;; Here's where the polynomial terms are adjusted
+           if keyword_set(slitmod) then begin
+              startLeg = 10 ;; first legendre polynomial coefficient
+              lastLeg = 12 ;; last Legendre polynomial in model
+           endif else begin
+              startLeg = 5 ;; first legendre polynomial coefficient
+              lastLeg = 10 ;; last Legendre polynomial in model
+           endelse
+           if n_elements(legOrder) EQ 0 then legOrder =1 ;; the default is a linear baseline
+           assert,lastLeg,'>=',legOrder+startLeg,"More polynomial terms are asked for than allowed by model"
+           if keyword_set(fixoffset) then begin
+              ;; nothing to do b/c the rest of the parameters are already fixed
+           endif else begin
+              endLeg = startLeg + LegOrder ;; final Legendre polynomial
+              pi[startLeg:endLeg].fixed = 0 ;; free them!
+              pi[startLeg:endLeg].limited = [0,0];; no limits
+           endelse
 
-;           if keyword_set(clarlimb) then begin
-;              start=[planetdat.p,planetdat.b_impact,u1bin[k],u2bin[k],planetdat.a_o_rstar,0.0E]
-;           endif else begin
+           ;; The freeall and fixall keyword override the rest of those
+           if keyword_set(freeall) then begin
+              pi[*].fixed = 0 ;; free all parameters if asked to
+           endif 
+           if keyword_set(fixall) then begin
+              pi[*].fixed = 1 ;; fix all parameters if asked to
+           endif
+           ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;           endelse
+           ;; Here's where a Levenberg-Marquardt fit is applite to the data
            if keyword_set(slitmod) then begin
               result = mpfitexpr(expr,inputX,y,yerr,start,parinfo=pi,perr=punct)
               modelY = expression_eval(expr,inputX,result)
