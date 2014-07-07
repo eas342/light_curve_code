@@ -14,7 +14,7 @@ pro plot_tim_ser,fitcurve=fitcurve,fitpoly=fitpoly,usepoly=usepoly,makestops=mak
                  showNomMCMC=showNomMCMC,useGPasfit=useGPasfit,kepdiff=kepdiff,$
                  custyrange=custyrange,tryAlt=tryAlt,trycorrect=trycorrect,$
                  secondary=secondary,$
-                 presentation=presentation
+                 presentation=presentation,slitmod=slitmod
 ;; plots the binned data as a time series and can also fit the Rp/R* changes
 ;; apPlot -- this optional keyword allows one to choose the aperture
 ;;           to plot
@@ -89,6 +89,7 @@ pro plot_tim_ser,fitcurve=fitcurve,fitpoly=fitpoly,usepoly=usepoly,makestops=mak
 ;;              parameters was fit to the data and then divided out
 ;; secondary -- designed for secondary eclipse
 ;; presentation -- makes things bigger for a power point presentation
+;; slitmod - Use a slit loss model
 
 ;sigrejcrit = 6D  ;; sigma rejection criterion
 sigrejcrit = 5D  ;; sigma rejection criterion
@@ -123,8 +124,9 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
      planetdat = create_struct(planetdat,info[l],data[l])
   endfor
 
-  ;; Get the separation between different time series for a given planet
+  ;; Get the (plot spacing) separation between different time series for a given planet
   readcol,'param_input/time_series_sep.txt',separationA,format='(F)',skipline=1
+
 
   if keyword_set(showmcmc) then begin
      ;; Read the MCMC parameters
@@ -166,12 +168,17 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
   plrade = fltarr(nbin)*!values.f_nan
 
   ;; Prepare to save all the planet transit data as a function of wavelength
-;  paramnames = ['Rp/R*','b_impact','u1','u2','a/R*','linearA','linearB','quadC','cubicD']
-;  paramnames = ['Rp/R*','b_impact','u1','u2','a/R*','linearA','linearB','quadC','cubicD','quarticE']
-  paramnames = ['Rp/R*','b_impact','u1','u2','a/R*','legendre0','legendre1','legendre2','legendre3',$
-                'legendre4','legendre5','Phase Offset']
-  paramfiles = ['rad'  ,'b_impact','u1','u2','a','legendre0','legendre1','legendre2','legendre3',$
-                'legendre4','legendre5','phase_offset']
+  if keyword_set(slitmod) then begin
+     paramnames = ['Rp/R*','b_impact','u1','u2','a/R*','legendre0','legendre1','c_0','c_2',$
+                   'B','H','Phase Offset']
+     paramfiles = ['rad'  ,'b_impact','u1','u2','a','legendre0','legendre1',   'c_0','c_2',$
+                   'B','H','phase_offset']
+  endif else begin
+     paramnames = ['Rp/R*','b_impact','u1','u2','a/R*','legendre0','legendre1','legendre2','legendre3',$
+                   'legendre4','legendre5','Phase Offset']
+     paramfiles = ['rad'  ,'b_impact','u1','u2','a','legendre0','legendre1','legendre2','legendre3',$
+                   'legendre4','legendre5','phase_offset']
+  endelse
   nparams = n_elements(paramnames)
   resultarr = fltarr(nparams,nbin)*!values.f_nan
   resultarrE = resultarr
@@ -213,6 +220,48 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
      binfl[0,*] = yfullcorrected
   endif
 
+  if keyword_set(slitmod) then begin
+     ;; Get the spec list Prefix name
+     restore,'data/used_date.sav'
+     ;; Get the state parameters
+     restore,'data/state_parameters/full_parameters/'+$
+             specfileListNamePrefix+'.sav'
+     npts = n_elements(tplot)
+     nstate = 7 ;; number of state parameters
+     inputX = dblarr(nstate,npts)
+     inputX[0,*] = statePstruct.specshift1
+     inputX[1,*] = statePstruct.specshift2
+     inputX[2,*] = statePstruct.fwhm1
+     inputX[3,*] = statePstruct.fwhm2
+     inputX[4,*] = statePstruct.phase
+     inputX[5,*] = statePstruct.voigtdamp1
+     inputX[6,*] = statePstruct.voigtdamp2
+     star1ind = [2,5]
+     star2ind = [3,6]
+     nstarts = n_elements(star1ind)
+     for i=0l,nstarts-1l do begin
+        avgX = (inputX[star1ind[i],*] + inputX[star2ind[i],*])/2E
+        inputX[star1ind[i],*] = avgX
+        inputX[star2ind[i],*] = avgX
+     endfor
+     ;; Prepare to reject all n sigma outliers in state parameters
+     StatesigthreshS=5E
+     badArray = intarr(npts)
+     for i=0l,nstate-1 do begin
+        if i NE 4l then begin
+           tempArray = inputX[i,*]
+           rsigma = robust_sigma(tempArray)
+           goodp = where(abs(tempArray - median(tempArray)) LT StatesigthreshS * rsigma,complement=badp)
+           if badP NE [-1] then begin
+              badArray[badp] = 1
+           endif
+        endif
+     endfor
+     inputXorig = inputX
+  endif else begin
+     badArray = intarr(n_elements(tplot)) ;; no bad points
+  endelse
+
   ;; For any binfl error that are zero, set to 0.01
   zerobinp = where(binfle LE 1E-7)
   if zerobinp NE [-1] then binfle[zerobinp] = 0.01E
@@ -232,7 +281,10 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
      ;; fold back to 0
      tplot = fold_phase(tplot,secondary=secondary)
      airmass = airmassOrig
-
+     ;; Same reset applies to inputX
+     if keyword_set(slitmod) then begin
+        inputX = inputXorig
+     endif
      offp = where(tplot LT hstart OR tplot GT hend)
 
      reffactor=0.45E ;; factor to multiply the reference star by
@@ -268,7 +320,9 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
      meanoff = mean(y[offp],/nan)
 
      ;; For any binned flux that are NAN, remove
-     goodp = where(finite(y) EQ 1)
+     ;; also for rejected state parameter points, remove those if
+     ;; using a slit loss model
+     goodp = where(finite(y) EQ 1 and badarray EQ 0)
      if goodp NE [-1] then begin
         y = y[goodp]
         yerr = yerr[goodp]
@@ -278,9 +332,19 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
         endif
         tplot = tplot[goodp]
         airmass = airmass[goodp]
+        if keyword_set(slitmod) then inputX = inputX[*,goodp]
         offp = where(tplot LT hstart OR tplot GT hend)
      endif
      stdoff = stddev(y[offp])
+
+     if keyword_set(slitmod) then begin
+        smoothP = [0,1,2,3,5,6]
+        nsmoothP = n_elements(smoothP)
+        if n_elements(psmooth) EQ 0 then smoothsize = 30 else smoothsize=psmooth
+        for i=0l,nsmoothP-1l do begin
+           inputX[smoothP[i],*] = smooth(inputX[smoothP[i],*],smoothsize)
+        endfor
+     endif
 
      if not keyword_set(nonormalize) then begin
         yerr = yerr / median(y[offp])
@@ -303,6 +367,7 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
                     y2err = y2err[goodp]
                  endif
                  airmass = airmass[goodp]
+                 if keyword_set(slitmod) then inputX = inputX[*,goodp]
                  offp = where(tplot LT hstart OR tplot GT hend)
               endif
            endfor
@@ -337,6 +402,7 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
               endif
               tplot = tplot[goodp]
               airmass = airmass[goodp]
+              if keyword_set(slitmod) then inputX = inputX[*,goodp]
 
               ;; fit result to a robust line
               rlinefit = robust_linefit(tplot,divbycurveclip1,yfit)
@@ -365,6 +431,7 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
                  endif
                  tplot = tplot[goodp]
                  airmass = airmass[goodp]
+                 if keyword_set(slitmod) then inputX = inputX[*,goodp]
                  offp = where(tplot LT hstart OR tplot GT hend)
               endif
            endif
@@ -411,6 +478,7 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
            endif
            tplot = tplot[goodp]
            airmass = airmass[goodp]
+           if keyword_set(slitmod) then inputX = inputX[*,goodp]           
            offp = where(tplot LT hstart OR tplot GT hend)
         endif
 
@@ -439,7 +507,7 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
      if total(finite(y)) GT 2 and total(finite(yerr)) GT 2 then begin
         ;; if keyword set, replace the error w/ the off transit stddev
 
-        ;find the range where 95% or more of the plots are shown
+        ;find the range where 95% or more of the points are shown
         if keyword_set(individual) then begin
            ycomb = [y,y2] ;; combine both stars into one array
            sorty = sort(ycomb)
@@ -531,6 +599,7 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
            tickformat=''
            myXtitle='Orbital Phase'
         endelse
+
         if keyword_set(custyrange) then ydynam = custyrange
         plot,tplot,y,psym=4,$
              xtitle=myXtitle,$
@@ -706,6 +775,18 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
 ;                 P[6])'                 
                  expr = '(kepler_func(X,P[0]) / kepler_func(X,1D)) *  eval_legendre(X,P[5:10])'
               end
+              keyword_set(slitmod): begin
+                 expr = 'vslit_approx(X[0,*] - P[7],P[10],X[2,*],X[5,*])/'+$
+                        'vslit_approx(X[1,*] - P[7] - P[8],P[10],X[3,*] * P[9],X[6,*])'
+                 start[9] = 1.0E ;; start the relative FWHM ratio as 1.0
+                 start[10] = 10.5E ;; slit width
+                 if keyword_set(secondary) then begin
+                    start[0] = 0.002E
+                    expr = expr+' * sec_eclipse(X[4,*]-P[11],P[0],P[1],P[4]) * eval_legendre(X,P[5:6])'
+                 endif else begin
+                    expr = expr+' * quadlc(X[4,*]-P[11],P[0],P[1],P[2],P[3],P[4])* eval_legendre(X,P[5:6])'
+                 endelse
+              end
               keyword_set(differential): begin
                  if keyword_set(secondary) then begin
                     expr = 'sec_eclipse(X-P[11],P[0],P[1],P[4]) * eval_legendre(X,P[5:10])'
@@ -728,12 +809,7 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
                  start[0] = 0.002E
               end
               else: begin
-                 expr = 'quadlc(X-P[11],P[0],P[1],P[2],P[3],P[4])* ( P[5] + '+$
-                        'Legendre((2D * X - Max(X) - Min(X))/(Max(X) - Min(X) + 3D-16),1) * P[6] + '+$
-                        'Legendre((2D * X - Max(X) - Min(X))/(Max(X) - Min(X) + 3D-16),2) * P[7] + '+$
-                        'Legendre((2D * X - Max(X) - Min(X))/(Max(X) - Min(X) + 3D-16),3) * P[8] + '+$
-                        'Legendre((2D * X - Max(X) - Min(X))/(Max(X) - Min(X) + 3D-16),4) * P[9] + '+$
-                        'Legendre((2D * X - Max(X) - Min(X))/(Max(X) - Min(X) + 3D-16),5) * P[10])'
+                 expr = 'quadlc(X-P[11],P[0],P[1],P[2],P[3],P[4])* eval_legendre(X,P[5:10])'
                  
                                 ;expr =
                                 ;'quadlc(X,P[0],P[1],P[2],P[3],P[4])*
@@ -780,6 +856,10 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
               pi[11].fixed = 0
               pi[11].limited = [0,0]
            endif
+           if keyword_set(slitmod) then begin
+              pi[7:9].fixed=0 ;; free the slit model params
+              pi[7].limited = [1,1] ;; free the 
+           endif
            if not keyword_set(fixoffset) then pi[5].fixed = 0 
            ;; Let the limb darkening be + or -
            pi[2].limited = [0,0]
@@ -800,13 +880,19 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
 ;           endif else begin
 
 ;           endelse
-
-           result = mpfitexpr(expr,tplot,y,yerr,start,parinfo=pi,perr=punct)
-           modelPts = 512l
-           ntpoints = n_elements(tplot)
-           modelY = expression_eval(expr,tplot,result)
-           modelX = findgen(modelPts)/(modelPts-1l) * (tplot[ntpoints-1] - min(tplot,/nan)) + min(tplot,/nan)
-           modelY1 = expression_eval(expr,modelX,result)
+           if keyword_set(slitmod) then begin
+              result = mpfitexpr(expr,inputX,y,yerr,start,parinfo=pi,perr=punct)
+              modelY = expression_eval(expr,inputX,result)
+              modelY1 = modelY
+              modelX = tplot
+           endif else begin
+              result = mpfitexpr(expr,tplot,y,yerr,start,parinfo=pi,perr=punct)
+              modelPts = 512l
+              ntpoints = n_elements(tplot)
+              modelY = expression_eval(expr,tplot,result)
+              modelX = findgen(modelPts)/(modelPts-1l) * (tplot[ntpoints-1] - min(tplot,/nan)) + min(tplot,/nan)
+              modelY1 = expression_eval(expr,modelX,result)
+           endelse
            oplot,modelX,modelY1-offset,color=mycol('blue'),thick=2
 
            ;; save the planet radius and all data
