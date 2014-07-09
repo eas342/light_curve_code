@@ -14,7 +14,7 @@ pro plot_tim_ser,fitcurve=fitcurve,fitpoly=fitpoly,usepoly=usepoly,makestops=mak
                  showNomMCMC=showNomMCMC,useGPasfit=useGPasfit,kepdiff=kepdiff,$
                  custyrange=custyrange,tryAlt=tryAlt,trycorrect=trycorrect,$
                  secondary=secondary,$
-                 presentation=presentation,slitmod=slitmod
+                 presentation=presentation,slitmod=slitmod,psmooth=psmooth
 ;; plots the binned data as a time series and can also fit the Rp/R* changes
 ;; apPlot -- this optional keyword allows one to choose the aperture
 ;;           to plot
@@ -90,6 +90,8 @@ pro plot_tim_ser,fitcurve=fitcurve,fitpoly=fitpoly,usepoly=usepoly,makestops=mak
 ;; secondary -- designed for secondary eclipse
 ;; presentation -- makes things bigger for a power point presentation
 ;; slitmod - Use a slit loss model
+;; psmooth - sets the smooth size used in smothing the optical state
+;;           parameters in the slit model
 
 ;sigrejcrit = 6D  ;; sigma rejection criterion
 sigrejcrit = 5D  ;; sigma rejection criterion
@@ -778,12 +780,19 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
                  start[8] = 10.5E ;; start the slit width at 10.5E
                  start[10] = 1E ;; start the offset parameter as 1.0
                  start = [start,0E] ;; last Legendre parameter should be 0E as a start
-                 if keyword_set(secondary) then begin
-                    start[0] = 0.002E
-                    expr = expr+' * sec_eclipse(X[4,*]-P[9],P[0],P[1],P[4]) * eval_legendre(X,P[10:12])'
-                 endif else begin
-                    expr = expr+' * quadlc(X[4,*]-P[9],P[0],P[1],P[2],P[3],P[4])* eval_legendre(X,P[10:12])'
-                 endelse
+                 case 1 of
+                    keyword_set(secondary): begin
+                       start[0] = 0.002E
+                       expr = expr+' * sec_eclipse(X[4,*]-P[9],P[0],P[1],P[4]) * eval_legendre(X,P[10:12])'
+                    end
+                    keyword_set(kepfit): begin
+                       expr = expr+' * kepler_func(X[4,*],P[0]) *  eval_legendre(X,P[10:12])'
+                       start[0] = 1E
+                    end
+                    else: begin
+                       expr = expr+' * quadlc(X[4,*]-P[9],P[0],P[1],P[2],P[3],P[4])* eval_legendre(X,P[10:12])'
+                    end
+                 endcase
               end
               keyword_set(differential): begin
                  if keyword_set(secondary) then begin
