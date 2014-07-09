@@ -6,7 +6,7 @@ pro plot_stars,psplot=psplot,tryclean=tryclean,saveclean=saveclean,$
                noNorm=noNorm,noLegend=noLegend,$
                showback=showback,directText=directText,custXmargin=custXmargin,$
                custYmargin=custYmargin,skipXtitle=skipXtitle,$
-               choose2=choose2,digfilter=digfilter
+               choose2=choose2,digfilter=digfilter,biggerImage=biggerImage
 ;; Plots the reference star and planet host
 ;; spectrum
 ;; psplot -- makes a postscript plot of the RMS spectrum
@@ -30,6 +30,7 @@ pro plot_stars,psplot=psplot,tryclean=tryclean,saveclean=saveclean,$
 ;; skipXtitle - skips X title and tick labels, for use by double specphot
 ;; digfilter -- apply a digital filter to the spectrum (convolve it)
 ;; noLegend - don't make a plot legend
+;; biggerImage -- makes a bigger plot image (not so dense)
 
   ;; set the plot
   if keyword_set(psplot) then begin
@@ -38,7 +39,9 @@ pro plot_stars,psplot=psplot,tryclean=tryclean,saveclean=saveclean,$
      plotprenm = 'plots/individual_spectra/indspec'
      device,encapsulated=1, /helvetica,$
             filename=plotprenm+'.eps'
-     device,xsize=9, ysize=5,decomposed=1,/color
+     if keyword_set(biggerImage) then begin
+        device,xsize=15, ysize=9,decomposed=1,/color
+     endif else device,xsize=9, ysize=5,decomposed=1,/color
      !p.thick = 3.0
      !x.thick = 3.0
      !y.thick = 3.0
