@@ -894,12 +894,12 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
 
            ;; Here's where a Levenberg-Marquardt fit is applite to the data
            if keyword_set(slitmod) then begin
-              result = mpfitexpr(expr,inputX,y,yerr,start,parinfo=pi,perr=punct)
+              result = mpfitexpr(expr,inputX,y,yerr,start,parinfo=pi,perr=punct,/quiet)
               modelY = expression_eval(expr,inputX,result)
               modelY1 = modelY
               modelX = tplot
            endif else begin
-              result = mpfitexpr(expr,tplot,y,yerr,start,parinfo=pi,perr=punct)
+              result = mpfitexpr(expr,tplot,y,yerr,start,parinfo=pi,perr=punct,/quiet)
               modelPts = 512l
               ntpoints = n_elements(tplot)
               modelY = expression_eval(expr,tplot,result)
@@ -1005,17 +1005,10 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
               endelse
            endif
         endif
-
      endif
 
   endfor
   
-  ;; save the radius data
-  
-  forprint,bingridmiddle[*],binsizes,plrad,plrade,$
-           textout='radius_vs_wavelength/radius_vs_wavl.txt',$
-           comment='#Wavelength(um) Binsize (um)  Rp/R*   Rp/R* Error',/silent
-
   ;; save the RMS of off transit fluxu
   ;; If there's no wavelength binning
   if n_elements(timebin) EQ 0 then tsizes = [0]
@@ -1023,37 +1016,46 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
        planetdat,fracPhotonarr,$
        filename='data/rmsdata.sav'
 
-  ;; Save the parameters to file
-  for j=0l,nparams-1l do begin
-     forprint,bingridmiddle[*],binsizes,resultarr[j,*],resultarrE[j,*],$
-              textout='radius_vs_wavelength/fit_data/'+paramfiles[j]+'_vs_wavl.txt',$
-              comment=string('#Wavelength(um)','Binsize (um)',paramnames[j],'Error',$
-                             format='(4(A16))'),$
-              format='(4(G16.8))',/silent
+  if keyword_set(fitcurve) then begin
+     ev_print_params,wavname,paramnames,resultarr,resultarrE,pi,k,/skipsig
+
+     ;; save the radius data
+     forprint,bingridmiddle[*],binsizes,plrad,plrade,$
+              textout='radius_vs_wavelength/radius_vs_wavl.txt',$
+              comment='#Wavelength(um) Binsize (um)  Rp/R*   Rp/R* Error',/silent
      
-  endfor
-  openw,1,'radius_vs_wavelength/fit_data.txt'
-  printf,1,'#Wavelength (um) ',format='(A16,$)'
-  printf,1,'Bin Size (um)',format='(A16,$)'
-  for j=0l,nparams-1l do begin
-     printf,1,paramnames[j],' Error',format='(A16,A16,$)'
-  endfor
-  printf,1,''
-  for k=0l,nbin-1l do begin
-     printf,1,bingridmiddle[k],format='(F16.8,$)'
-     printf,1,binsizes[k],format='(F16.8,$)'
+     ;; Save the parameters to file
      for j=0l,nparams-1l do begin
-        printf,1,resultarr[j,k],resultarrE[j,k],format='(F16.8,F16.8,$)'
+        forprint,bingridmiddle[*],binsizes,resultarr[j,*],resultarrE[j,*],$
+                 textout='radius_vs_wavelength/fit_data/'+paramfiles[j]+'_vs_wavl.txt',$
+                 comment=string('#Wavelength(um)','Binsize (um)',paramnames[j],'Error',$
+                                format='(4(A16))'),$
+                 format='(4(G16.8))',/silent
+     endfor
+     
+     openw,1,'radius_vs_wavelength/fit_data.txt'
+     printf,1,'#Wavelength (um) ',format='(A16,$)'
+     printf,1,'Bin Size (um)',format='(A16,$)'
+     for j=0l,nparams-1l do begin
+        printf,1,paramnames[j],' Error',format='(A16,A16,$)'
      endfor
      printf,1,''
-  endfor
-  close,1
-
+     for k=0l,nbin-1l do begin
+        printf,1,bingridmiddle[k],format='(F16.8,$)'
+        printf,1,binsizes[k],format='(F16.8,$)'
+        for j=0l,nparams-1l do begin
+           printf,1,resultarr[j,k],resultarrE[j,k],format='(F16.8,F16.8,$)'
+        endfor
+        printf,1,''
+     endfor
+     close,1
+  endif
+  
   if keyword_set(singleplot) and not keyword_set(skipReset) then begin
      !p.multi = 0
      !Y.Omargin = [0,0]
   endif
-
+  
   if keyword_set(psplot) then begin
      device,decomposed=0
      set_plot,'x'
