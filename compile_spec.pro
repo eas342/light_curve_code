@@ -8,7 +8,7 @@ pro compile_spec,extraction2=extraction2,sum=sum,nwavbins=nwavbins,$
                  masktelluric=masktelluric,showall=showall,irafnoise=irafnoise,$
                  longwavname=longwavname,trycorrect=trycorrect,removelinear=removelinear,$
                  backRatio=backRatio,alreadyDivided=alreadyDivided,saveshifts=saveshifts,$
-                 wavWeights=wavWeights
+                 wavWeights=wavWeights,indbin=indbin
 ;; Compiles the spectra into a few simple arrays to look at the spectrophotometry
 ;; extraction2 -- uses whatever spectra are in the data directory
 ;; sum -- uses the variance weighted (optimal) extraction by
@@ -49,6 +49,7 @@ pro compile_spec,extraction2=extraction2,sum=sum,nwavbins=nwavbins,$
 ;;                   DIVISOR keyword
 ;; SaveShifts -- saves the shifts instead of trying to correct for them
 ;; wavWeights -- weight the wavelength bins?
+;; indBin -- bin the wavelengths for each star, then divide
 
 ;Nwavbins = 35 ;; number of wavelength bins
 ;Nwavbins = 9 ;; number of wavelength bins
@@ -534,6 +535,21 @@ endif else begin
       endfor
    endelse
 endelse
+
+if keyword_set(indbin) then begin
+   ;; Bin each stars first, then divide the two stars instead of
+   ;; dividing the two stars, then binning
+   binfl = fltarr(Nwavbins,nfile) ;; binned flux ratio
+   binflE = fltarr(Nwavbins,nfile)
+   for k=0l,Nwavbins-1l do begin
+      goodp = where(binind[k,1,*] NE 0)
+      binfl[k,goodp] = binind[k,0,goodp]/binind[k,1,goodp]
+      binflE[k,goodp] = binfl[k,goodp] * sqrt($
+                        (binindE[k,0,goodp]/binind[k,0,goodp])^2 +$
+                        (binindE[k,1,goodp]/binind[k,1,goodp])^2)
+   endfor
+endif
+
 
 if keyword_set(psplot) then begin
    device,/close
