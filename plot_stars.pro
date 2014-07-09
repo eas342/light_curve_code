@@ -74,12 +74,12 @@ pro plot_stars,psplot=psplot,tryclean=tryclean,saveclean=saveclean,$
   cleanfactor = 4E
   if n_elements(choose1) EQ 0 then begin
      for i=0l,nwavs-1l do begin
- ;       hostspec[i] = median(flgrid[i,0,*])
-;        refspec[i] = median(flgrid[i,1,*])
-        hostspec[i] = mean(flgrid[i,0,*],/nan)
-        refspec[i] = mean(flgrid[i,1,*],/nan)
-        backspec[i] = mean(backgrid[i,0,*],/nan)
-;     if i EQ 50l then stop
+        hostspec[i] = median(flgrid[i,0,*])
+        refspec[i] = median(flgrid[i,1,*])
+        backspec[i] = median(backgrid[i,0,*])
+;        hostspec[i] = mean(flgrid[i,0,*],/nan)
+;        refspec[i] = mean(flgrid[i,1,*],/nan)
+;        backspec[i] = mean(backgrid[i,0,*],/nan)
      endfor
   endif else begin
      hostspec = flgrid[*,0,choose1]
