@@ -11,6 +11,8 @@ pro compile_both,dec23=dec23,dec29=dec29,readC=readC,$
 ;; specshift - passes this keyword onto compile_spec
 
 if n_elements(nwavbins) EQ 0 then nwavbins=9
+
+nwavbinsOrig = nwavbins
 ;; Get the MORIS data
 case 1 of
    keyword_set(dec23): compile_phot,/dec23,readC=readC,removelinear=removelinear
@@ -35,12 +37,12 @@ binPhotE = binflE
 timePhot = utgrid
 
 case 1 of
-   keyword_set(dec23): compile_spec,/dec23,readC=readC,nwavbins=nwavbins,$
+   keyword_set(dec23): compile_spec,/dec23,readC=readC,nwavbins=nwavbinsOrig,$
                                     masktelluric=masktelluric,removelinear=removelinear,$
                                     specshift=specshift
-   keyword_set(dec29): compile_spec,/dec29,readC=readC,nwavbins=nwavbins,$
+   keyword_set(dec29): compile_spec,/dec29,readC=readC,nwavbins=nwavbinsOrig,$
                                     masktelluric=masktelluric,removelinear=removelinear
-   else: compile_spec,readC=readC,nwavbins=nwavbins,$
+   else: compile_spec,readC=readC,nwavbins=nwavbinsOrig,$
                       masktelluric=masktelluric,removelinear=removelinear,$
                       specshift=specshift
 endcase
