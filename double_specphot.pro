@@ -1,11 +1,16 @@
-pro double_specphot,psplot=psplot,noremovelin=noremovelin
+pro double_specphot,psplot=psplot,noremovelin=noremovelin,$
+                    custxrange=custxrange
 ;; Puts a plot of the stars spectra directly on top of the specphot
 ;; plot
 ;; psplot - saves a postscript plot
+;; noremovelin - do not perform a linear de-trend of the baseline
+;; custxrange -- pass the custom xrange to plot_specphot
 
 if keyword_set(noremovelin) then begin
    myRemovelin = 0
 endif else myRemovelin=1
+
+if n_elements(custxrange) EQ 0 then custXrange=[0.95,2.4]
 
   plot_tim_ser
 
@@ -16,14 +21,16 @@ endif else myRemovelin=1
      device,encapsulated=1, /helvetica,$
             filename=plotnmpre+'.eps',bits_per_pixel=8
      device,xsize=10, ysize=13,decomposed=1,/color
+     !p.thick=3
   endif
 
   !p.multi = [0,1,2]
   !p.position = [0.2,0.75,0.75,0.95]
   plot_stars,/normall,/showback,/directText,custXmargin=[9,12],/skipXTitle,$
-             custYmargin=[0,0]
+             custYmargin=[0,0],custxrange=custxrange
   !p.position = [0.2,0.1,0.75,0.748]
-  plot_specphot,removelin=myRemovelin,/skipInitialize,custymargin=[4,4]
+  plot_specphot,removelin=myRemovelin,/skipInitialize,custymargin=[4,4],$
+                custxrange=custxrange
   !p.position = [0,0,0,0]
   !p.multi = 0
 
@@ -34,6 +41,7 @@ endif else myRemovelin=1
      device,decomposed=0
      set_plot,'x'
      !p.font=-1
+     !p.thick=1
   endif
 
 
