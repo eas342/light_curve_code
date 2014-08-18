@@ -1,7 +1,7 @@
 pro get_profile_widths,showplot=showplot,jan04corot1=jan04corot1,$
                        dec23corot1=dec23corot1,dec29corot1=dec29corot1,$
                        useSaved=useSaved,autofind=autofind,$
-                       specific=specific,psplot=psplot
+                       specific=specific,psplot=psplot,esXtract=esXtract
 ;; Fits Gaussians to to the spatial profeils in the spectrum
 ;; showplot -- show a plot, otherwise it just records the numbers
 ;; jan04/dec23/dec29corot1 -- works for Corot-1 where I have different file name conventions
@@ -11,6 +11,7 @@ pro get_profile_widths,showplot=showplot,jan04corot1=jan04corot1,$
 ;; specific - choose a specific file to fit profiles of (usually use
 ;;            with showplot
 ;; psplot - save a postscript plot
+;; esXtract
 
   if keyword_set(psplot) then begin
      set_plot,'ps'
@@ -59,6 +60,10 @@ pro get_profile_widths,showplot=showplot,jan04corot1=jan04corot1,$
         keyword_set(dec29corot1): begin
            searchKey = '.a.ms.d.fits'
            imageName = '.a.fits'
+        end
+        keyword_set(esXtract): begin
+           searchKey = '_straight_es_ms.fits'
+           imageName = '_straight.fits'
         end
         else: begin
            searchKey = '.ms.d.fits'
