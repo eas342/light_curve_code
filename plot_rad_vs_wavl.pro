@@ -71,6 +71,9 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
      else: radfile='radius_vs_wavelength/radius_vs_wavl.txt'
   endcase
 
+  ;; Multiply all fits by the mean kepler value to get the actual
+  ;; transit depth (this is only in KIC 1255 transit mode (not for hot Jupiters)
+  if keyword_set(depthkep) then multiplier=0.55E else multiplier=1.0E
 
   if keyword_set(asymmetric) then begin
      readcol,radfile,wavl,wavlsize,rad,rade,radep,radem,skipline=1,format='(F,F,F,F)'
@@ -138,11 +141,11 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
 
   case 1 of 
      (n_elements(depthkep) NE 0): begin
-        myYtitle='Transit Depth / Mean Kepler'
+        myYtitle='Transit Depth (%)'
         mylinestyle=1
         wavlwidth = wavlwidth * 0E
         ;; change the default ranges
-        if n_elements(custYrange) EQ 0 then custYrange = [-3,9]
+        if n_elements(custYrange) EQ 0 then custYrange = [-3,9] * multiplier
         if n_elements(custXrange) EQ 0 then custxrange=[0.5,2.5]
      end
      keyword_set(secondary): begin
@@ -163,23 +166,23 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
 
   if n_elements(custcharS) EQ 0 then custcharS = 1E
 
-  plot,wavl,rad,$
+  plot,wavl,rad * multiplier,$
        xtitle=myxtitle,$
        ytitle=myYtitle,$
        ystyle=ytempstyle,xstyle=1,xrange=custxrange,$
        yrange=custYrange,/nodata,charsize=custcharS
 
   if keyword_set(phot) then begin
-     oploterror,[wavl[0]],[rad[0]],[0],[rade[0]],thick=4,$
+     oploterror,[wavl[0]],[rad[0]] * multiplier,[0],[rade[0]] * multiplier,thick=4,$
                 hatlength=!D.X_VSIZE / 30,errstyle=0,psym=8,symsize=1.2
      nwavs = n_elements(wavl)
-     oploterror,wavl[1:nwavs-1l],rad[1:nwavs-1l],wavlwidth[1:nwavs-1],rade[1:nwavs-1],$
+     oploterror,wavl[1:nwavs-1l],rad[1:nwavs-1l] * multiplier,wavlwidth[1:nwavs-1],rade[1:nwavs-1] * multiplier,$
                 psym=8,thick=2,linestyle=mylinestyle
   endif else begin
-     oploterror,wavl,rad,wavlwidth,radep,psym=8,thick=2,/hibar
-     oploterror,wavl,rad,wavlwidth,radem,psym=8,thick=2,/lobar
+     oploterror,wavl,rad * multiplier,wavlwidth,radep * multiplier,psym=8,thick=2,/hibar
+     oploterror,wavl,rad * multiplier,wavlwidth,radem * multiplier,psym=8,thick=2,/lobar
   endelse
-  if keyword_set(depthkep) then oplot,wavl,rad,thick=2,linestyle=0
+  if keyword_set(depthkep) then oplot,wavl,rad * multiplier,thick=2,linestyle=0
 
 ;                color=mycol('yellow') 
   
@@ -188,9 +191,9 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
   scaleH = 0.00115E
 ;  scaleH = 0.00115E * 2E
   if not keyword_set(nolit) and not keyword_set(depthkep) then begin
-     plots,[!x.crange[0],!x.crange[1]],[0.1433,0.1433],color=mycol(['red'])
-     plots,[!x.crange[0],!x.crange[1]],[0.1433,0.1433]+3E*scaleH,color=mycol(['red']),linestyle=2
-     plots,[!x.crange[0],!x.crange[1]],[0.1433,0.1433]-3E*scaleH,color=mycol(['red']),linestyle=2
+     plots,[!x.crange[0],!x.crange[1]],[0.1433,0.1433] * multiplier,color=mycol(['red'])
+     plots,[!x.crange[0],!x.crange[1]],([0.1433,0.1433]+3E*scaleH) * multiplier,color=mycol(['red']),linestyle=2
+     plots,[!x.crange[0],!x.crange[1]],([0.1433,0.1433]-3E*scaleH) * multiplier,color=mycol(['red']),linestyle=2
   endif
         
      
@@ -216,10 +219,10 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
         ;; Full resolution
         xsmooth = fullRes.(i * 2l)
         ySmooth = specsmooth(xsmooth,fullRes.(i * 2l+1l),100)
-        oplot,xsmooth,ysmooth,color=modcolor[i]
+        oplot,xsmooth,ysmooth * multiplier,color=modcolor[i]
         ;; Binned
         plotsym,myplotsym,myplotsymSize,fill=0
-        oplot,binnedWav,binnedValues[*,i],psym=8,color=modcolor[i],symsize=1
+        oplot,binnedWav,binnedValues[*,i] * multiplier,psym=8,color=modcolor[i],symsize=1
         xyouts,binnedWav[0] * positionMultX[i],binnedValues[0,i] * positionMultY[i],$
                modName[i],charsize=0.7,$
                color=modColor[i]
@@ -296,17 +299,17 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
      if keyword_set(depthkep) then wavlwidth2 = wavlwidth2 * 0E
 
      if keyword_set(phot) then begin
-        oploterror,[wavl2[0]],[rad2[0]],[0],[rade2[0]],thick=4,psym=8,$
+        oploterror,[wavl2[0]],[rad2[0]] * multiplier,[0],[rade2[0]] * multiplier,thick=4,psym=8,$
                    color=colorchoices[i-1l],errstyle=0,hatlength=!D.X_VSIZE / 30,$
                    symsize=1.2
         nwavs = n_elements(wavl2)
-        oploterror,wavl2[1:nwavs-1l],rad2[1:nwavs-1l],wavlwidth2[1:nwavs-1],rade2[1:nwavs-1],$
+        oploterror,wavl2[1:nwavs-1l],rad2[1:nwavs-1l] * multiplier,wavlwidth2[1:nwavs-1],rade2[1:nwavs-1] * multiplier,$
                    psym=8,thick=2,color=colorchoices[i-1l]
      endif else begin
-        oploterror,wavl2,rad2,wavlwidth2,rade2,psym=8,thick=2,color=colorchoices[i-1l]
+        oploterror,wavl2,rad2 * multiplier,wavlwidth2,rade2 * multiplier,psym=8,thick=2,color=colorchoices[i-1l]
      endelse
 
-     if keyword_set(depthkep) then oplot,wavl2,rad2,thick=2,linestyle=0,$
+     if keyword_set(depthkep) then oplot,wavl2,rad2 * multiplier,thick=2,linestyle=0,$
                                          color=colorchoices[i-1l]
 
      print,'Legend Name for data from file '+file2+' ?'
@@ -375,7 +378,7 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
   endif
 
   if keyword_set(depthkep) then begin
-     oplot,!x.crange,[1,1],linestyle=2,color=mycol('red')
+     oplot,!x.crange,[1,1] * multiplier,linestyle=2,color=mycol('red')
   endif
 
   if keyword_set(psplot) then begin
