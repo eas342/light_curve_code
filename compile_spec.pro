@@ -8,7 +8,7 @@ pro compile_spec,extraction2=extraction2,sum=sum,nwavbins=nwavbins,$
                  masktelluric=masktelluric,showall=showall,irafnoise=irafnoise,$
                  longwavname=longwavname,trycorrect=trycorrect,removelinear=removelinear,$
                  backRatio=backRatio,alreadyDivided=alreadyDivided,saveshifts=saveshifts,$
-                 wavWeights=wavWeights,indbin=indbin
+                 wavWeights=wavWeights,indbin=indbin,wavpixel=wavpixel,flipstars=flipstars
 ;; Compiles the spectra into a few simple arrays to look at the spectrophotometry
 ;; extraction2 -- uses whatever spectra are in the data directory
 ;; sum -- uses the variance weighted (optimal) extraction by
@@ -50,6 +50,9 @@ pro compile_spec,extraction2=extraction2,sum=sum,nwavbins=nwavbins,$
 ;; SaveShifts -- saves the shifts instead of trying to correct for them
 ;; wavWeights -- weight the wavelength bins?
 ;; indBin -- bin the wavelengths for each star, then divide
+;; wavpixel -- use the pixel numbers instead of wavelength for the
+;;             wavelength grid
+;; flipstars -- flip the reference and target stars
 
 ;Nwavbins = 35 ;; number of wavelength bins
 ;Nwavbins = 9 ;; number of wavelength bins
@@ -138,9 +141,18 @@ sizea = size(a)
 Ngpts = sizea[1] ;; number of grid points
 
 ;; Make a grid for the wavelengths
-DLam = fxpar(header,"CD1_1")
-lamstart = fxpar(header,"CRVAL1")
-lamgrid = (DLam * findgen(Ngpts) + lamstart)/1E4 ;; in microns
+if keyword_set(wavpixel) then begin
+   lamgrid = lindgen(Ngpts)
+endif else begin
+   if string(fxpar(header,"BANDID6")) EQ "Wavelength" then begin
+      lamgrid = a[*,0,5]
+   endif else begin
+      DLam = fxpar(header,"CD1_1")
+      lamstart = fxpar(header,"CRVAL1")
+      ;; For IRAF dispersion corrected files
+      lamgrid = (DLam * findgen(Ngpts) + lamstart)/1E4 ;; in microns
+   endelse
+endelse
 
 ;; Make a grid for the flux, background and UT time
 Nap = sizea[2] ;; number of apertures
@@ -151,6 +163,7 @@ utgrid = dblarr(nfile)
 itimegrid = dblarr(nfile)
 airmass = dblarr(nfile)
 Altitude = dblarr(nfile,Nap) ;; Altitude of each star
+focus = fltarr(nfile)
 
 case 1 of 
    keyword_set(sum): SpecKey = 0
@@ -160,6 +173,7 @@ endcase
 
 ;; Set up the aperture keys
 ApKey = round([planetdat.TargStarNum[0],planetdat.RefStarNum[0]])
+if keyword_set(flipstars) then apkey = reverse(apkey)
 
 for i=0l,nfile-1l do begin
    ;; Read all files into the grid
@@ -252,7 +266,9 @@ for i=0l,nfile-1l do begin
    utgrid[i] = double(fxpar(header2,'MJD_OBS'))
    utgrid[i] = utgrid[i] + itimeGrid[i]/(3600D * 24D)
 
-   airmass[i] = double(fxpar(header2,'AIRMASS'))
+   airmass[i] = double(fxpar(header2,'AIRMASS',count=airmassFinds))
+   if airmassFinds EQ 0 then airmass[i] = double(fxpar(header2,'TCS_AM',count=airmassFinds))
+   focus[i] = float(fxpar(header2,'TCS_FOC',count=focusFinds))
    ;; find the differential airmass between the two stars
    utarray = dblarr(Nap) + utgrid[i]
    eq2hor,raDeg,decDeg,utarray,alt,az,obsname=obscode[0]
@@ -261,12 +277,16 @@ for i=0l,nfile-1l do begin
    endfor
 endfor
 
+;; The old data uses Julian date, but new uses MJD, so we have to add
+;; the JD − 2400000.5
+if utgrid[0] LT 2400000D then utgrid = utgrid + 2400000.5D
+
 ;; Reset all zeros and negative flux values
 badp = where(flgrid LE 0)
 flgrid[badp] = !values.f_nan
 
 badback = where(backgrid LE 0)
-backgrid[badback] = !values.f_nan
+if badback NE [-1] then backgrid[badback] = !values.f_nan
 
 ;; Mask water if asked to
 if keyword_set(maskwater) or keyword_set(widewatermask) or n_elements(custmask) NE 0 then begin
@@ -437,8 +457,8 @@ endelse
 ;; These are the starts of the bins (not the middles)
 if keyword_set(molecbin) then begin
    Nwavbins = 2 ;; in the molecule and outside the molecule
-   molecule='C2H2'
-   readcol,'molec_inputs/C2H2_bin_locations.txt',molecStarts,molecEnds,$
+   molecule='H2O'
+   readcol,'molec_inputs/H2O_bin_locations.txt',molecStarts,molecEnds,$
            skipline=1,format='(F,F)'
    nmolecWavs = n_elements(molecStarts)
    for i=0l,nmolecWavs-1l do begin ;; collect wavelengths
@@ -457,7 +477,7 @@ if keyword_set(molecbin) then begin
    ;; collect the bins
    binGrid = [1E,2E]
    binsizes = [0.3E,0.3E]
-   binNames = ['In '+molecule,'Out '+molecule]
+   wavName = ['In-'+molecule,'Out-'+molecule]
 endif else begin
    if keyword_set(matchgrid) then begin
       tabinv,lamgrid,startWav,startIndmatch
@@ -570,13 +590,16 @@ endif
 
 ;; Describe the wavlengths
 bingridmiddle = bingrid + binsizes/2E
-wavname = strarr(Nwavbins)
-for k=0l,Nwavbins-1l do begin
-   if keyword_set(longwavname) then begin
-      wavname[k] = string(bingrid[k],format='(F4.2)')+'-'+$
-                string(bingrid[k]+binsizes[k],format='(F4.2)')
-   endif else wavname[k] = string(bingridmiddle[k],format='(F4.2)')
-endfor
+if not keyword_set(molecbin) then begin
+   wavname = strarr(Nwavbins)
+   if keyword_set(wavpixel) then wavFormat='(F04.0)' else wavFormat='(F4.2)'
+   for k=0l,Nwavbins-1l do begin
+      if keyword_set(longwavname) then begin
+         wavname[k] = string(bingrid[k],format=wavFormat)+'-'+$
+                      string(bingrid[k]+binsizes[k],format=wavFormat)
+      endif else wavname[k] = string(bingridmiddle[k],format=wavFormat)
+   endfor
+endif
 
 ; Save all data
 save,flgrid,lamgrid,bingrid,binfl,binflE,backdiv,$
@@ -584,5 +607,6 @@ save,flgrid,lamgrid,bingrid,binfl,binflE,backdiv,$
      ErrGrid,SNR,Divspec,DivspecE,backgrid,$
      Nwavbins,binsizes,binind,binindE,filen,$
      airmass,altitude,backgrid,header,apkey,$
+     focus,$
      filename='data/specdata.sav'
 end

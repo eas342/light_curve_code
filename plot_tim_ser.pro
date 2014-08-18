@@ -633,7 +633,11 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
                   /right,/clear
         endif
         if keyword_set(singleplot) then begin
-           if strpos(wavname[k],'prime') EQ -1 then wavelabel = wavname[k]+' um' else begin
+           if (strpos(wavname[k],'prime') EQ -1 AND $
+               strpos(wavname[k],'In') EQ -1 AND $
+               strpos(wavname[k],'Out') EQ -1 ) then begin
+              wavelabel = wavname[k]+' um'
+           endif else begin
               wavelabel = wavname[k]
            endelse
            xyouts,!x.crange[1]-0.1*(!x.crange[1]-!x.crange[0]),$
