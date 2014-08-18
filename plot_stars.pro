@@ -84,6 +84,7 @@ pro plot_stars,psplot=psplot,tryclean=tryclean,saveclean=saveclean,$
   endif else begin
      hostspec = flgrid[*,0,choose1]
      refspec = flgrid[*,1,choose1]
+     backspec = backgrid[*,0,choose1]
      yerr = ErrGrid[*,0,choose1]
   endelse
   
@@ -121,7 +122,7 @@ pro plot_stars,psplot=psplot,tryclean=tryclean,saveclean=saveclean,$
 
   multfac = 1E
 ;; Only show finite data, skip NANs
-  goodp = where(finite(hostspec) EQ 1 and finite(refspec) EQ 1 and lamgrid LT 2.47)
+  goodp = where(finite(hostspec) EQ 1 and finite(refspec) EQ 1); and lamgrid LT 2.47)
 
   yhost = hostspec[goodp]
   yref = refspec[goodp] * multfac
@@ -187,7 +188,7 @@ pro plot_stars,psplot=psplot,tryclean=tryclean,saveclean=saveclean,$
 
   endif else yrefNorm = yref/maxyref
   oplot,lamgrid[goodp],yrefNorm,color=mycol('blue'),linestyle=3
-  
+
   if n_elements(choose2) GT 0 then begin
      yhost2 = flgrid[*,0,choose2]/maxyref
      yref2 = flgrid[*,1,choose2] /maxyref
