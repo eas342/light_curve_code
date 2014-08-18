@@ -2,7 +2,8 @@ pro plot_specphot,divbymodel=divbymodel,usebin=usebin,removelin=removelin,$
                   psplot=psplot,individual=individual,skipInitialize=skipInitialize,$
                   timebin=timebin,backg=backg,custYmargin=custYmargin,$
                   differential=differential,filter=filter,noNorm=noNorm,$
-                  backratio=backratio,custxrange=custxrange,secondary=secondary
+                  backratio=backratio,custxrange=custxrange,secondary=secondary,$
+                  domedian=domedian
 ;; Makes an image of the spectrophotometry to get a visual sense of
 ;; the transit
 ;; divbymodel -- divide the image by the nominal transit model
@@ -19,6 +20,7 @@ pro plot_specphot,divbymodel=divbymodel,usebin=usebin,removelin=removelin,$
 ;; filter -- use a digital filter to take out the broad spectral shapes
 ;; noNorm -- don't normalize the spectrum
 ;; custxrange -- set a custom x range for the dynamic spectrum plot
+;; domedian - does a median filter of the image
 
   ;; get the time info
 
@@ -84,6 +86,11 @@ pro plot_specphot,divbymodel=divbymodel,usebin=usebin,removelin=removelin,$
      endXimg = round(indexEffXrange[1])
      xypic = xypic[startXimg:endXimg,*]
      nwavs = n_elements(xypic[*,0])
+  endif
+
+
+  if keyword_set(domedian) then begin
+     xypic = filter_image(xypic,median=domedian,/all_pixels)
   endif
 
   if keyword_set(removelin) then begin
@@ -208,10 +215,15 @@ pro plot_specphot,divbymodel=divbymodel,usebin=usebin,removelin=removelin,$
   nadded = n_elements(addedParams)
   outHeader = strarr(nkeepParams + nadded)
   for i=0l,nkeepParams-1l do begin
+     if keepfitsparams[i] EQ 'RA' then keepfitsparams[i] = 'TCS_RA'
+     if keepfitsparams[i] EQ 'DEC' then keepfitsparams[i] = 'TCS_DEC'
      HeaderInd = strpos(header,keepFitsParams[i])
      GoodInd = where(headerInd EQ 0)
-     outHeader[i] = Header[goodInd[0]]
+     if goodind NE [-1] then begin
+        outHeader[i] = Header[goodInd[0]]
+     endif
   endfor
+
   for i=0l,nadded-1l do begin
      outHeader[i + nKeepParams] = string(addedParams[i],format='(A-8)') + '=' +$
                                   string(addedValues[i],format='(F21.7)') + $
