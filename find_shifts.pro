@@ -41,7 +41,7 @@ function find_shifts,inArray,cutEnds=cutEnds,stopAndshow=stopAndshow,$
   if keyword_set(masterspec) then begin
      badp = where(finite(masterspec) EQ 0)
      cmasterspec = masterspec 
-     cmasterspec[badp] = 0E ;; cleaned masters spec
+     if badp NE [-1] then cmasterspec[badp] = 0E ;; cleaned masters spec
      medspec = convol(cmasterspec,digital_filter(0.03,0.09,50,25))
   endif else begin
      ;; Get a median spectrum
