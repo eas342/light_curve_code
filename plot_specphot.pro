@@ -64,7 +64,7 @@ pro plot_specphot,divbymodel=divbymodel,usebin=usebin,removelin=removelin,$
         wavrange = [lamgrid[0],lamgrid[nwavs-1l]]
      end
   endcase
-  if n_elements(custxrange) NE 0 then wavrange = custxrange
+  if n_elements(custxrange) NE 0 then wavrange = float(custxrange)
 
   ;; Make a median spectrum to divide out
   meddivspec = fltarr(nwavs)
@@ -167,8 +167,13 @@ pro plot_specphot,divbymodel=divbymodel,usebin=usebin,removelin=removelin,$
   loadct,1
   if not keyword_set(psplot) and not keyword_set(skipInitialize) then window,0
   if n_elements(custYmargin) EQ 0 then custYmargin=[4,2]
+
+  if wavrange[0] LT min(lamgrid) then wavrange[0] = min(lamgrid)
+  if wavrange[1] GT max(lamgrid) then wavrange[1] = max(lamgrid)
+  tabinv,lamgrid,wavrange,indexEffXrange
+
   plotimage,xypic,range=ColorRange,$
-            imgxrange=wavrange,$
+            imgxrange=wavrange,$,xrange=indexEffXrange,$
             imgyrange=[tplot[0],tplot[ntime-1]],$
             xtitle='Wavelength (um)',$
             ytitle='Orbital Phase',$

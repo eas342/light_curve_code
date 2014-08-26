@@ -1,6 +1,6 @@
 pro plot_rms_spec,psplot=psplot,tryclean=tryclean,saveclean=saveclean,$
                   removelinear=removelinear,scalephoton=scalephoton,$
-                  showhist=showhist
+                  showhist=showhist,custxrange=custxrange
 ;; Plots the RMS along the time series for each wavelength in the
 ;; spectrum
 ;; psplot -- makes a postscript plot of the RMS spectrum
@@ -94,12 +94,13 @@ pro plot_rms_spec,psplot=psplot,tryclean=tryclean,saveclean=saveclean,$
 
   plot,lamgrid,sigarray*100E,$
        xtitle='Wavelength (um)',$
-       ytitle='Fractional Error (%)',yrange=[0,10]
+       ytitle='Fractional Error (%)',yrange=[0,10],$
+       xrange=custxrange,xstyle=1
   oplot,lamgrid,photarray*100E,color=mycol('blue'),$
         linestyle=2
 
   
-  legend,['Robust Sigma',photname],color=mycol(['black','blue']),$
+  legend,['Robust Sigma',photname],color=[!p.color,mycol('blue')],$
          linestyle=[0,2]
 
   if keyword_set(psplot) then begin

@@ -149,7 +149,14 @@ pro plot_stars,psplot=psplot,tryclean=tryclean,saveclean=saveclean,$
   if n_elements(custXrange) EQ 0 then begin
      custXrange = [lamgrid[0],lamgrid[n_elements(lamgrid)-1l]]
      myXstyle=1
-  endif else myXstyle=1
+  endif else begin
+     ;; Truncate to maximum possible
+     custXrange = float(custXrange) ;; convert to float
+     if custXrange[0] LT min(lamgrid) then custXrange[0] = min(lamgrid)
+     if custxrange[1] GT max(lamgrid) then custXrange[1] = max(lamgrid)
+     myXstyle=1
+  endelse
+
   if n_elements(custYrange) NE 0 then myYrange = custYrange
   if n_elements(custXmargin) EQ 0 then custXmargin = [10,4]
 
@@ -243,8 +250,8 @@ pro plot_stars,psplot=psplot,tryclean=tryclean,saveclean=saveclean,$
                   linestyle=[0,0,3,3],charsize=0.45
         end
         else: begin
-           legend,['Planet Host','Reference Star',name3],$
-                  color=mycol(['black','blue','red']),/right,linestyle=[0,3,4],$
+           al_legend,['Planet Host','Reference Star',name3],$
+                  color=[!p.color,mycol(['blue','red'])],/right,linestyle=[0,3,4],$
                   charsize=0.7
         end
      endcase
