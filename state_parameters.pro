@@ -1,6 +1,7 @@
 pro state_parameters,reInitialize=reInitialize,psplot=psplot,$
                      timSerRange=timSerRange,$
-                     secondary=secondary,differential=differential
+                     secondary=secondary,differential=differential,$
+                     expandRange=expandRange
 ;; Plots the time series and then also a lot of other parameters below
 ;; to see if flux changes can be attributed to the FWHM changes,
 ;; drifts, airmass etc.
@@ -9,6 +10,8 @@ pro state_parameters,reInitialize=reInitialize,psplot=psplot,$
 ;; timSerRange -- show a custom time series range
 ;; secondary -- looks at secondary eclipse data
 ;; differential - find the differential parameters between the two stars
+;; expandRange - expand the state parameters to include a wide
+;;               threshold on the axes
 
   ;; set the plot
   if keyword_set(psplot) then begin
@@ -117,12 +120,20 @@ pro state_parameters,reInitialize=reInitialize,psplot=psplot,$
         myYtitle = 'Diff '+paramnames[i]
      endif else myYtitle = paramnames[i]
      
+     if keyword_set(expandRange) then begin
+        lowThresh = 0.01
+        highThresh = 0.99
+     endif else begin
+        lowThresh = 0.1
+        highThresh = 0.9
+     endelse
+
      if ShowY2 then begin 
-        myYrange = threshold([y,y2],low=0.1,high=0.9,mult=0.4) 
+        myYrange = threshold([y,y2],low=lowThresh,high=highThresh,mult=0.4) 
         statePStruct = create_struct(statePStruct,shorthand+'1',y,shorthand+'2',y2)
      endif else begin
         if shorthand EQ 'airmass' then myYrange = [min(y)-0.1,max(y)+0.1] else begin
-           myYrange = threshold(y,low=0.1,high=0.9,mult=0.4)
+           myYrange = threshold(y,low=lowThresh,high=highThresh,mult=0.4)
         endelse
         statePStruct = create_struct(statePStruct,shorthand,y)
      endelse
