@@ -8,12 +8,15 @@ pro compile_spec,extraction2=extraction2,sum=sum,nwavbins=nwavbins,$
                  masktelluric=masktelluric,showall=showall,irafnoise=irafnoise,$
                  longwavname=longwavname,trycorrect=trycorrect,removelinear=removelinear,$
                  backRatio=backRatio,alreadyDivided=alreadyDivided,saveshifts=saveshifts,$
-                 wavWeights=wavWeights,indbin=indbin,wavpixel=wavpixel,flipstars=flipstars
+                 wavWeights=wavWeights,indbin=indbin,wavpixel=wavpixel,flipstars=flipstars,$
+                 spatialRatio=spatialRatio
 ;; Compiles the spectra into a few simple arrays to look at the spectrophotometry
 ;; extraction2 -- uses whatever spectra are in the data directory
 ;; sum -- uses the variance weighted (optimal) extraction by
 ;;            default, but with the sum keyword it will use the
 ;;            standard sum extraction from the IRAF reduction
+;; spatialRatio - uses the polynomial fit to the spatial ratio of the
+;;                two stars instead of the sum of each star
 ;; nwavbins -- sets the number of wavelength bins to create
 ;; dec23 -- look at the dec23 data set (default is jan04)
 ;; readCurrent - reads from file_lists/current_speclist.txt
@@ -159,6 +162,9 @@ Nap = sizea[2] ;; number of apertures
 flgrid = fltarr(Ngpts,Nap,nfile)
 backgrid = fltarr(Ngpts,Nap,nfile)
 errgrid = fltarr(Ngpts,Nap,nfile)
+if keyword_set(spatialRatio) then begin
+   ratioGrid = fltarr(Ngpts,1,nfile)
+endif
 utgrid = dblarr(nfile)
 itimegrid = dblarr(nfile)
 airmass = dblarr(nfile)
@@ -218,6 +224,7 @@ for i=0l,nfile-1l do begin
       backgrid[*,j,i] = a2[*,ApKey[j],2] * Gain / divisor;; multiply by gain divide by divisor
       errgrid[*,j,i] = a2[*,ApKey[j],3] * Gain / divisor
    endfor
+   if keyword_set(spatialRatio) then ratiogrid[*,0,i] = a2[*,0,6]
 
 ;; CORRECTION FACTOR - the errors must be scaled for a variety of
 ;;                     reasons:
@@ -396,6 +403,9 @@ if keyword_set(specshift) or keyword_set(saveShifts) then begin
                flgrid[*,i,j] = shift_interp(flgrid[*,i,j],bestshifts[i,j])
             endif else begin
                flgrid[*,i,j] = shift_interp(flgrid[*,i,j],specshiftarr[i,j])
+               if keyword_set(spatialRatio) and i EQ 0 then begin
+                  ratiogrid[*,i,j] = shift_interp(ratiogrid[*,i,j],specshiftarr[i,j])
+               endif
             endelse
          endfor
       endfor
@@ -414,8 +424,12 @@ if keyword_set(trycorrect) then begin
    flgrid[*,0,*] = median(flgrid[*,0,*]) * 3E + flgrid[*,0,*]
 endif
 
+if keyword_set(spatialRatio) then begin
+   Divspec = ratioGrid
+endif else begin
 ;; Divide the two spectra
-Divspec = flgrid[*,0,*] / flgrid[*,1,*]
+   Divspec = flgrid[*,0,*] / flgrid[*,1,*]
+endelse
 
 if keyword_set(removelinear) then begin
    remove_linear,utgrid,divSpec,lamgrid
