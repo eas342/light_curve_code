@@ -9,7 +9,7 @@ pro compile_spec,extraction2=extraction2,sum=sum,nwavbins=nwavbins,$
                  longwavname=longwavname,trycorrect=trycorrect,removelinear=removelinear,$
                  backRatio=backRatio,alreadyDivided=alreadyDivided,saveshifts=saveshifts,$
                  wavWeights=wavWeights,indbin=indbin,wavpixel=wavpixel,flipstars=flipstars,$
-                 spatialRatio=spatialRatio
+                 spatialRatio=spatialRatio,pretendTransit=pretendTransit
 ;; Compiles the spectra into a few simple arrays to look at the spectrophotometry
 ;; extraction2 -- uses whatever spectra are in the data directory
 ;; sum -- uses the variance weighted (optimal) extraction by
@@ -56,6 +56,8 @@ pro compile_spec,extraction2=extraction2,sum=sum,nwavbins=nwavbins,$
 ;; wavpixel -- use the pixel numbers instead of wavelength for the
 ;;             wavelength grid
 ;; flipstars -- flip the reference and target stars
+;; pretendTransit - shift the time to simulate what out-of-transit
+;;                  data looks like in transit
 
 ;Nwavbins = 35 ;; number of wavelength bins
 ;Nwavbins = 9 ;; number of wavelength bins
@@ -287,6 +289,10 @@ endfor
 ;; The old data uses Julian date, but new uses MJD, so we have to add
 ;; the JD − 2400000.5
 if utgrid[0] LT 2400000D then utgrid = utgrid + 2400000.5D
+
+;; For the out-of-transit KIC 1255, we can move the time to see what
+;; out-of-transit data looks like when fit with transit models
+if keyword_set(pretendTransit) then utgrid = utgrid - 0.30D
 
 ;; Reset all zeros and negative flux values
 badp = where(flgrid LE 0)
