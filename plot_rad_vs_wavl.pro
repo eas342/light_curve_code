@@ -10,7 +10,7 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
                      rightleg=rightleg,bottomleg=bottomleg,$
                      filterCurveColor=filterCurveColor,$
                      prevChoices=prevChoices,secondary=secondary,$
-                     showAlonso=showalonso
+                     showAlonso=showalonso,differential=differential
 ;;psplot -- saves a postscript plot
 ;;showstarspec -- shows a star spectrum on the same plot
 ;;nbins -- number of points bo bin in Rp/R*
@@ -41,6 +41,8 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
 ;; prevChoices - Use the previous choices for rad_vs_wavl files and
 ;;               legend labels
 ;; secondary - secondary eclipse depth labels (instead of radius)
+;; differential - goes into differential mode (so reference is zero
+;;                and label is differential)
 
   if keyword_set(showstar) then !x.margin = [9,9] else !x.margin=[15,4]
   ;; set the plot
@@ -142,6 +144,7 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
   case 1 of 
      (n_elements(depthkep) NE 0): begin
         myYtitle='Transit Depth (%)'
+        if keyword_set(differential) then myYtitle = 'Differential '+myYtitle
         mylinestyle=1
         wavlwidth = wavlwidth * 0E
         ;; change the default ranges
@@ -379,7 +382,10 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
   endif
 
   if keyword_set(depthkep) then begin
-     oplot,!x.crange,[1,1] * multiplier,linestyle=2,color=mycol('red')
+     if keyword_set(differential) then begin
+        refshowP = 0E
+     endif else refshowP = multiplier
+     oplot,!x.crange,[1,1] * refshowP,linestyle=2,color=mycol('red')
   endif
 
   if keyword_set(psplot) then begin

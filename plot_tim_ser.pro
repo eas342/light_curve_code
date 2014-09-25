@@ -774,7 +774,7 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
            ;; Here's where you choose the model to fit to the data
            case 1 of
               keyword_set(kepdiff): begin
-                 expr = '(kepler_func(X,P[0]) / kepler_func(X,1D)) *  eval_legendre(X,P[5:10])'
+                 expr = '(kepler_func(X,P[0]+1D) / kepler_func(X,1D)) *  eval_legendre(X,P[5:10])'
               end
               keyword_set(slitmod): begin
                  expr = 'vslit_approx(X[0,*] - P[5],P[8],X[2,*],X[5,*])/'+$
