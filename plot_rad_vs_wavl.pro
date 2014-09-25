@@ -277,7 +277,8 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
         tempnm = prevLegNmArr[0]
      endif else read,tempnm,format='(A)'
      legnamearr[0l] = tempnm
-     colorlist = [!p.color,mycol(['orange','purple','blue'])]
+     colorlist = [!p.color,mycol(['orange','purple','blue','dgreen',$
+                                  'pink','turquoise','brown'])]
      ncolchoices = n_elements(colorlist)
      colorchoices = colorlist[lindgen(totsets) mod ncolchoices]
   endif
@@ -327,7 +328,7 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
   prevRadFarr = radFarrSave
   save,prevLegNmArr,prevRadFarr,filename='param_input/rad_file_choices.sav'
 
-  if keyword_set(psplot) then legcharsize = 0.75 else legcharsize=1
+  if keyword_set(psplot) then legcharsize = 0.5 else legcharsize=1
 
   if totsets GT 1l then begin
      if n_elements(rightleg) EQ 0 then begin
