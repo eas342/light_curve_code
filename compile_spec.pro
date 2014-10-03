@@ -181,7 +181,25 @@ endcase
 
 ;; Set up the aperture keys
 ApKey = round([planetdat.TargStarNum[0],planetdat.RefStarNum[0]])
-if keyword_set(flipstars) then apkey = reverse(apkey)
+
+;; Since the H2RG detector, the array readout is flipped, so after
+;; this time, I'm going to flip which star counts as #1 and #2
+
+firstUTpt = double(fxpar(header,'MJD_OBS'))
+;; The old data uses Julian date, but new uses MJD, so we have to add
+;; the JD − 2400000.5
+if firstUTpt LT 2400000D then firstUTpt = firstUTpt + 2400000.5D
+
+ArrayChangeDate = date_conv('2014-08-01T00:00.00','JD')
+
+if firstUTpt GT arrayChangeDate then begin
+   apkey = reverse(apkey)
+endif 
+;; also have the ability to flip apertures
+if keyword_set(flipstars) then begin
+   apkey = reverse(apkey)
+   print,"Flipping star order MANUALLY!"
+endif
 
 for i=0l,nfile-1l do begin
    ;; Read all files into the grid
