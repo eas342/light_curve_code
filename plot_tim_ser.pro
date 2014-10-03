@@ -271,9 +271,9 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
   if n_elements(timebin) NE 0 then begin
      ntime = n_elements(tplot)
      ;; set up the time bins
-     timeGrid = (tplot[ntime-1] - tplot[0]) * findgen(timebin)/float(timebin) +$
-                tplot[0]
-     tsizes = fltarr(timebin) + (tplot[ntime-1l] - tplot[0l])/float(timebin)
+     timeGrid = (max(tplot) - min(tplot)) * findgen(timebin)/float(timebin) +$
+                min(tplot)
+     tsizes = fltarr(timebin) + (max(tplot) - min(tplot))/float(timebin)
      tmiddle = timeGrid + tsizes / 2E
   endif
 
