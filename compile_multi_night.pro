@@ -14,7 +14,7 @@ pro compile_multi_night,differential=differential,$
 if n_elements(noremovelinear) EQ 0 then noremovelinear=0
 
 ;; get the list of speclists
-  readcol,'file_lists/multi_night.txt',listFile,format='(A)'
+  readcol,'file_lists/multi_night.txt',listFile,format='(A)',comment='#'
 
 nNights = n_elements(listFile)
 
@@ -54,7 +54,7 @@ for i=0l,nNights-1l do begin
       binindENew = transpose([transpose(binindENew),transpose(binindE)])
       utgridNew = [utgridNew,utgrid]
    endelse
-   
+
 endfor
 
 binfl = binflNew ;; binned flux ratio
