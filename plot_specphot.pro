@@ -42,6 +42,9 @@ pro plot_specphot,divbymodel=divbymodel,usebin=usebin,removelin=removelin,$
         nwavs = n_elements(bingrid)
         xydivspec = binfl
         wavrange = [bingrid[0],bingrid[nwavs-1]]
+        sortTime = sort(tplot)
+        tplot = tplot[sortTime]
+        xydivspec = xydivspec[*,sortTime]
      end
      keyword_set(backratio): begin
         nwavs = n_elements(lamgrid)
