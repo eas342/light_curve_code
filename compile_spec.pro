@@ -531,7 +531,7 @@ endif else begin
       tabinv,lamgrid,endWav,EndIndmatch
       binGrid = lamgrid[startIndmatch:EndIndmatch]
       Nwavbins = n_elements(lamgrid[startIndmatch:EndIndmatch])
-      binsizes = Dlam * 1E-4
+      binsizes = lamgrid[1]-lamgrid[0]
    endif
    binGrid = (EndWav - StartWav) * findgen(Nwavbins)/float(Nwavbins) + $
              StartWav
