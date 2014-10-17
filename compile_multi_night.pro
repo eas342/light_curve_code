@@ -33,11 +33,11 @@ for i=0l,nNights-1l do begin
 ;   compile_both,/readC,/removelinear,nwavbins=mnwavbins
    if keyword_set(differential) then begin
       compile_spec,/readC,removelinear=(1-noremovelinear),nwavbins=mnwavbins,/specshift,$
-                   masktelluric=masktelluric
+                   masktelluric=masktelluric,/normalize
       
    endif else begin
       compile_both,/readC,removelinear=(1-noremovelinear),nwavbins=mnwavbins,/specshift,$
-                   masktelluric=masktelluric
+                   masktelluric=masktelluric,/normalize
    endelse
    restore,'data/specdata.sav'
 

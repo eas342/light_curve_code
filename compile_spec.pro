@@ -9,7 +9,8 @@ pro compile_spec,extraction2=extraction2,sum=sum,nwavbins=nwavbins,$
                  longwavname=longwavname,trycorrect=trycorrect,removelinear=removelinear,$
                  backRatio=backRatio,alreadyDivided=alreadyDivided,saveshifts=saveshifts,$
                  wavWeights=wavWeights,indbin=indbin,wavpixel=wavpixel,flipstars=flipstars,$
-                 spatialRatio=spatialRatio,pretendTransit=pretendTransit
+                 spatialRatio=spatialRatio,pretendTransit=pretendTransit,$
+                 specKey=specKey,normalize=normalize
 ;; Compiles the spectra into a few simple arrays to look at the spectrophotometry
 ;; extraction2 -- uses whatever spectra are in the data directory
 ;; sum -- uses the variance weighted (optimal) extraction by
@@ -58,6 +59,8 @@ pro compile_spec,extraction2=extraction2,sum=sum,nwavbins=nwavbins,$
 ;; flipstars -- flip the reference and target stars
 ;; pretendTransit - shift the time to simulate what out-of-transit
 ;;                  data looks like in transit
+;; specKey - allows one to set the spectral key by hand
+;; normalize - normalize all flux ratios to be 1
 
 ;Nwavbins = 35 ;; number of wavelength bins
 ;Nwavbins = 9 ;; number of wavelength bins
@@ -174,6 +177,7 @@ Altitude = dblarr(nfile,Nap) ;; Altitude of each star
 focus = fltarr(nfile)
 
 case 1 of 
+   n_elements(specKey) NE 0: specKey=specKey
    keyword_set(sum): SpecKey = 0
    keyword_set(BackRatio): SpecKey = 2
    else: SpecKey=1
@@ -457,6 +461,10 @@ endelse
 
 if keyword_set(removelinear) then begin
    remove_linear,utgrid,divSpec,lamgrid
+endif
+if keyword_set(normalize) then begin
+   medianNormArrDiv = rebin(median(divspec,dimension=3),Ngpts,1,nfile)
+   divspec = divspec/medianNormArrDiv
 endif
 
 fracE = nansqrt((ErrGrid[*,0,*]/flgrid[*,0,*])^2 + $
