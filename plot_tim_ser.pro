@@ -14,7 +14,8 @@ pro plot_tim_ser,fitcurve=fitcurve,fitpoly=fitpoly,usepoly=usepoly,makestops=mak
                  showNomMCMC=showNomMCMC,useGPasfit=useGPasfit,kepdiff=kepdiff,$
                  custyrange=custyrange,tryAlt=tryAlt,trycorrect=trycorrect,$
                  secondary=secondary,$
-                 presentation=presentation,slitmod=slitmod,psmooth=psmooth
+                 presentation=presentation,slitmod=slitmod,psmooth=psmooth,$
+                 custxrange=custxrange
 ;; plots the binned data as a time series and can also fit the Rp/R* changes
 ;; apPlot -- this optional keyword allows one to choose the aperture
 ;;           to plot
@@ -198,6 +199,17 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
   ;; add or subtract integers to phase so that's it's sort of centered
   ;; at 0
   tplot = fold_phase(tplot,secondary=secondary)
+
+  if keyword_set(custxrange) then begin
+     lookP = where(tplot GT custxrange[0] and tplot LT custxrange[1])
+     tplot = tplot[lookp]
+     binfl = binfl[*,lookp]
+     binfle = binfle[*,lookp]
+     binind = binind[*,*,lookp]
+     binindE = binindE[*,*,lookp]
+     airmass = airmass[lookp]
+     utgrid = utgrid[lookp]
+  endif
 
   ;; calculate start and end
   hstart = (tstart - tmid)/planetdat.period
@@ -813,7 +825,7 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
                  
               end
               keyword_set(kepfit): begin
-                 expr = 'kepler_func(X,P[0]) *  eval_legendre(X,P[5:10])'
+                 expr = 'kepler_func(X-P[11],P[0]) *  eval_legendre(X,P[5:10])'
               end
               keyword_set(secondary): begin
                  expr = 'sec_eclipse(X-P[11],P[0],P[1],P[4]) * eval_legendre(X,P[5:10])'
