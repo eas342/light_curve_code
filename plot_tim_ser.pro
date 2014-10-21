@@ -871,7 +871,8 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
            ;; Transit epoch fitting
            if keyword_set(fitepoch) then begin
               pi[11].fixed = 0
-              pi[11].limited = [0,0]
+              pi[11].limited = [1,1]
+              pi[11].limits = [-0.05,0.05]
            endif
            
            ;; Details of slit model adjustments (making them free)
