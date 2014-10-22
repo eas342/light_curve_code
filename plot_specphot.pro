@@ -2,8 +2,8 @@ pro plot_specphot,divbymodel=divbymodel,usebin=usebin,removelin=removelin,$
                   psplot=psplot,individual=individual,skipInitialize=skipInitialize,$
                   timebin=timebin,backg=backg,custYmargin=custYmargin,$
                   differential=differential,filter=filter,noNorm=noNorm,$
-                  backratio=backratio,custxrange=custxrange,secondary=secondary,$
-                  domedian=domedian
+                  backratio=backratio,custxrange=custxrange,custyrange=custyrange,$
+                  secondary=secondary,domedian=domedian,ymedian=ymedian
 ;; Makes an image of the spectrophotometry to get a visual sense of
 ;; the transit
 ;; divbymodel -- divide the image by the nominal transit model
@@ -21,6 +21,7 @@ pro plot_specphot,divbymodel=divbymodel,usebin=usebin,removelin=removelin,$
 ;; noNorm -- don't normalize the spectrum
 ;; custxrange -- set a custom x range for the dynamic spectrum plot
 ;; domedian - does a median filter of the image
+;; ymedian - does a median filter only in the y direction
 
   ;; get the time info
 
@@ -90,10 +91,24 @@ pro plot_specphot,divbymodel=divbymodel,usebin=usebin,removelin=removelin,$
      xypic = xypic[startXimg:endXimg,*]
      nwavs = n_elements(xypic[*,0])
   endif
+  ;; Take a subset of the image using the Y range
+  if keyword_set(custyrange) then begin
+     tabinv,tplot,custyrange,indexEffYrange
+     startYImg = round(indexEffYrange[0])
+     endYimg = round(indexEffYrange[1])
+     xypic = xypic[*,startYimg:endYimg]
+     tplot = tplot[startYimg:endYimg]
+     ntime = n_elements(tplot)
+  endif
 
 
   if keyword_set(domedian) then begin
      xypic = filter_image(xypic,median=domedian,/all_pixels)
+  endif
+  if keyword_set(ymedian) then begin
+     for i=0l,nwavs-1l do begin
+        xypic[i,*] = transpose(median(transpose(xypic[i,*]),ymedian))
+     endfor
   endif
 
   if keyword_set(removelin) then begin
@@ -174,7 +189,7 @@ pro plot_specphot,divbymodel=divbymodel,usebin=usebin,removelin=removelin,$
   if wavrange[0] LT min(lamgrid) then wavrange[0] = min(lamgrid)
   if wavrange[1] GT max(lamgrid) then wavrange[1] = max(lamgrid)
   tabinv,lamgrid,wavrange,indexEffXrange
-
+  
   plotimage,xypic,range=ColorRange,$
             imgxrange=wavrange,$,xrange=indexEffXrange,$
             imgyrange=[tplot[0],tplot[ntime-1]],$
