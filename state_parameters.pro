@@ -20,8 +20,8 @@ pro state_parameters,reInitialize=reInitialize,psplot=psplot,$
      plotprenm = 'plots/spec_t_series/state_param'
      device,encapsulated=1, /helvetica,$
             filename=plotprenm+'.eps'
-           device,xsize=14, ysize=14,decomposed=1,/color
-  endif
+     device,xsize=14, ysize=14,decomposed=1,/color
+  endif else !p.charsize=2
 
 
   paramnames = ["Airmass","FWHM (px)","Relative Position (px)","Individual Flux",$
@@ -145,10 +145,11 @@ pro state_parameters,reInitialize=reInitialize,psplot=psplot,$
           xrange=myXrange,xstyle=1,psym=4,ystyle=1
      if ShowY2 then begin
         ;; For some variables we show the background AND reference
+        if keyword_set(psplot) then legCharsize=0.5 else legCharsize=1
         oplot,tplot,y2,color=mycol('blue'),psym=4
         al_legend,['Planet Host','Reference'],$
                /right,/bottom,linestyle=[0,0],$
-               color=[!p.color,mycol('blue')],charsize=0.5
+               color=[!p.color,mycol('blue')],charsize=legCharsize
      endif
      
   endfor
@@ -159,7 +160,7 @@ pro state_parameters,reInitialize=reInitialize,psplot=psplot,$
      device,decomposed=0
      set_plot,'x'
      !p.font=-1
-  endif
+  endif else !p.charsize=1
 
   !p.multi=0
 
