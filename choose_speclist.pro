@@ -1,7 +1,9 @@
-pro choose_speclist
+pro choose_speclist,fchoice=fchoice
 ;; Chooses which spectrum to look at and saves to current_speclist.txt
 
-fchoice = choose_file(searchDir='file_lists',filetype='.txt')
+if n_elements(fchoice) EQ 0 then begin
+   fchoice = choose_file(searchDir='file_lists',filetype='.txt')
+endif
 spawn,'cp '+fchoice+' file_lists/current_speclist.txt'
 
 ;; If it's KIC 1255 data, search for an associated date to
