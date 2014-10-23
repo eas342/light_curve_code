@@ -3,7 +3,8 @@ pro plot_specphot,divbymodel=divbymodel,usebin=usebin,removelin=removelin,$
                   timebin=timebin,backg=backg,custYmargin=custYmargin,$
                   differential=differential,filter=filter,noNorm=noNorm,$
                   backratio=backratio,custxrange=custxrange,custyrange=custyrange,$
-                  secondary=secondary,domedian=domedian,ymedian=ymedian
+                  secondary=secondary,domedian=domedian,ymedian=ymedian,$
+                  useclean=useclean,showMod=showMod
 ;; Makes an image of the spectrophotometry to get a visual sense of
 ;; the transit
 ;; divbymodel -- divide the image by the nominal transit model
@@ -22,10 +23,12 @@ pro plot_specphot,divbymodel=divbymodel,usebin=usebin,removelin=removelin,$
 ;; custxrange -- set a custom x range for the dynamic spectrum plot
 ;; domedian - does a median filter of the image
 ;; ymedian - does a median filter only in the y direction
+;; useclean - use the cleaned time series from plot_tim_ser
+;; showMod - in useclean mode, show the KIC 1255 transit model
 
   ;; get the time info
 
-  if not keyword_set(skipInitialize) then begin
+  if not keyword_set(skipInitialize) and not keyword_set(useclean) then begin
      plot_tim_ser,secondary=secondary
   endif
   restore,'data/timedata.sav'
@@ -46,6 +49,27 @@ pro plot_specphot,divbymodel=divbymodel,usebin=usebin,removelin=removelin,$
         sortTime = sort(tplot)
         tplot = tplot[sortTime]
         xydivspec = xydivspec[*,sortTime]
+     end
+     keyword_set(useclean): begin
+        nwavs = n_elements(bingrid)
+        xydivspec = binfl
+        wavrange = [bingrid[0],bingrid[nwavs-1]]
+        cd,current=currentD
+        clFile = file_search(currentD+'/data/cleaned_tim_ser/*.txt')
+        for i=0l,n_elements(clfile)-1l do begin
+           readcol,clfile[i],tempPhase,tempFlux,tempFluxErr,$
+                   tempMod,tempResid,$
+                   format='(F,F)',skipline=1
+           if i EQ 0 then begin
+              tplot = tempPhase
+              ntime = n_elements(tplot)
+              xydivspec = fltarr(nwavs,ntime)
+           endif
+           if keyword_set(showmod) then begin
+              xydivspec[i,*] = tempMod ;; show the model for comparison
+           endif else xydivspec[i,*] = tempFlux
+
+        endfor
      end
      keyword_set(backratio): begin
         nwavs = n_elements(lamgrid)
@@ -84,13 +108,14 @@ pro plot_specphot,divbymodel=divbymodel,usebin=usebin,removelin=removelin,$
   endelse
 
   ;; Take a subset of the image using the X range
-  if not keyword_set(usebin) then begin
+  if not keyword_set(usebin) and not keyword_set(useclean) then begin
      tabinv,lamgrid,wavrange,indexEffXrange
      startXImg = round(indexEffXrange[0])
      endXimg = round(indexEffXrange[1])
      xypic = xypic[startXimg:endXimg,*]
      nwavs = n_elements(xypic[*,0])
   endif
+
   ;; Take a subset of the image using the Y range
   if keyword_set(custyrange) then begin
      tabinv,tplot,custyrange,indexEffYrange
@@ -125,7 +150,7 @@ pro plot_specphot,divbymodel=divbymodel,usebin=usebin,removelin=removelin,$
            goodp = where(abs(xypic[i,*] - medoff) LE firstCutSig * rstdoff and $
                          (tplot LT hstart OR tplot GT hend),complement=throwaways)
         endelse
-        if goodp NE [-1] then begin
+        if n_elements(goodp) GT 3 then begin
 ;           if throwaways NE [-1] then begin
 ;              tclip1 = tplot[throwaways]
 ;              yclip1 = y[throwaways]
