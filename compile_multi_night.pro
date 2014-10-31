@@ -31,12 +31,14 @@ for i=0l,nNights-1l do begin
 
    ;; Get the spectral data, removing linear trends in the time series
 ;   compile_both,/readC,/removelinear,nwavbins=mnwavbins
+   if n_elements(mnwavbins) EQ 0 then mnwavbins=9
+   nwavbins= mnwavbins
    if keyword_set(differential) then begin
-      compile_spec,/readC,removelinear=(1-noremovelinear),nwavbins=mnwavbins,/specshift,$
+      compile_spec,/readC,removelinear=(1-noremovelinear),nwavbins=nwavbins,/specshift,$
                    masktelluric=masktelluric,/normalize
       
    endif else begin
-      compile_both,/readC,removelinear=(1-noremovelinear),nwavbins=mnwavbins,/specshift,$
+      compile_both,/readC,removelinear=(1-noremovelinear),nwavbins=nwavbins,/specshift,$
                    masktelluric=masktelluric,/normalize
    endelse
    restore,'data/specdata.sav'
