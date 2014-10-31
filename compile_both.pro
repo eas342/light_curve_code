@@ -1,7 +1,7 @@
 pro compile_both,dec23=dec23,dec29=dec29,readC=readC,$
                  masktelluric=masktelluric,$
                  removelinear=removelinear,specshift=specshift,$
-                 nwavbins=nwavbins
+                 nwavbins=nwavbins,normalize=normalize
 ;; Compiles the both MORIS photometry & SpeX data so they can be
 ;; plotted & fit together
 ;; dec23 -- look at the dec23 data set (default is jan04)
@@ -39,12 +39,13 @@ timePhot = utgrid
 case 1 of
    keyword_set(dec23): compile_spec,/dec23,readC=readC,nwavbins=nwavbinsOrig,$
                                     masktelluric=masktelluric,removelinear=removelinear,$
-                                    specshift=specshift
+                                    specshift=specshift,normalize=normalize
    keyword_set(dec29): compile_spec,/dec29,readC=readC,nwavbins=nwavbinsOrig,$
-                                    masktelluric=masktelluric,removelinear=removelinear
+                                    masktelluric=masktelluric,removelinear=removelinear,$
+                                    normalize=normalize
    else: compile_spec,readC=readC,nwavbins=nwavbinsOrig,$
                       masktelluric=masktelluric,removelinear=removelinear,$
-                      specshift=specshift
+                      specshift=specshift,normalize=normalize
 endcase
 
 ;; Get the spectral data
