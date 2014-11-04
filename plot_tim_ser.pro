@@ -15,7 +15,7 @@ pro plot_tim_ser,fitcurve=fitcurve,fitpoly=fitpoly,usepoly=usepoly,makestops=mak
                  custyrange=custyrange,tryAlt=tryAlt,trycorrect=trycorrect,$
                  secondary=secondary,$
                  presentation=presentation,slitmod=slitmod,psmooth=psmooth,$
-                 custxrange=custxrange
+                 custxrange=custxrange,noplots=noplots
 ;; plots the binned data as a time series and can also fit the Rp/R* changes
 ;; apPlot -- this optional keyword allows one to choose the aperture
 ;;           to plot
@@ -93,6 +93,7 @@ pro plot_tim_ser,fitcurve=fitcurve,fitpoly=fitpoly,usepoly=usepoly,makestops=mak
 ;; slitmod - Use a slit loss model
 ;; psmooth - sets the smooth size used in smothing the optical state
 ;;           parameters in the slit model
+;; noplots - skips all plots (just collects data/fits)
 
 ;sigrejcrit = 6D  ;; sigma rejection criterion
 sigrejcrit = 5D  ;; sigma rejection criterion
@@ -518,7 +519,7 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
         endif
      endif
 
-     if total(finite(y)) GT 2 and total(finite(yerr)) GT 2 then begin
+     if total(finite(y)) GT 2 and total(finite(yerr)) GT 2 and not keyword_set(noplots) then begin
         ;; if keyword set, replace the error w/ the off transit stddev
 
         ;find the range where 95% or more of the points are shown

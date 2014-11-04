@@ -1,10 +1,11 @@
 pro plot_specphot,divbymodel=divbymodel,usebin=usebin,removelin=removelin,$
                   psplot=psplot,individual=individual,skipInitialize=skipInitialize,$
                   timebin=timebin,backg=backg,custYmargin=custYmargin,$
+                  custXmargin=custXmargin,$
                   differential=differential,filter=filter,noNorm=noNorm,$
                   backratio=backratio,custxrange=custxrange,custyrange=custyrange,$
                   secondary=secondary,domedian=domedian,ymedian=ymedian,$
-                  useclean=useclean,showMod=showMod
+                  useclean=useclean,showMod=showMod,custtitle=custtitle
 ;; Makes an image of the spectrophotometry to get a visual sense of
 ;; the transit
 ;; divbymodel -- divide the image by the nominal transit model
@@ -16,6 +17,7 @@ pro plot_specphot,divbymodel=divbymodel,usebin=usebin,removelin=removelin,$
 ;; psplot -- makes a postscript plot
 ;; skipInitialize -- skips running plot_tim_ser to run faster
 ;; timebin -- uses time-binned data
+;; custXmargin -- for use by double_specphot for shrinking Y margin
 ;; custYmargin -- for use by double_specphot for shrinking Y margin
 ;; differential -- use a differential lightcurve instead of absolute
 ;; filter -- use a digital filter to take out the broad spectral shapes
@@ -25,6 +27,7 @@ pro plot_specphot,divbymodel=divbymodel,usebin=usebin,removelin=removelin,$
 ;; ymedian - does a median filter only in the y direction
 ;; useclean - use the cleaned time series from plot_tim_ser
 ;; showMod - in useclean mode, show the KIC 1255 transit model
+;; custtitle - to be displayed as the title
 
   ;; get the time info
 
@@ -208,20 +211,20 @@ pro plot_specphot,divbymodel=divbymodel,usebin=usebin,removelin=removelin,$
   endif
 
   loadct,1
-  if not keyword_set(psplot) and not keyword_set(skipInitialize) then window,0
+;  if not keyword_set(psplot) and not keyword_set(skipInitialize) then window,0
   if n_elements(custYmargin) EQ 0 then custYmargin=[4,2]
-
+  if n_elements(custXmargin) EQ 0 then custXmargin=[9,12]
   if wavrange[0] LT min(lamgrid) then wavrange[0] = min(lamgrid)
   if wavrange[1] GT max(lamgrid) then wavrange[1] = max(lamgrid)
   tabinv,lamgrid,wavrange,indexEffXrange
-  
+
   plotimage,xypic,range=ColorRange,$
             imgxrange=wavrange,$,xrange=indexEffXrange,$
             imgyrange=[tplot[0],tplot[ntime-1]],$
             xtitle='Wavelength (um)',$
             ytitle='Orbital Phase',$
-            charsize=1,$
-            xmargin=[9,12],ymargin=custYmargin
+            charsize=1,title=custtitle,$
+            xmargin=custXmargin,ymargin=custYmargin
   ;; Back an outline for thick axes
   axis,xaxis=1,xrange=!x.crange,color=mycol('black'),xstyle=1,xthick=4,xtickname=replicate(' ',8)
   axis,xaxis=1,xrange=!x.crange,color=mycol('orange'),xstyle=1,xtickname=replicate(' ',8)
