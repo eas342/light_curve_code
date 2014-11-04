@@ -75,7 +75,7 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
 
   ;; Multiply all fits by the mean kepler value to get the actual
   ;; transit depth (this is only in KIC 1255 transit mode (not for hot Jupiters)
-  if keyword_set(depthkep) then multiplier=0.55E else multiplier=1.0E
+  if keyword_set(depthkep) then multiplier=0.504E else multiplier=1.0E
 
   if keyword_set(asymmetric) then begin
      readcol,radfile,wavl,wavlsize,rad,rade,radep,radem,skipline=1,format='(F,F,F,F)'
