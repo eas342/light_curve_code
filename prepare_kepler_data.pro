@@ -9,7 +9,8 @@ pro prepare_kepler_data,psplot=psplot
   ;; Change phase to 0
   x = kphaseS - 1.0
 
-  phaseX = x
+  phaseX = x - 0.060017E ;; Change the reference phase by 0.060017E
+  ;; So now the reference is BJD 2454833 + 0.039224 instead of BJD 2454833 
   save,phaseX,kfluxS,filename='data/kepler_curves/phase_folded_kepler_all_kic1255.sav'
 
   ;; Make the Out of transit points flat & normalize
