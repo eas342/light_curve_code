@@ -6,7 +6,8 @@ pro plot_stars,psplot=psplot,tryclean=tryclean,saveclean=saveclean,$
                noNorm=noNorm,noLegend=noLegend,$
                showback=showback,directText=directText,custXmargin=custXmargin,$
                custYmargin=custYmargin,skipXtitle=skipXtitle,$
-               choose2=choose2,digfilter=digfilter,biggerImage=biggerImage
+               choose2=choose2,digfilter=digfilter,biggerImage=biggerImage,$
+               rmean=rmean
 ;; Plots the reference star and planet host
 ;; spectrum
 ;; psplot -- makes a postscript plot of the RMS spectrum
@@ -31,6 +32,7 @@ pro plot_stars,psplot=psplot,tryclean=tryclean,saveclean=saveclean,$
 ;; digfilter -- apply a digital filter to the spectrum (convolve it)
 ;; noLegend - don't make a plot legend
 ;; biggerImage -- makes a bigger plot image (not so dense)
+;; rmean - robust mean instead of median
 
   ;; set the plot
   if keyword_set(psplot) then begin
@@ -72,14 +74,19 @@ pro plot_stars,psplot=psplot,tryclean=tryclean,saveclean=saveclean,$
   ;; go through each wavelength and find the median
   cleanedcurve = fltarr(nwavs,ntime)
   cleanfactor = 4E
+  oreject = 3E ;; outlier rejection for robust mean
+
   if n_elements(choose1) EQ 0 then begin
      for i=0l,nwavs-1l do begin
-        hostspec[i] = median(flgrid[i,0,*])
-        refspec[i] = median(flgrid[i,1,*])
-        backspec[i] = median(backgrid[i,0,*])
-;        hostspec[i] = mean(flgrid[i,0,*],/nan)
-;        refspec[i] = mean(flgrid[i,1,*],/nan)
-;        backspec[i] = mean(backgrid[i,0,*],/nan)
+        if keyword_set(rmean) then begin
+           hostspec[i] = robust_mean(flgrid[i,0,*],oreject=oreject)
+           refspec[i] = robust_mean(flgrid[i,1,*],oreject=oreject)
+           backspec[i] = robust_mean(backgrid[i,0,*],oreject=oreject)
+        endif else begin
+           hostspec[i] = median(flgrid[i,0,*])
+           refspec[i] = median(flgrid[i,1,*])
+           backspec[i] = median(backgrid[i,0,*])
+        endelse
      endfor
   endif else begin
      hostspec = flgrid[*,0,choose1]
