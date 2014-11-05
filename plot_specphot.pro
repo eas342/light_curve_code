@@ -5,6 +5,7 @@ pro plot_specphot,divbymodel=divbymodel,usebin=usebin,removelin=removelin,$
                   differential=differential,filter=filter,noNorm=noNorm,$
                   backratio=backratio,custxrange=custxrange,custyrange=custyrange,$
                   secondary=secondary,domedian=domedian,ymedian=ymedian,$
+                  xmedian=xmedian,$
                   useclean=useclean,showMod=showMod,custtitle=custtitle
 ;; Makes an image of the spectrophotometry to get a visual sense of
 ;; the transit
@@ -136,6 +137,11 @@ pro plot_specphot,divbymodel=divbymodel,usebin=usebin,removelin=removelin,$
   if keyword_set(ymedian) then begin
      for i=0l,nwavs-1l do begin
         xypic[i,*] = transpose(median(transpose(xypic[i,*]),ymedian))
+     endfor
+  endif
+  if keyword_set(xmedian) then begin
+     for i=0l,ntime-1l do begin
+        xypic[*,i] = median(xypic[*,i],xmedian)
      endfor
   endif
 
