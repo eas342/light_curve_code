@@ -58,11 +58,12 @@ pro plot_specphot,divbymodel=divbymodel,usebin=usebin,removelin=removelin,$
         nwavs = n_elements(bingrid)
         xydivspec = binfl
         wavrange = [bingrid[0],bingrid[nwavs-1]]
-        cd,current=currentD
-        clFile = file_search(currentD+'/data/cleaned_tim_ser/*.txt')
+        readcol,'data/cleaned_list.txt',clFile,format='(A)'
+;        cd,current=currentD
+;        clFile = file_search(currentD+'/data/cleaned_tim_ser/*.txt')
         for i=0l,n_elements(clfile)-1l do begin
            readcol,clfile[i],tempPhase,tempFlux,tempFluxErr,$
-                   tempMod,tempResid,$
+                   tempMod,tempResid,/silent,$
                    format='(F,F)',skipline=1
            if i EQ 0 then begin
               tplot = tempPhase

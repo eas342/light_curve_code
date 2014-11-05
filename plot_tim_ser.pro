@@ -1005,10 +1005,14 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
            modelY = meanfuncdat
         endif
 
+        cleanTSerName = 'data/cleaned_tim_ser/timeser_'+wavname[k]+'um_.txt'
         forprint,tplot,y,yerr,modelY,resid,$
-                 textout='data/cleaned_tim_ser/timeser_'+wavname[k]+'um_.txt',$
+                 textout=cleanTSerName,$
                  comment='#Phase  Flux  Fl_err  Model_fl   Residual for '+wavname[k]+'um (%)',$
                  /silent
+        if n_elements(cleanlist) EQ 0 then begin
+           cleanlist = cleanTSerName
+        endif else cleanlist = [cleanlist,cleanTSerName]
 
         if keyword_set(psplot) and (not keyword_set(singleplot) OR k EQ Nwavbins-1l)  then begin
            device, /close
@@ -1033,6 +1037,9 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
   save,bingrid,fracRMSarr,tsizes,bingridmiddle,binsizes,$
        planetdat,fracPhotonarr,$
        filename='data/rmsdata.sav'
+
+  ;; Save the clean list name
+  forprint,/nocomment,cleanlist,textout='data/cleaned_list.txt',format='(A)',/silent
 
   if keyword_set(fitcurve) then begin
      ev_print_params,wavname,paramnames,resultarr,resultarrE,pi,k,/skipsig
