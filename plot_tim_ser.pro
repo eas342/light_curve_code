@@ -98,7 +98,7 @@ pro plot_tim_ser,fitcurve=fitcurve,fitpoly=fitpoly,usepoly=usepoly,makestops=mak
 ;sigrejcrit = 6D  ;; sigma rejection criterion
 sigrejcrit = 5D  ;; sigma rejection criterion
 ;TsigRejCrit = 3D ;; sigma rejection criterion for time bins
-TsigRejCrit = 2.5D ;; sigma rejection criterion for time bins
+TsigRejCrit = 5D ;; sigma rejection criterion for time bins
 
 if n_elements(deletePS) EQ 0 then deletePS = 1
   ;; set the plot
@@ -1039,7 +1039,9 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
        filename='data/rmsdata.sav'
 
   ;; Save the clean list name
-  forprint,/nocomment,cleanlist,textout='data/cleaned_list.txt',format='(A)',/silent
+  if n_elements(cleanlist) NE 0 then begin
+     forprint,/nocomment,cleanlist,textout='data/cleaned_list.txt',format='(A)',/silent
+  endif
 
   if keyword_set(fitcurve) then begin
      ev_print_params,wavname,paramnames,resultarr,resultarrE,pi,k,/skipsig
