@@ -1,4 +1,4 @@
 # UT Times Modified from Saul's reference epoch to be the Kepler flux minimum
-First_Contact	2454833.0150
-Fourth_Cont	2454833.070
+First_Contact	2454833.0127
+Fourth_Cont	2454833.0715
 Tmid		2454833.0392
