@@ -1,15 +1,21 @@
-pro multi_night_specphot,psplot=psplot,$
-                        custwavrange=custwavrange
-;; Goes through all nights in order to plot the correlation between
-;; position and flux ratio
+pro multi_night_plots,psplot=psplot,$
+                        custwavrange=custwavrange,$
+                      starRatios=starRatios
+;; Goes through all nights in order to plot the different things (such
+;; as specphot images)
 ;; psplot - save a postcript plot for each night
 ;; custwavrange - pass on to compile_spec the custom wavelength range
+;; starRatios - plot the ratios of the two stars
 
-
+  case 1 of
+     keyword_set(starRatios): begin
+        plotprenm = 'plots/individual_spectra/all_indspec'
+     end
+     else: plotprenm = 'plots/specphot_images/all_specphots'
+  endcase
   if keyword_set(psplot) then begin
      set_plot,'ps'
      !p.font=0
-     plotprenm = 'plots/specphot_images/all_specphots'
      device,encapsulated=1, /helvetica,$
             filename=plotprenm+'.eps'
       device,xsize=18, ysize=10,decomposed=1,/color
@@ -36,8 +42,15 @@ for i=0l,nNights-1l do begin
 
    restore,'data/used_date.sav'
 
-   plot_specphot,/useclean,/removel,/usebin,custtitle=usedate,$
+   case 1 of
+      keyword_set(starRatios): begin
+         plot_stars,/divide,custyrange=[0.8,2.8],/nolegend,custtitle=usedate
+      end
+      else: begin
+         plot_specphot,/useclean,/removel,/usebin,custtitle=usedate,$
                  custxmargin=[9,0]
+      end
+   endcase
 ;,/psplot
 
 ;   spawn,'mv plots/specphot_images/specphot_image.png plots/specphot_images/specphot_image_'+usedate+'.png'
@@ -51,6 +64,9 @@ endfor
      device,decomposed=0
      set_plot,'x'
      !p.font=-1
+     !p.thick=1
+     !x.thick=1
+     !y.thick=1
   endif
 !p.multi=0
 !x.omargin = [0,0]

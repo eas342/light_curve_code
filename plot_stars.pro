@@ -7,7 +7,7 @@ pro plot_stars,psplot=psplot,tryclean=tryclean,saveclean=saveclean,$
                showback=showback,directText=directText,custXmargin=custXmargin,$
                custYmargin=custYmargin,skipXtitle=skipXtitle,$
                choose2=choose2,digfilter=digfilter,biggerImage=biggerImage,$
-               rmean=rmean
+               rmean=rmean,custtitle=custtitle
 ;; Plots the reference star and planet host
 ;; spectrum
 ;; psplot -- makes a postscript plot of the RMS spectrum
@@ -33,6 +33,7 @@ pro plot_stars,psplot=psplot,tryclean=tryclean,saveclean=saveclean,$
 ;; noLegend - don't make a plot legend
 ;; biggerImage -- makes a bigger plot image (not so dense)
 ;; rmean - robust mean instead of median
+;; custtitlte - custom plot title
 
   ;; set the plot
   if keyword_set(psplot) then begin
@@ -176,6 +177,10 @@ pro plot_stars,psplot=psplot,tryclean=tryclean,saveclean=saveclean,$
         middle80 = threshold(yhost,mult=0.05)
         ystarplot = yhost/middle80[1]
      end
+     keyword_set(divide): begin
+        ystarplot = yhost/yref
+        yref = fltarr(n_elements(yref))
+     end
      else: ystarplot = yhost/maxyref
   endcase
   
@@ -191,7 +196,8 @@ pro plot_stars,psplot=psplot,tryclean=tryclean,saveclean=saveclean,$
        xtitle=myXtitle,$
        ytitle=myYtitle,$
        yrange=myYrange,xrange=custXrange,xstyle=myXstyle,$
-       xmargin=custXmargin,xtickformat=myXtickformat
+       xmargin=custXmargin,xtickformat=myXtickformat,$
+       title=custtitle
 ;,xrange=[5600,6600],xstyle=1
 ;,ystyle=16;,xrange=[1.15,1.35]
 ;,xrange=[1.45,1.75]
