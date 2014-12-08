@@ -1,10 +1,13 @@
 pro double_specphot,psplot=psplot,noremovelin=noremovelin,$
-                    custxrange=custxrange
+                    custxrange=custxrange,useclean=useclean,$
+                    showmod=showmod
 ;; Puts a plot of the stars spectra directly on top of the specphot
 ;; plot
 ;; psplot - saves a postscript plot
 ;; noremovelin - do not perform a linear de-trend of the baseline
 ;; custxrange -- pass the custom xrange to plot_specphot
+;; useclean - passed onto plot_specphot
+;; showmod - passed onto plot_specphot
 
 if keyword_set(noremovelin) then begin
    myRemovelin = 0
@@ -12,7 +15,7 @@ endif else myRemovelin=1
 
 if n_elements(custxrange) EQ 0 then custXrange=[0.95,2.4]
 
-  plot_tim_ser
+  if not keyword_set(useclean) then plot_tim_ser
 
   if keyword_set(psplot) then begin
      set_plot,'ps'
@@ -30,7 +33,7 @@ if n_elements(custxrange) EQ 0 then custXrange=[0.95,2.4]
              custYmargin=[0,0],custxrange=custxrange
   !p.position = [0.2,0.1,0.75,0.748]
   plot_specphot,removelin=myRemovelin,/skipInitialize,custymargin=[4,4],$
-                custxrange=custxrange
+                custxrange=custxrange,useclean=useclean,showmod=showmod
   !p.position = [0,0,0,0]
   !p.multi = 0
 
