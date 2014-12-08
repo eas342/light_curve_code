@@ -385,7 +385,7 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
      if keyword_set(differential) then begin
         refshowP = 0E
      endif else refshowP = multiplier
-     oplot,!x.crange,[1,1] * refshowP,linestyle=2,color=mycol('red')
+     oplot,[0.43,0.88],[1,1] * refshowP,linestyle=2,color=mycol('red')
   endif
 
   if keyword_set(psplot) then begin
