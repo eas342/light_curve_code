@@ -803,7 +803,7 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
                        expr = expr+' * sec_eclipse(X[4,*]-P[9],P[0],P[1],P[4]) * eval_legendre(X,P[10:12])'
                     end
                     keyword_set(kepfit): begin
-                       expr = expr+' * kepler_func(X[4,*],P[0]) *  eval_legendre(X,P[10:12])'
+                       expr = expr+' * kepler_func(X[4,*],P[0]) * eval_legendre(X,P[10:12])'
                        start[0] = 1E
                     end
                     else: begin
@@ -827,6 +827,7 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
               end
               keyword_set(kepfit): begin
                  expr = 'kepler_func(X-P[11],P[0]) *  eval_legendre(X,P[5:10])'
+;                 expr = 'parameterized_kep(X-P[11],P[0]) *  eval_legendre(X,P[5:10])'
               end
               keyword_set(secondary): begin
                  expr = 'sec_eclipse(X-P[11],P[0],P[1],P[4]) * eval_legendre(X,P[5:10])'
@@ -873,7 +874,9 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
            if keyword_set(fitepoch) then begin
               pi[11].fixed = 0
               pi[11].limited = [1,1]
-              pi[11].limits = [-0.05,0.05]
+;              pi[11].limits = [-0.05,0.05]
+              pi[11].limits = [-0.1,0.1]
+              start[11] = 0.03
            endif
            
            ;; Details of slit model adjustments (making them free)
