@@ -13,6 +13,17 @@ pro remove_linear,utgrid,fluxArray,lamgrid
   for l=0l,n_elements(info)-1l do begin
      planetdat = create_struct(planetdat,info[l],data[l])
   endfor
+
+  nwavs = n_elements(lamgrid)
+  ntimep = n_elements(utgrid)
+
+  ;; Check if fluxarray has 3 dimensions or 2
+  sz = size(fluxArray)
+  ndim = sz[0]
+  if ndim EQ 3 then begin
+     warray = fltarr(nwavs,ntimep)
+     wArray[*,*] = fluxArray[*,0,*]
+  endif else wArray = fluxArray
   
   ;; get the transit times
   readcol,'transit_info/transit_epoch.txt',epoch,tepoch,format='(A,D)',$
@@ -28,27 +39,32 @@ pro remove_linear,utgrid,fluxArray,lamgrid
   hstart = fold_phase((tstart - tmid)/planetdat.period)
   hend = fold_phase((tend - tmid)/planetdat.period)
   
+
 ;     restore,'data/timedata.sav'
-  nwavs = n_elements(lamgrid)
+
   offp = where(tplot LT hstart OR tplot GT hend)
   for i=0l,nwavs-1l do begin
-     if total(finite(fluxArray[i,0,offp])) EQ 0 then goodp = [-1] else begin
-        rstdoff = robust_sigma(fluxArray[i,0,offp])
-        medoff = median(fluxArray[i,offp])
+     if total(finite(warray[i,offp])) EQ 0 then goodp = [-1] else begin
+        rstdoff = robust_sigma(warray[i,offp])
+        medoff = median(warray[i,offp])
         
-        goodp = where(abs(fluxArray[i,0,*] - medoff) LE firstCutSig * rstdoff and $
+        goodp = where(abs(warray[i,*] - medoff) LE firstCutSig * rstdoff and $
                       (tplot LT hstart OR tplot GT hend),complement=throwaways)
      endelse
      if n_elements(goodp) GT 5 then begin
-        ytemp = fluxArray[i,0,goodp]
+        ytemp = warray[i,goodp]
         
-        yerr = fluxArray[i,0,goodp]
+        yerr = warray[i,goodp]
         tplottemp = tplot[goodp]
         
         ;; fit result to a robust line
         rlinefit = robust_linefit(tplottemp,ytemp)
-        fluxArray[i,0,*] = fluxArray[i,0,*] / (rlinefit[0] + tplot * rlinefit[1])
+        warray[i,*] = warray[i,*] / (rlinefit[0] + tplot * rlinefit[1])
      endif
   endfor
+
+  if ndim EQ 3 then begin
+     fluxArray[*,0,*] = warray
+  endif else fluxArray = warray
 
 end
