@@ -1,6 +1,6 @@
 pro compile_multi_night,differential=differential,$
                         mnwavbins=mnwavbins,noremovelinear=noremovelinear,$
-                        masktelluric=masktelluric
+                        masktelluric=masktelluric,photonly=photonly
 ;; Puts together multiple nights of data into one time series
 ;; differential - do differential spectroscopy and re-read in the
 ;;                cleaned time series
@@ -10,6 +10,7 @@ pro compile_multi_night,differential=differential,$
 ;;                  data set before adding them together,
 ;;                  Noremovelinear will skip this step
 ;; masktelluric passes masktelluric onto compile_spec
+;; photonly - only look at photometry
 
 if n_elements(noremovelinear) EQ 0 then noremovelinear=0
 
@@ -33,27 +34,32 @@ for i=0l,nNights-1l do begin
 ;   compile_both,/readC,/removelinear,nwavbins=mnwavbins
    if n_elements(mnwavbins) EQ 0 then mnwavbins=9
    nwavbins= mnwavbins
-   if keyword_set(differential) then begin
-      compile_spec,/readC,removelinear=(1-noremovelinear),nwavbins=nwavbins,/specshift,$
-                   masktelluric=masktelluric,/normalize
-      
-   endif else begin
-      compile_both,/readC,removelinear=(1-noremovelinear),nwavbins=nwavbins,/specshift,$
-                   masktelluric=masktelluric,/normalize
-   endelse
+   case 1 of 
+      keyword_set(differential): begin
+         compile_spec,/readC,removelinear=(1-noremovelinear),nwavbins=nwavbins,/specshift,$
+                      masktelluric=masktelluric,/normalize
+      end
+      keyword_set(photonly): begin
+         compile_phot,/readC,removelinear=(1-noremovelinear)
+      end
+      else: begin
+         compile_both,/readC,removelinear=(1-noremovelinear),nwavbins=nwavbins,/specshift,$
+                      masktelluric=masktelluric,/normalize
+      end
+   endcase
    restore,'data/specdata.sav'
 
    if i EQ 0l then begin
       binflNew = binfl
       binflENew = binflE
-      binindNew = binind
-      binindENew = binindE
+      if n_elements(binind) NE 0 then binindNew = binind else binindNew = 0E
+      if n_elements(binind) NE 0 then binindENew = binindE else binindENew = 0E
       utgridNew = utgrid
    endif else begin
       binflNew = transpose([transpose(binflNew),transpose(binfl)])
       binflENew = transpose([transpose(binflENew),transpose(binflE)])
-      binindNew = transpose([transpose(binindNew),transpose(binind)])
-      binindENew = transpose([transpose(binindENew),transpose(binindE)])
+      if n_elements(binind) NE 0 then binindNew = transpose([transpose(binindNew),transpose(binind)])
+      if n_elements(binind) NE 0 then binindENew = transpose([transpose(binindENew),transpose(binindE)])
       utgridNew = [utgridNew,utgrid]
    endelse
 
