@@ -1,11 +1,12 @@
 pro multi_night_plots,psplot=psplot,$
                         custwavrange=custwavrange,$
-                      starRatios=starRatios
+                      starRatios=starRatios,fitdepths=fitdepths
 ;; Goes through all nights in order to plot the different things (such
 ;; as specphot images)
 ;; psplot - save a postcript plot for each night
 ;; custwavrange - pass on to compile_spec the custom wavelength range
 ;; starRatios - plot the ratios of the two stars
+;; fitdepths - fit the transit depths and save all
 
   case 1 of
      keyword_set(starRatios): begin
@@ -45,6 +46,13 @@ for i=0l,nNights-1l do begin
    case 1 of
       keyword_set(starRatios): begin
          plot_stars,/divide,custyrange=[0.8,2.8],/nolegend,custtitle=usedate
+      end
+      keyword_set(fitDepths): begin
+         compile_both,nwavbins=5,/readc
+         plot_tim_ser,timebin=40,/singlep,custxrange=[-0.2,0.13],$
+                      custsep=0.01,/fitcurve,/kepfit,/offtranserr,/lind,legord=2
+         spawn,'cp radius_vs_wavelength/radius_vs_wavl.txt '+$
+               'radius_vs_wavelength/radius_vs_wavl.txt/rad_vs_wavl_'+usedate+'.txt'
       end
       else: begin
          plot_specphot,/useclean,/removel,/usebin,custtitle=usedate,$
