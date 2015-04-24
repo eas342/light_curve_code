@@ -1,7 +1,7 @@
 pro compile_both,dec23=dec23,dec29=dec29,readC=readC,$
                  masktelluric=masktelluric,$
                  removelinear=removelinear,specshift=specshift,$
-                 nwavbins=nwavbins,normalize=normalize
+                 nwavbins=nwavbins,normalize=normalize,pretendTransit=pretendTransit
 ;; Compiles the both MORIS photometry & SpeX data so they can be
 ;; plotted & fit together
 ;; dec23 -- look at the dec23 data set (default is jan04)
@@ -9,6 +9,8 @@ pro compile_both,dec23=dec23,dec29=dec29,readC=readC,$
 ;; readC -- read the current speclist (from choose_speclist)
 ;; other commands are what's passed on to compile spec
 ;; specshift - passes this keyword onto compile_spec
+;; pretendTransit - shift the time to simulate what out-of-transit
+;;                  data looks like in transit
 
 if n_elements(nwavbins) EQ 0 then nwavbins=9
 
@@ -85,6 +87,11 @@ bingrid = bingridNew
 binsizes = binsizesNew
 wavname = wavnameNew
 Nwavbins = nbands+Nwavbins
+
+;; For the out-of-transit KIC 1255, we can move the time to see what
+;; out-of-transit data looks like when fit with transit models
+if keyword_set(pretendTransit) then utgrid = utgrid - 0.30D
+
 
 ; Save all data
 save,flgrid,lamgrid,bingrid,binfl,binflE,backdiv,$
