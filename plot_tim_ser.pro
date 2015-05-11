@@ -765,16 +765,11 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
 
         if keyword_set(showKep) then begin
            ;; Show the Kepler Light Curve
-;           readcol,'data/phase_folded_kepler_deep_kic1255.csv',kphaseD,kfluxD,skipline=6,$
-;                   format='(F,F)',/silent
-;           readcol,'data/phase_folded_kepler_shallow_kic1255.csv',kphaseS,kfluxS,skipline=6,$
-;                   format='(F,F)',/silent
-           readcol,'data/phase_folded_kepler_all_kic1255.txt',kbinnum,kphaseS,kfluxS,$
-                   format='(F,F,F)',/silent
-           ;; Subtract 1 from the LC since it actually is centered on 1.0
-           kphaseS = kphaseS - 1.0D
-;           oplot,kphaseD,kfluxD-offset,color=mycol('red')
-           oplot,kphaseS,kfluxS-offset,color=mycol('blue')
+           np = 1024E
+           kphaseS = min(tplot) + findgen(round(np))/np * $
+                     (max(tplot,/nan)-min(tplot,/nan))
+           keplerF = kepler_func(kphaseS,1E)
+           oplot,kphaseS,keplerF - offset,color=mycol('blue')
 
         endif
 
