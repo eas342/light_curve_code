@@ -1,0 +1,14 @@
+Notes on getting State Parameters
+
+choose_speclist ;; to choose the night and spectra files
+;; First collect the profile information, probably I'll use the /esX to search for the files made with my optimal extraction. If using the IRAF extractions in the speclist
+get_profile_widths,/esX
+
+;; Compile only 1 spectral channel and specify the wavelengths:
+compile_spec,/readC,nwavbins=1,custrange=[1.1,1.8],/specshift,/saveshifts
+
+;; Now you can run state_parameters
+state_parameters
+OR
+state_parameters,/genp ;; to open a general plotter for looking at correlations
+
