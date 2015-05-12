@@ -1,7 +1,7 @@
 pro state_parameters,reInitialize=reInitialize,psplot=psplot,$
                      timSerRange=timSerRange,$
                      secondary=secondary,differential=differential,$
-                     expandRange=expandRange
+                     expandRange=expandRange,genp=genp
 ;; Plots the time series and then also a lot of other parameters below
 ;; to see if flux changes can be attributed to the FWHM changes,
 ;; drifts, airmass etc.
@@ -12,6 +12,8 @@ pro state_parameters,reInitialize=reInitialize,psplot=psplot,$
 ;; differential - find the differential parameters between the two stars
 ;; expandRange - expand the state parameters to include a wide
 ;;               threshold on the axes
+;; genp - open up the general plotter for looking at different kinds
+;;        of correlations
 
   ;; set the plot
   if keyword_set(psplot) then begin
@@ -168,5 +170,9 @@ pro state_parameters,reInitialize=reInitialize,psplot=psplot,$
             statePStruct,header=tag_names(statePstruct)
   save,statePStruct,$
        filename='data/state_parameters/full_parameters/'+specfileListNamePrefix+'.sav'
+  if keyword_set(genp) then begin
+     dat = struct_arrays(statePstruct)
+     genplot,dat,gparam=create_struct('PSYM',1)
+  endif
   
 end
