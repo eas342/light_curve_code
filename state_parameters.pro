@@ -133,6 +133,10 @@ pro state_parameters,reInitialize=reInitialize,psplot=psplot,$
      if ShowY2 then begin 
         myYrange = threshold([y,y2],low=lowThresh,high=highThresh,mult=0.4) 
         statePStruct = create_struct(statePStruct,shorthand+'1',y,shorthand+'2',y2)
+        if shorthand EQ 'position' then begin
+        statePStruct = create_struct(statePStruct,'abspos'+'1',starLocations[*,apkey[0]],$
+                                     'abspos'+'2',starLocations[*,apkey[1]])
+        endif
      endif else begin
         if shorthand EQ 'airmass' then myYrange = [min(y)-0.1,max(y)+0.1] else begin
            myYrange = threshold(y,low=lowThresh,high=highThresh,mult=0.4)
