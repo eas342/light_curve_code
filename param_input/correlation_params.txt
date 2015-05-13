@@ -1,0 +1,5 @@
+#Prefix Name		XKeyword	YKeyword
+time_ser_colored	PHASE		FLUXRATIO	
+position_over_time	PHASE		POSITION1
+specshift_over_time	PHASE		SPECSHIFT1
+spec_spatial_corr	SPECSHIFT1	POSITION1
