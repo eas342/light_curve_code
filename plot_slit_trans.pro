@@ -37,9 +37,10 @@ pro plot_slit_trans,psplot=psplot,voigt=voigt,$
 
   case 1 of
      keyword_set(closerParams): begin
-        sigma = [0.7E,1E,1.5E,2E]
+;        sigma = [0.7E,1E,1.5E,2E]
+        sigma = [3E,4E,5E,7E]/2.35E
         y = dindgen(npts)/double(npts) * 6E - 3E
-        myYrange = [80,97]
+        myYrange = [73,96]
      end
      else: begin
         y = dindgen(npts)/double(npts) * 30E - 15E
@@ -83,7 +84,9 @@ pro plot_slit_trans,psplot=psplot,voigt=voigt,$
   endif else myYtitle='Transmission (%)'
 
   myYextent = max(farray) - min(farray)
-  myYrange = [min(farray),max(farray) + myYextent * 0.2] * 100E
+  if n_elements(myYRange) EQ 0 then begin
+     myYrange = [min(farray),max(farray) + myYextent * 0.2] * 100E
+  endif
 
   plot,y,farray[0,*] * 100E,ytitle=myYtitle,$
        xtitle='Position (pixels)',$
