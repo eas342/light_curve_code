@@ -1,8 +1,10 @@
-pro avg_radii,totsets=totsets,statistics=statistics,psplot=psplot
+pro avg_radii,totsets=totsets,statistics=statistics,psplot=psplot,$
+              median=median
 ;;totsets -- optional keyword to specify the number of total sets of
 ;;           data to avg, default is 2
 ;; statistics -- look at the statistics of the variations
 ;; psplot - make postscript plot
+;; median - find a median instead of a weighted average
 
   if n_elements(totsets) EQ 0 then totsets=2
 
@@ -46,6 +48,10 @@ pro avg_radii,totsets=totsets,statistics=statistics,psplot=psplot
      avgrade[j] = 1E / sqrt(total(weights))
   endfor
 
+  ;; Do a median, if asked
+  if keyword_set(median) then begin
+     avgRad = median(totrad,dimension=2)
+  endif
 
   forprint,avgwavl,avgwavlsize,avgrad,avgrade,$
            textout='radius_vs_wavelength/avg_rp_rs.txt',$
