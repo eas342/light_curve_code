@@ -27,7 +27,7 @@ pro state_parameters,reInitialize=reInitialize,psplot=psplot,$
 
 
   paramnames = ["Airmass","FWHM (px)","Relative Position (px)","Individual Flux",$
-                "Spectral Shift (~px)","Voigt a"]
+                "Spectral Shift (~px)","Voigt a","Slit Model"];"Voigt sigV"]
   nparams = n_elements(paramnames)
 
   !p.multi=[0,1,nparams+1]
@@ -98,19 +98,29 @@ pro state_parameters,reInitialize=reInitialize,psplot=psplot,$
            showY2 = 1
            shorthand = 'voigtdamp'
         end
-        "Slit Model (fraction)": begin
-           d1 = double(transpose(specShiftArr[0,*]))
-           d2 = double(transpose(specShiftArr[1,*]))
-           H = 20.49E /2E
+        "Voigt sigV": begin
+           y = ev_sigV(widths[*,apkey[0]],voigts[*,apkey[0]])
+           y2 = ev_sigV(widths[*,apkey[1]],voigts[*,apkey[1]])
+           showY2 = 0
+           shorthand = 'voitSig'
+        end
+        "Slit Model": begin
+           d1 = double(transpose(specShiftArr[0,*])) +1E
+           d2 = double(transpose(specShiftArr[1,*])) +1E
+           if strmatch(usedate,'*2012*') OR strmatch(usedate,'*2013*') then begin
+              H = 20.49/2E              
+           endif else H = 30.5/2E
            sigma1 = widths[*,0]
            sigma2 = widths[*,1]
-           trans1 = gauss_slit(d1 - 0D,H,sigma1)
-           trans2 = gauss_slit(d2 + 9D,H,sigma2)
-           y = trans1 / trans2
-           showY2 = 0
-;           y = trans1
-;           y2 = trans2
-;           showY2 = 1
+           vt1 = voigts[*,apkey[0]]
+           vt2 = voigts[*,apkey[1]]
+           trans1 = vslit_approx(d1,H,sigma1,median(vt1))
+           trans2 = vslit_approx(d2,H,sigma2,median(vt2))
+
+;           trans1 = vslit_approx(d1,H,median(sigma1),median(vt1))
+           y = trans1
+           y2 = trans2
+           showY2 = 1
            shorthand = 'slitmodel'
         end
         else: y = tplot * 0E
