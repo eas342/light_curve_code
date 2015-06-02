@@ -1,6 +1,6 @@
 pro double_specphot,psplot=psplot,noremovelin=noremovelin,$
                     custxrange=custxrange,useclean=useclean,$
-                    showmod=showmod
+                    showmod=showmod,skipInitialize=skipInitialize
 ;; Puts a plot of the stars spectra directly on top of the specphot
 ;; plot
 ;; psplot - saves a postscript plot
