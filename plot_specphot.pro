@@ -244,10 +244,10 @@ pro plot_specphot,divbymodel=divbymodel,usebin=usebin,removelin=removelin,$
 
   loadct,0
   ;; Show ingress and egress
-  plots,[wavrange[0],wavrange[1]],[hstart,hstart],color=mycol('black'),linestyle=2,thick=6
-  plots,[wavrange[0],wavrange[1]],[hstart,hstart],color=mycol('yellow'),linestyle=2,thick=3
-  plots,[wavrange[0],wavrange[1]],[hend,hend],color=mycol('black'),linestyle=2,thick=6
-  plots,[wavrange[0],wavrange[1]],[hend,hend],color=mycol('yellow'),linestyle=2,thick=3
+  oplot,[wavrange[0],wavrange[1]],[hstart,hstart],color=mycol('black'),linestyle=2,thick=6
+  oplot,[wavrange[0],wavrange[1]],[hstart,hstart],color=mycol('yellow'),linestyle=2,thick=3
+  oplot,[wavrange[0],wavrange[1]],[hend,hend],color=mycol('black'),linestyle=2,thick=6
+  oplot,[wavrange[0],wavrange[1]],[hend,hend],color=mycol('yellow'),linestyle=2,thick=3
   loadct,1
 
   ;; Choose a set of parameters to pass on to the fits file for the header
