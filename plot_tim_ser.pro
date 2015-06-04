@@ -14,7 +14,7 @@ pro plot_tim_ser,fitcurve=fitcurve,fitpoly=fitpoly,usepoly=usepoly,makestops=mak
                  showNomMCMC=showNomMCMC,useGPasfit=useGPasfit,kepdiff=kepdiff,$
                  custyrange=custyrange,tryAlt=tryAlt,trycorrect=trycorrect,$
                  secondary=secondary,$
-                 presentation=presentation,slitmod=slitmod,psmooth=psmooth,$
+                 presentation=presentation,slitmod=slitmod,fixprof=fixprof,psmooth=psmooth,$
                  custxrange=custxrange,noplots=noplots
 ;; plots the binned data as a time series and can also fit the Rp/R* changes
 ;; apPlot -- this optional keyword allows one to choose the aperture
@@ -91,6 +91,7 @@ pro plot_tim_ser,fitcurve=fitcurve,fitpoly=fitpoly,usepoly=usepoly,makestops=mak
 ;; secondary -- designed for secondary eclipse
 ;; presentation -- makes things bigger for a power point presentation
 ;; slitmod - Use a slit loss model
+;; fixpro - fix the profile of the stars in the slit loss model
 ;; psmooth - sets the smooth size used in smothing the optical state
 ;;           parameters in the slit model
 ;; noplots - skips all plots (just collects data/fits)
@@ -258,6 +259,10 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
         avgX = (inputX[star1ind[i],*] + inputX[star2ind[i],*])/2E
         inputX[star1ind[i],*] = avgX
         inputX[star2ind[i],*] = avgX
+        if keyword_set(fixProf) then begin
+           inputX[star1ind[i],*] = median(inputX[star1ind[i],*])
+           inputX[star2ind[i],*] = median(inputX[star2ind[i],*])
+        endif
      endfor
      ;; Prepare to reject all n sigma outliers in state parameters
      StatesigthreshS=5E
@@ -769,7 +774,7 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
            kphaseS = min(tplot) + findgen(round(np))/np * $
                      (max(tplot,/nan)-min(tplot,/nan))
            keplerF = kepler_func(kphaseS,1E)
-           oplot,kphaseS,keplerF - offset,color=mycol('blue')
+           oplot,kphaseS,keplerF - offset,color=mycol('dgreen'),thick=2
 
         endif
 
@@ -785,11 +790,19 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
                  expr = '(kepler_func(X,P[0]+1D) / kepler_func(X,1D)) *  eval_legendre(X,P[5:10])'
               end
               keyword_set(slitmod): begin
-                 expr = 'vslit_approx(X[0,*] - P[5],P[8],X[2,*],X[5,*])/'+$
-                        'vslit_approx(X[1,*] - P[5] - P[6],P[8],X[3,*] * P[7],X[6,*])'
+                 if keyword_set(individual) then begin
+                    expr = 'vslit_approx(X[0,*] - P[5],P[8],X[2,*],X[5,*])'
+                 endif else begin
+                    expr = 'vslit_approx(X[0,*] - P[5],P[8],X[2,*],X[5,*])/'+$
+                           'vslit_approx(X[1,*] - P[5] - P[6],P[8],X[3,*] * P[7],X[6,*])'
+                 endelse
                  start[5] = 0.0E ;; start the position as 0
                  start[7] = 1.0E ;; start the relative FWHM ratio as 1.0
-                 start[8] = 10.5E ;; start the slit width at 10.5E
+                 if strmatch(usedate,'*2012*') OR strmatch(usedate,'*2013*') OR $
+                    strmatch(usedate,'*2011*') then begin
+                    H = 20.49/2E  ;; for the Aladin Detector
+                 endif else H = 30.5/2E ;; for the Hawaii II detector
+                 start[8] = H
                  start[10] = 1E ;; start the offset parameter as 1.0
                  start = [start,0E] ;; last Legendre parameter should be 0E as a start
                  case 1 of
@@ -879,6 +892,9 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
               pi[5:7].fixed=0 ;; free the slit model params
               pi[5:6].limited = [1,1] ;; limit the slit position from going to far
               pi[5:6].limits = [-start[8],start[8]] ;; slit half width
+              if keyword_set(individual) then begin
+                 pi[6:7].fixed=1 ;; only look at 1 star at a time
+              endif
            endif
 
            ;; Here's where the polynomial terms are adjusted
