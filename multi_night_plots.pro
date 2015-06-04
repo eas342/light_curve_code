@@ -54,7 +54,8 @@ for i=0l,nNights-1l do begin
    endif else begin
       compile_spec,/readC,/specsh,custrange=custwavrange,nwavbins=25
    endelse
-   plot_tim_ser,timebin=40,/lind,/offtranserr,/noplots
+   if strmatch(usedate,'*2014sep03*') then secondary=1 else secondary=0
+   plot_tim_ser,timebin=40,/lind,/offtranserr,/noplots,secondary=secondary
 
 
 
@@ -75,7 +76,6 @@ for i=0l,nNights-1l do begin
                'radius_vs_wavelength/radius_vs_wavl.txt/rad_vs_wavl_'+usedate+'.txt'
       end
       else: begin
-         if strmatch(usedate,'*2014sep03*') then secondary=1 else secondary=0
          plot_specphot,/usebin,/removel,custtitle=usedate,$
                  custxmargin=[9,0],/skipI,secondary=secondary
       end
