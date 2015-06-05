@@ -218,16 +218,40 @@ pro plot_specphot,divbymodel=divbymodel,usebin=usebin,removelin=removelin,$
   endif
 
   loadct,1
-;  if not keyword_set(psplot) and not keyword_set(skipInitialize) then window,0
+;  if not keyword_set(psplot) and not keyword_set(skipInitialize) then
+;  window,0
+  if n_elements(custyrange) EQ 0 then custyrange=[tplot[0],tplot[ntime-1]]
   if n_elements(custYmargin) EQ 0 then custYmargin=[4,2]
   if n_elements(custXmargin) EQ 0 then custXmargin=[9,12]
   if wavrange[0] LT min(lamgrid) then wavrange[0] = min(lamgrid)
   if wavrange[1] GT max(lamgrid) then wavrange[1] = max(lamgrid)
   tabinv,lamgrid,wavrange,indexEffXrange
 
-  plotimage,xypic,range=ColorRange,$
+  ;; Replace all missing rows with empty data
+  ;;Find the time steps
+  tsteps = tplot - shift(tplot,1)
+  medStep = float(median(tsteps[1:ntime-1]))
+  nsteps = long((max(tplot) - min(tplot))/medStep + 1E)
+  if custyrange[0] LT min(tplot) then begin ;; marks as missing data if showing a greater range
+     addSteps = round((min(tplot) - custyrange[0])/medStep)
+     starttime = min(tplot) - float(addSteps) * medStep
+     nsteps = nsteps + addSteps
+  end else starttime = min(tplot)
+  if custyrange[1] GT max(tplot) then begin ;; marks as missing data if showing a greater range
+     addSteps = round((custyrange[1] - max(tplot))/medStep)
+     nsteps = nsteps + addSteps
+  endif
+  newtplot = findgen(nsteps) * medStep + startTime
+  tabinv,newTplot,tplot,nearestInd
+  nearestInd = round(nearestInd) ;; otherwise index 49.9 becomes index 49
+  newXY = fltarr(nwavs,nsteps) * !values.f_nan
+  newXY[*,nearestInd] = xypic[*,*]
+
+
+  plotimage,newXY,range=ColorRange,$
             imgxrange=wavrange,$,xrange=indexEffXrange,$
-            imgyrange=[tplot[0],tplot[ntime-1]],$
+            yrange=custyrange,$
+            imgyrange=[min(newtplot),max(newtplot)],$
             xtitle='Wavelength (um)',$
             ytitle='Orbital Phase',$
             charsize=1,title=custtitle,$
@@ -242,7 +266,24 @@ pro plot_specphot,divbymodel=divbymodel,usebin=usebin,removelin=removelin,$
   axis,yaxis=0,yrange=!y.crange,color=mycol('black'),ystyle=1,ythick=4,ytickname=replicate(' ',8)
   axis,yaxis=0,yrange=!y.crange,color=mycol('orange'),ystyle=1,ytickname=replicate(' ',8)
 
+  ;; Show the missing data
+  badRows = where(total(finite(newXY),1) EQ 0,nbad)
+  if badRows NE [-1] then begin
+     for i=0,nbad-1l do begin
+        oplot,!x.crange,newTplot[badRows[i]] * [1E,1E],color=mycol('red'),thick=4
+     endfor
+  endif
   loadct,0
+
+  if keyword_set(analyzeReS) then begin
+     ;; Analyze the re-sampling
+     tplotOrig = fltarr(nsteps) * !values.f_nan
+     tplotOrig[nearestInd] = tplot
+;     genplot,tplot,gparam=create_struct('PSYM',1)
+     genplot,tplotOrig,newtplot,gparam=create_struct('PSYM',1,$
+                                                     'TITLES',['Orig','New',''])
+  endif
+
   ;; Show ingress and egress
   oplot,[wavrange[0],wavrange[1]],[hstart,hstart],color=mycol('black'),linestyle=2,thick=6
   oplot,[wavrange[0],wavrange[1]],[hstart,hstart],color=mycol('yellow'),linestyle=2,thick=3
