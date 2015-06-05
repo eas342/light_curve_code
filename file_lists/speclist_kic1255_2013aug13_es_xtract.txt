@@ -49,9 +49,9 @@
 ../../../Documents/kic1255/UT2013.08.13_data/proc/run01_0072.a_straight_es_ms.fits
 ../../../Documents/kic1255/UT2013.08.13_data/proc/run01_0073.a_straight_es_ms.fits
 ../../../Documents/kic1255/UT2013.08.13_data/proc/run01_0074.a_straight_es_ms.fits
-../../../Documents/kic1255/UT2013.08.13_data/proc/run01_0075.a_straight_es_ms.fits
-../../../Documents/kic1255/UT2013.08.13_data/proc/run01_0076.a_straight_es_ms.fits
-../../../Documents/kic1255/UT2013.08.13_data/proc/run01_0077.a_straight_es_ms.fits
+#../../../Documents/kic1255/UT2013.08.13_data/proc/run01_0075.a_straight_es_ms.fits
+#../../../Documents/kic1255/UT2013.08.13_data/proc/run01_0076.a_straight_es_ms.fits
+#../../../Documents/kic1255/UT2013.08.13_data/proc/run01_0077.a_straight_es_ms.fits
 ../../../Documents/kic1255/UT2013.08.13_data/proc/run01_0078.a_straight_es_ms.fits
 ../../../Documents/kic1255/UT2013.08.13_data/proc/run01_0079.a_straight_es_ms.fits
 ../../../Documents/kic1255/UT2013.08.13_data/proc/run01_0080.a_straight_es_ms.fits
