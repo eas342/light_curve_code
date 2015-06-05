@@ -1,7 +1,8 @@
 pro multi_night_plots,psplot=psplot,$
                         custwavrange=custwavrange,$
                       starRatios=starRatios,fitdepths=fitdepths,$
-                      statep=statep
+                      statep=statep,fixrange=fixrange,$
+                      indWav=indWav
 ;; Goes through all nights in order to plot the different things (such
 ;; as specphot images)
 ;; psplot - save a postcript plot for each night
@@ -9,6 +10,7 @@ pro multi_night_plots,psplot=psplot,$
 ;; starRatios - plot the ratios of the two stars
 ;; fitdepths - fit the transit depths and save all
 ;; statep - save the state parameter plots
+;; indWav - show the individual wavelengths
 
   case 1 of
      keyword_set(starRatios): begin
@@ -20,13 +22,15 @@ pro multi_night_plots,psplot=psplot,$
      set_plot,'ps'
      !p.font=0
      device,encapsulated=1, /helvetica,$
-            filename=plotprenm+'.eps'
+            filename=plotprenm+'.eps',bits_per_pixel=8
 ;      device,xsize=18, ysize=10,decomposed=1,/color
       device,xsize=18, ysize=20,decomposed=1,/color
      !p.thick=3
      !x.thick=3
      !y.thick=3
   endif
+
+if keyword_set(indWav) then usebin=0 else usebin=1
 
 ;; get the list of speclists
   readcol,'file_lists/multi_night.txt',listFile,format='(A)',comment='#'
@@ -55,7 +59,16 @@ for i=0l,nNights-1l do begin
       compile_spec,/readC,/specsh,custrange=custwavrange,nwavbins=25
    endelse
    if strmatch(usedate,'*2014sep03*') then secondary=1 else secondary=0
-   plot_tim_ser,timebin=40,/lind,/offtranserr,/noplots,secondary=secondary
+   if keyword_set(fixRange) then begin
+      if secondary then begin
+         custSpecPhRange = [.37,.55]
+      endif else begin
+         custSpecPhRange = [-0.1,0.13]
+      endelse
+   endif else undefine,custXrange
+
+   plot_tim_ser,timebin=40,/lind,/offtranserr,/noplots,secondary=secondary,$
+                custXrange=custXrange
 
 
 
@@ -76,8 +89,9 @@ for i=0l,nNights-1l do begin
                'radius_vs_wavelength/radius_vs_wavl.txt/rad_vs_wavl_'+usedate+'.txt'
       end
       else: begin
-         plot_specphot,/usebin,/removel,custtitle=usedate,$
-                 custxmargin=[9,0],/skipI,secondary=secondary
+         plot_specphot,usebin=usebin,/removel,custtitle=usedate,$
+                       custxmargin=[9,0],/skipI,secondary=secondary,$
+                       custyrange=custSpecPhRange
       end
    endcase
 
