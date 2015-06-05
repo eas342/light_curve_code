@@ -1,4 +1,3 @@
-../../../Documents/kic1255/UT2013.09.03_data/proc/run04_0033.a_straight_es_ms.fits
 ../../../Documents/kic1255/UT2013.09.03_data/proc/run04_0034.a_straight_es_ms.fits
 ../../../Documents/kic1255/UT2013.09.03_data/proc/run04_0035.a_straight_es_ms.fits
 ../../../Documents/kic1255/UT2013.09.03_data/proc/run04_0036.a_straight_es_ms.fits
