@@ -10,7 +10,8 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
                      rightleg=rightleg,bottomleg=bottomleg,$
                      filterCurveColor=filterCurveColor,$
                      prevChoices=prevChoices,secondary=secondary,$
-                     showAlonso=showalonso,differential=differential
+                     showAlonso=showalonso,differential=differential,$
+                     custxmargin=custxmargin
 ;;psplot -- saves a postscript plot
 ;;showstarspec -- shows a star spectrum on the same plot
 ;;nbins -- number of points bo bin in Rp/R*
@@ -43,8 +44,11 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
 ;; secondary - secondary eclipse depth labels (instead of radius)
 ;; differential - goes into differential mode (so reference is zero
 ;;                and label is differential)
+;; custxmargin - custom x margin
 
-  if keyword_set(showstar) then !x.margin = [9,9] else !x.margin=[15,4]
+  if keyword_set(showstar) then !x.margin = [9,9] else begin
+     if keyword_set(custxmargin) then !x.margin=custxmargin else !x.margin=[10,3]
+  endelse
   ;; set the plot
   if keyword_set(psplot) then begin
      set_plot,'ps'
@@ -396,7 +400,7 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
      set_plot,'x'
      !p.font=-1
   endif
-  !x.margin = [15.0,4.0]
+  !x.margin = [10.0,3.0]
 
 end  
   
