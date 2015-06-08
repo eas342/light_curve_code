@@ -256,15 +256,6 @@ pro plot_specphot,divbymodel=divbymodel,usebin=usebin,removelin=removelin,$
             ytitle='Orbital Phase',$
             charsize=1,title=custtitle,$
             xmargin=custXmargin,ymargin=custYmargin
-  ;; Back an outline for thick axes
-  axis,xaxis=1,xrange=!x.crange,color=mycol('black'),xstyle=1,xthick=4,xtickname=replicate(' ',8)
-  axis,xaxis=1,xrange=!x.crange,color=mycol('orange'),xstyle=1,xtickname=replicate(' ',8)
-  axis,xaxis=0,xrange=!x.crange,color=mycol('black'),xstyle=1,xthick=4,xtickname=replicate(' ',8)
-  axis,xaxis=0,xrange=!x.crange,color=mycol('orange'),xstyle=1,xtickname=replicate(' ',8)
-  axis,yaxis=1,yrange=!y.crange,color=mycol('black'),ystyle=1,ythick=4,ytickname=replicate(' ',8)
-  axis,yaxis=1,yrange=!y.crange,color=mycol('orange'),ystyle=1,ytickname=replicate(' ',8)
-  axis,yaxis=0,yrange=!y.crange,color=mycol('black'),ystyle=1,ythick=4,ytickname=replicate(' ',8)
-  axis,yaxis=0,yrange=!y.crange,color=mycol('orange'),ystyle=1,ytickname=replicate(' ',8)
 
   ;; Show the missing data
   badRows = where(total(finite(newXY),1) EQ 0,nbad)
@@ -290,6 +281,16 @@ pro plot_specphot,divbymodel=divbymodel,usebin=usebin,removelin=removelin,$
   oplot,[wavrange[0],wavrange[1]],[hend,hend],color=mycol('black'),linestyle=2,thick=6
   oplot,[wavrange[0],wavrange[1]],[hend,hend],color=mycol('yellow'),linestyle=2,thick=3
   loadct,1
+
+  ;; Make an outline for thick axes
+  axis,xaxis=1,xrange=!x.crange,color=mycol('black'),xstyle=1,xthick=4,xtickname=replicate(' ',8)
+  axis,xaxis=1,xrange=!x.crange,color=mycol('orange'),xstyle=1,xthick=0.7,xtickname=replicate(' ',8)
+  axis,xaxis=0,xrange=!x.crange,color=mycol('black'),xstyle=1,xthick=4,xtickname=replicate(' ',8)
+  axis,xaxis=0,xrange=!x.crange,color=mycol('orange'),xstyle=1,xthick=0.7,xtickname=replicate(' ',8)
+  axis,yaxis=1,yrange=!y.crange,color=mycol('black'),ystyle=1,ythick=4,ytickname=replicate(' ',8)
+  axis,yaxis=1,yrange=!y.crange,color=mycol('orange'),ystyle=1,ythick=0.7,ytickname=replicate(' ',8)
+  axis,yaxis=0,yrange=!y.crange,color=mycol('black'),ystyle=1,ythick=4,ytickname=replicate(' ',8)
+  axis,yaxis=0,yrange=!y.crange,color=mycol('orange'),ystyle=1,ythick=0.7,ytickname=replicate(' ',8)
 
   ;; Choose a set of parameters to pass on to the fits file for the header
   
