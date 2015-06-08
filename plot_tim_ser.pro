@@ -15,7 +15,7 @@ pro plot_tim_ser,fitcurve=fitcurve,fitpoly=fitpoly,usepoly=usepoly,makestops=mak
                  custyrange=custyrange,tryAlt=tryAlt,trycorrect=trycorrect,$
                  secondary=secondary,$
                  presentation=presentation,slitmod=slitmod,fixprof=fixprof,psmooth=psmooth,$
-                 custxrange=custxrange,noplots=noplots
+                 custxrange=custxrange,noplots=noplots,custTitle=custTitle
 ;; plots the binned data as a time series and can also fit the Rp/R* changes
 ;; apPlot -- this optional keyword allows one to choose the aperture
 ;;           to plot
@@ -95,6 +95,7 @@ pro plot_tim_ser,fitcurve=fitcurve,fitpoly=fitpoly,usepoly=usepoly,makestops=mak
 ;; psmooth - sets the smooth size used in smothing the optical state
 ;;           parameters in the slit model
 ;; noplots - skips all plots (just collects data/fits)
+;; custTitle - allows you to specify a custom title
 
 ;sigrejcrit = 6D  ;; sigma rejection criterion
 sigrejcrit = 5D  ;; sigma rejection criterion
@@ -207,8 +208,10 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
      tplot = tplot[lookp]
      binfl = binfl[*,lookp]
      binfle = binfle[*,lookp]
-     binind = binind[*,*,lookp]
-     binindE = binindE[*,*,lookp]
+     if n_elements(binind) NE 0 then begin
+        binind = binind[*,*,lookp]
+        binindE = binindE[*,*,lookp]
+     endif
      airmass = airmass[lookp]
      utgrid = utgrid[lookp]
   endif
@@ -619,6 +622,9 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
            tickformat=''
            myXtitle='Orbital Phase'
         endelse
+        if keyword_set(custTitle) then begin
+           myTitle = custTitle
+        endif
 
         if keyword_set(custyrange) then ydynam = custyrange
         plot,tplot,y,psym=4,$
@@ -628,7 +634,7 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
              yrange=ydynam,ystyle=1,/nodata,xstyle=1,$
              noerase=myNoErase,$
              xtickformat=tickformat,ytickformat=tickformat,$
-             xrange=myXrange,xmargin=[15,4]
+             xrange=myXrange,xmargin=[10,3]
         if k mod 2 EQ 0 then dataColor=!p.color else dataColor=mycol('red')
         if not keyword_set(differential) then begin
            if keyword_set(showclipping) then begin
