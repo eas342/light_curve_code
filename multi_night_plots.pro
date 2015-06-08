@@ -2,7 +2,7 @@ pro multi_night_plots,psplot=psplot,$
                         custwavrange=custwavrange,$
                       starRatios=starRatios,fitdepths=fitdepths,$
                       statep=statep,fixrange=fixrange,$
-                      indWav=indWav
+                      indWav=indWav,photometry=photometry
 ;; Goes through all nights in order to plot the different things (such
 ;; as specphot images)
 ;; psplot - save a postcript plot for each night
@@ -11,8 +11,12 @@ pro multi_night_plots,psplot=psplot,$
 ;; fitdepths - fit the transit depths and save all
 ;; statep - save the state parameter plots
 ;; indWav - show the individual wavelengths
+;; photometry - just show the photometry
 
   case 1 of
+     keyword_set(photometry): begin
+        plotprenm = 'plots/spec_t_series/all_phot'
+     end
      keyword_set(starRatios): begin
         plotprenm = 'plots/individual_spectra/all_indspec'
      end
@@ -38,7 +42,9 @@ if keyword_set(indWav) then usebin=0 else usebin=1
 nNights = n_elements(listFile)
 
 !p.multi = [0,3,3]
-!x.omargin = [0,20]
+if keyword_set(photometry) then begin
+   !x.omargin=[0,0]
+endif else !x.omargin = [0,20]
 
 for i=0l,nNights-1l do begin
    choose_speclist,fchoice=listFile[i]
@@ -52,12 +58,19 @@ for i=0l,nNights-1l do begin
 
    restore,'data/used_date.sav'
 
-   if keyword_set(statep) then begin
-      get_profile_widths,/esX
-      compile_spec,/readC,nwavbins=1,custrange=custwavrange,/specshift,/saveshifts
-   endif else begin
-      compile_spec,/readC,/specsh,custrange=custwavrange,nwavbins=25
-   endelse
+   case 1 of
+      keyword_set(photometry): begin
+         compile_phot,/readC
+      end
+      keyword_set(statep): begin
+         get_profile_widths,/esX
+         compile_spec,/readC,nwavbins=1,custrange=custwavrange,/specshift,/saveshifts
+      end
+      else: begin
+         compile_spec,/readC,/specsh,custrange=custwavrange,nwavbins=25
+      end
+   endcase
+
    if strmatch(usedate,'*2014sep03*') then secondary=1 else secondary=0
    if keyword_set(fixRange) then begin
       if secondary then begin
@@ -65,7 +78,7 @@ for i=0l,nNights-1l do begin
       endif else begin
          custSpecPhRange = [-0.1,0.13]
       endelse
-   endif else undefine,custXrange
+   endif
 
    plot_tim_ser,timebin=40,/lind,/offtranserr,/noplots,secondary=secondary,$
                 custXrange=custXrange
@@ -73,6 +86,13 @@ for i=0l,nNights-1l do begin
 
 
    case 1 of
+      keyword_set(photometry): begin
+         plot_tim_ser,timebin=40,/lind,/offtranserr,secondary=secondary,$
+                      custXrange=custSpecPhRange,/showkep,custtitle=usedate,$
+                      custyrange=[0.992,1.008]
+         ;; use the same variable as custom specphot range
+         
+      end
       keyword_set(starRatios): begin
          plot_stars,/divide,custyrange=[0.8,2.8],/nolegend,custtitle=usedate
       end
