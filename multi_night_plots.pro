@@ -106,7 +106,7 @@ for i=0l,nNights-1l do begin
          plot_tim_ser,timebin=40,/singlep,custxrange=[-0.2,0.13],$
                       custsep=0.01,/fitcurve,/kepfit,/offtranserr,/lind,legord=2
          spawn,'cp radius_vs_wavelength/radius_vs_wavl.txt '+$
-               'radius_vs_wavelength/radius_vs_wavl.txt/rad_vs_wavl_'+usedate+'.txt'
+               'radius_vs_wavelength/rad_vs_wavl_'+usedate+'.txt'
       end
       else: begin
          plot_specphot,usebin=usebin,/removel,custtitle=usedate,$
