@@ -11,7 +11,7 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
                      filterCurveColor=filterCurveColor,$
                      prevChoices=prevChoices,secondary=secondary,$
                      showAlonso=showalonso,differential=differential,$
-                     custxmargin=custxmargin
+                     custxmargin=custxmargin,showmie=showmie
 ;;psplot -- saves a postscript plot
 ;;showstarspec -- shows a star spectrum on the same plot
 ;;nbins -- number of points bo bin in Rp/R*
@@ -45,6 +45,7 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
 ;; differential - goes into differential mode (so reference is zero
 ;;                and label is differential)
 ;; custxmargin - custom x margin
+;; showmie - show representative models for MIE scattering
 
   if keyword_set(showstar) then !x.margin = [9,9] else begin
      if keyword_set(custxmargin) then !x.margin=custxmargin else !x.margin=[10,3]
@@ -84,7 +85,11 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
   if keyword_set(asymmetric) then begin
      readcol,radfile,wavl,wavlsize,rad,rade,radep,radem,skipline=1,format='(F,F,F,F)'
   endif else begin
-     readcol,radfile,wavl,wavlsize,rad,rade,skipline=1,format='(F,F,F)'
+     if strmatch(radfile,'*avg_rp_rs*') OR strmatch(radfile,'*all20*') then begin
+        readcol,radfile,wavl,wavlsize,rad,rade,radscatter,skipline=1,format='(F,F,F,F)'
+     endif else begin
+        readcol,radfile,wavl,wavlsize,rad,rade,skipline=1,format='(F,F,F)'
+     endelse
      ;; Make the +/- bars the same
      radep = rade
      radem = rade
@@ -186,6 +191,10 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
      oploterror,wavl[1:nwavs-1l],rad[1:nwavs-1l] * multiplier,wavlwidth[1:nwavs-1],rade[1:nwavs-1] * multiplier,$
                 psym=8,thick=2,linestyle=mylinestyle
   endif else begin
+     if n_elements(radscatter) NE 0 then begin
+        oploterror,wavl,rad * multiplier,wavlwidth,radscatter * multiplier,psym=8,thick=1,$
+                   linestyle=1,errstyle=1,hatlength=!D.X_VSIZE / 50E
+     endif
      oploterror,wavl,rad * multiplier,wavlwidth,radep * multiplier,psym=8,thick=2,/hibar
      oploterror,wavl,rad * multiplier,wavlwidth,radem * multiplier,psym=8,thick=2,/lobar
   endelse
@@ -262,6 +271,30 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
      endif
   endif
 
+  if keyword_set(showmie) then begin
+     restore,'data/models/model_mie_lnorm_examples.sav'
+     modNm = ['r=0.1um','r=1.0um']
+     modInd = [0,3]
+     modCol = mycol(['blue','dgreen'])
+     modStyles = [0,1]
+     modThick=[1,5]
+     nmod = n_elements(modNm)
+     for i=0l,nmod-1l do begin
+        modelP = where(dat.ev_oplot_ser EQ modInd[i])
+        yplotMod = rescale_model(rad,rade,dat[modelP].d,dat[modelP].wav,wavl)*multiplier
+        oplot,dat[modelP].wav,yplotMod,$
+           color=modCol[i],linestyle=modStyles[i],thick=modThick[i]
+        chisQ = total((rad * multiplier - yplotMod)^2/rade^2)
+        dof = float(n_elements(rad) - 1)
+        chisQN = chisQ / dof
+        print,modNm[i],' reduced chi-squared= ',chisQN
+     endfor
+     if keyword_set(psplot) then legSize=0.7 else legsize=1
+     al_legend,['r =0.1um','r =1.0um'],/right,/top,$
+               linestyle=modStyles,color=modCol,charsize=legsize,$
+               thick=modThick
+  endif
+  
   if keyword_set(kepMORIS) then begin
      morisRad = 0.5
      morisRadE = 0
@@ -296,7 +329,12 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
      if keyword_set(prevChoices) then begin
         file2 = prevRadFarr[i-1]
      endif else file2 = choose_file(searchDir='radius_vs_wavelength',filetype='.txt')
-     readcol,file2,wavl2,wavl2size,rad2,rade2,skipline=1,format='(F,F,F)'
+     if strmatch(file2,'*avg_rp_rs*') OR strmatch(radfile,'*all20*') then begin
+        readcol,file2,wavl2,wavl2size,rad2,rade2,radscatter,skipline=1,format='(F,F,F,F)'
+     endif else begin
+        readcol,file2,wavl2,wavl2size,rad2,rade2,skipline=1,format='(F,F,F)'
+     endelse
+
      ;; find the bin width
      wavlwidth2 = wavl2size/2E
      if keyword_set(wavnum) then begin
@@ -314,6 +352,10 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
         oploterror,wavl2[1:nwavs-1l],rad2[1:nwavs-1l] * multiplier,wavlwidth2[1:nwavs-1],rade2[1:nwavs-1] * multiplier,$
                    psym=8,thick=2,color=colorchoices[i-1l]
      endif else begin
+        if n_elements(radscatter) NE 0 then begin
+           oploterror,wavl,rad2 * multiplier,wavlwidth2,radscatter * multiplier,psym=8,thick=1,$
+                      linestyle=1,errstyle=1,hatlength=!D.X_VSIZE / 50E,color=colorchoices[i-1l]
+        endif
         oploterror,wavl2,rad2 * multiplier,wavlwidth2,rade2 * multiplier,psym=8,thick=2,color=colorchoices[i-1l]
      endelse
 
