@@ -23,6 +23,7 @@ pro avg_radii,totsets=totsets,statistics=statistics,psplot=psplot,$
   totrade = fltarr(nwavs,totsets)
   avgrad = fltarr(nwavs)
   avgrade = fltarr(nwavs)
+  scatterE = fltarr(nwavs)
 
   totrad[*,0] = rad
   totrade[*,0] = rade
@@ -54,15 +55,13 @@ pro avg_radii,totsets=totsets,statistics=statistics,psplot=psplot,$
      avgRad = median(totrad,dimension=2)
   endif
 
-  if keyword_set(scatterErr) then begin
-     for j=0l,nwavs-1l do begin
-        avgrade[j] = stdev(totrad[j,*])/sqrt(float(totsets))
-     endfor
-  endif
+  for j=0l,nwavs-1l do begin
+     scatterE[j] = stdev(totrad[j,*])/sqrt(float(totsets))
+  endfor
 
-  forprint,avgwavl,avgwavlsize,avgrad,avgrade,$
+  forprint,avgwavl,avgwavlsize,avgrad,avgrade,scatterE,$
            textout='radius_vs_wavelength/avg_rp_rs.txt',$
-           comment='# Wavelength(um)  Bin size   Rp/R*    Rp/R* Error'
+           comment='# Wavelength(um)  Bin size     Rp/R*      Rp/R* Error   Scatter Err'
 
   if keyword_set(statistics) then begin
      if keyword_set(psplot) then begin
