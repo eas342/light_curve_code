@@ -1,6 +1,6 @@
 function avg_series,dataUT,dataY,SNR,UTlist,explist,weighted=weighted,oreject=oreject,$
                     eArr=eArr,silent=silent,makestop=makestop,stdevArr=stdevArr,$
-                    errIn=errIn
+                    errIn=errIn,median=median
 ;; takes a series of UT times vs data values
 ;; and bins them into time bins
 ;; dataUT is the time of the data series
@@ -16,6 +16,7 @@ function avg_series,dataUT,dataY,SNR,UTlist,explist,weighted=weighted,oreject=or
 ;; silent -- surpressses the output of the files
 ;; stdevArr -- an output vector that gives the standard deviation of
 ;;             the points within the bin
+;; median - do median of points instead of average
 
 nser = n_elements(dataUT)
 assert,nser,'=',n_elements(dataY),"Input array mismatch"
@@ -68,10 +69,14 @@ for i=0l,nUT - 1l do begin
 
     if passp EQ [-1] then binArr[i] = !values.d_nan else begin
 
-       binArr[i] = total(ws[ind[passp]] * dataY[ind[passp]],/nan)
-       ;; the weights should only be added up if dataY is a real number
-       ;; (not a NAN)
-       binArr[i] = binArr[i] / total(ws[ind[passp]]*double(finite(dataY[ind[passp]])),/nan) 
+       if keyword_set(median) then begin
+          binArr[i] = median(dataY[ind[passp]])
+       endif else begin
+          binArr[i] = total(ws[ind[passp]] * dataY[ind[passp]],/nan)
+          ;; the weights should only be added up if dataY is a real number
+          ;; (not a NAN)
+          binArr[i] = binArr[i] / total(ws[ind[passp]]*double(finite(dataY[ind[passp]])),/nan) 
+       endelse
        if n_elements(errIn) NE 0 then begin
           eArr[i] = sqrt(total( (ws[ind[passp]]*errIn[ind[passp]])^2,/nan ) )
           eArr[i] = eArr[i] / total(ws[ind[passp]]*double(finite(dataY[ind[passp]])),/nan)

@@ -15,7 +15,7 @@ pro plot_tim_ser,fitcurve=fitcurve,fitpoly=fitpoly,usepoly=usepoly,makestops=mak
                  custyrange=custyrange,tryAlt=tryAlt,trycorrect=trycorrect,$
                  secondary=secondary,$
                  presentation=presentation,slitmod=slitmod,fixprof=fixprof,psmooth=psmooth,$
-                 custxrange=custxrange,noplots=noplots,custTitle=custTitle
+                 custxrange=custxrange,noplots=noplots,custTitle=custTitle,tmedian=tmedian
 ;; plots the binned data as a time series and can also fit the Rp/R* changes
 ;; apPlot -- this optional keyword allows one to choose the aperture
 ;;           to plot
@@ -96,6 +96,7 @@ pro plot_tim_ser,fitcurve=fitcurve,fitpoly=fitpoly,usepoly=usepoly,makestops=mak
 ;;           parameters in the slit model
 ;; noplots - skips all plots (just collects data/fits)
 ;; custTitle - allows you to specify a custom title
+;; tmedian - do median combining instead of average weighting
 
 ;sigrejcrit = 6D  ;; sigma rejection criterion
 sigrejcrit = 5D  ;; sigma rejection criterion
@@ -466,20 +467,22 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
      if n_elements(timebin) NE 0 then begin
         ;; Bin the series in time
         ybin = avg_series(tplot,y,y/yerr,timeGrid,tsizes,weighted=1,$
-                  oreject=TsigRejCrit,eArr=yerrOut,/silent,errIn=yerr,stdevArr=stdevArr)
+                  oreject=TsigRejCrit,eArr=yerrOut,/silent,errIn=yerr,stdevArr=stdevArr,$
+                         median=tmedian)
         if n_elements(diffInd) NE 0 then begin
            if k EQ diffInd and keyword_set(differential) then begin
               ;; make sure the sigma rejection is off for the
               ;; normalization bin
               ybin = avg_series(tplot,y,y/yerr,timeGrid,tsizes,weighted=1,$
-                                eArr=yerrOut,/silent,errIn=yerr,stdevArr=stdevArr)
+                                eArr=yerrOut,/silent,errIn=yerr,stdevArr=stdevArr,$
+                               median=tmedian)
            endif
         endif
 
 
 
         airbin = avg_series(tplot,airmass,fltarr(n_elements(airmass)),timeGrid,tsizes,$
-                            weighted=0,/silent)
+                            weighted=0,/silent,median=tmedian)
         tplot = tmiddle
 
         y = ybin
