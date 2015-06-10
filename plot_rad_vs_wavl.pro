@@ -85,7 +85,7 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
   if keyword_set(asymmetric) then begin
      readcol,radfile,wavl,wavlsize,rad,rade,radep,radem,skipline=1,format='(F,F,F,F)'
   endif else begin
-     if strmatch(radfile,'*avg_rp_rs*') OR strmatch(radfile,'*all20*') then begin
+     if strmatch(first_line(radfile),'*Scatter Err*') then begin
         readcol,radfile,wavl,wavlsize,rad,rade,radscatter,skipline=1,format='(F,F,F,F)'
      endif else begin
         readcol,radfile,wavl,wavlsize,rad,rade,skipline=1,format='(F,F,F)'
@@ -329,7 +329,8 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
      if keyword_set(prevChoices) then begin
         file2 = prevRadFarr[i-1]
      endif else file2 = choose_file(searchDir='radius_vs_wavelength',filetype='.txt')
-     if strmatch(file2,'*avg_rp_rs*') OR strmatch(radfile,'*all20*') then begin
+     undefine,radscatter
+     if strmatch(first_line(file2),'*Scatter Err*') then begin
         readcol,file2,wavl2,wavl2size,rad2,rade2,radscatter,skipline=1,format='(F,F,F,F)'
      endif else begin
         readcol,file2,wavl2,wavl2size,rad2,rade2,skipline=1,format='(F,F,F)'
