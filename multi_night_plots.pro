@@ -2,7 +2,8 @@ pro multi_night_plots,psplot=psplot,$
                         custwavrange=custwavrange,$
                       starRatios=starRatios,fitdepths=fitdepths,$
                       statep=statep,fixrange=fixrange,$
-                      indWav=indWav,photometry=photometry
+                      indWav=indWav,photometry=photometry,$
+                      differential=differential
 ;; Goes through all nights in order to plot the different things (such
 ;; as specphot images)
 ;; psplot - save a postcript plot for each night
@@ -12,6 +13,7 @@ pro multi_night_plots,psplot=psplot,$
 ;; statep - save the state parameter plots
 ;; indWav - show the individual wavelengths
 ;; photometry - just show the photometry
+;; differential - find the differential spectrum
 
   case 1 of
      keyword_set(photometry): begin
@@ -102,11 +104,18 @@ for i=0l,nNights-1l do begin
                'plots/state_params/state_p_'+usedate+'.eps'
       end
       keyword_set(fitDepths): begin
-         compile_both,nwavbins=5,/readc
+         compile_both,nwavbins=5,/readc,/specsh
          plot_tim_ser,timebin=40,/singlep,custxrange=[-0.2,0.13],$
                       custsep=0.01,/fitcurve,/kepfit,/offtranserr,/lind,legord=1
          spawn,'cp radius_vs_wavelength/radius_vs_wavl.txt '+$
                'radius_vs_wavelength/rad_vs_wavl_'+usedate+'.txt'
+      end
+      keyword_set(differential): begin
+         compile_spec,nwavbins=5,/readc,/specsh
+         plot_tim_ser,timebin=40,/singlep,custxrange=[-0.2,0.13],$
+                      custsep=0.01,/fitcurve,/kepdiff,/offtranserr,/lind,/diff,legord=1
+         spawn,'cp radius_vs_wavelength/radius_vs_wavl.txt '+$
+               'radius_vs_wavelength/diff_spec_'+usedate+'.txt'
       end
       else: begin
          plot_specphot,usebin=usebin,/removel,custtitle=usedate,$
