@@ -1,11 +1,13 @@
 pro avg_radii,totsets=totsets,statistics=statistics,psplot=psplot,$
-              median=median,scatterErr=scatterErr
+              median=median,scatterErr=scatterErr,diffconst=diffconst
 ;;totsets -- optional keyword to specify the number of total sets of
 ;;           data to avg, default is 2
 ;; statistics -- look at the statistics of the variations
 ;; psplot - make postscript plot
 ;; median - find a median instead of a weighted average
 ;; scatterErr - use the standard deviation of points to estimate scatter
+;; diffconst - if averaging differential spectra, you can add a
+;;             constant to the transit depth
 
   if n_elements(totsets) EQ 0 then totsets=2
 
@@ -53,6 +55,11 @@ pro avg_radii,totsets=totsets,statistics=statistics,psplot=psplot,$
   ;; Do a median, if asked
   if keyword_set(median) then begin
      avgRad = median(totrad,dimension=2)
+  endif
+
+  ;; Add the average transit depth if doing differential spectroscopy
+  if n_elements(diffconst) GT 0 then begin
+     avgRad = avgRad + diffconst
   endif
 
   for j=0l,nwavs-1l do begin
