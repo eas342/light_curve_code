@@ -10,7 +10,7 @@ pro compile_spec,extraction2=extraction2,sum=sum,nwavbins=nwavbins,$
                  backRatio=backRatio,alreadyDivided=alreadyDivided,saveshifts=saveshifts,$
                  wavWeights=wavWeights,indbin=indbin,wavpixel=wavpixel,flipstars=flipstars,$
                  spatialRatio=spatialRatio,pretendTransit=pretendTransit,$
-                 specKey=specKey,normalize=normalize
+                 specKey=specKey,normalize=normalize,inject=inject
 ;; Compiles the spectra into a few simple arrays to look at the spectrophotometry
 ;; extraction2 -- uses whatever spectra are in the data directory
 ;; sum -- uses the variance weighted (optimal) extraction by
@@ -458,6 +458,10 @@ endif else begin
 ;; Divide the two spectra
    Divspec = flgrid[*,0,*] / flgrid[*,1,*]
 endelse
+
+if n_elements(inject) GT 0 then begin
+   inject_transit,float(inject),divspec=divspec
+endif
 
 if keyword_set(removelinear) then begin
    remove_linear,utgrid,divSpec,lamgrid
