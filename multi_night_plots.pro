@@ -104,7 +104,7 @@ for i=0l,nNights-1l do begin
       keyword_set(fitDepths): begin
          compile_both,nwavbins=5,/readc
          plot_tim_ser,timebin=40,/singlep,custxrange=[-0.2,0.13],$
-                      custsep=0.01,/fitcurve,/kepfit,/offtranserr,/lind,legord=2
+                      custsep=0.01,/fitcurve,/kepfit,/offtranserr,/lind,legord=1
          spawn,'cp radius_vs_wavelength/radius_vs_wavl.txt '+$
                'radius_vs_wavelength/rad_vs_wavl_'+usedate+'.txt'
       end
