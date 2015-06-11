@@ -460,7 +460,7 @@ endif else begin
 endelse
 
 if n_elements(inject) GT 0 then begin
-   inject_transit,float(inject),divspec=divspec
+   inject_transit,float(inject),divspec=divspec,utgrid=utgrid
 endif
 
 if keyword_set(removelinear) then begin

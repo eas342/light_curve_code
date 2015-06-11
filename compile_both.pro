@@ -1,7 +1,8 @@
 pro compile_both,dec23=dec23,dec29=dec29,readC=readC,$
                  masktelluric=masktelluric,$
                  removelinear=removelinear,specshift=specshift,$
-                 nwavbins=nwavbins,normalize=normalize,pretendTransit=pretendTransit
+                 nwavbins=nwavbins,normalize=normalize,pretendTransit=pretendTransit,$
+                 inject=inject
 ;; Compiles the both MORIS photometry & SpeX data so they can be
 ;; plotted & fit together
 ;; dec23 -- look at the dec23 data set (default is jan04)
@@ -11,6 +12,7 @@ pro compile_both,dec23=dec23,dec29=dec29,readC=readC,$
 ;; specshift - passes this keyword onto compile_spec
 ;; pretendTransit - shift the time to simulate what out-of-transit
 ;;                  data looks like in transit
+;; inject - allows you to inject a transit to see if it is recovered
 
 if n_elements(nwavbins) EQ 0 then nwavbins=9
 
@@ -19,7 +21,8 @@ nwavbinsOrig = nwavbins
 case 1 of
    keyword_set(dec23): compile_phot,/dec23,readC=readC,removelinear=removelinear
    keyword_set(dec29): compile_phot,/dec29,readC=readC,removelinear=removelinear
-   else: compile_phot,readC=readC,removelinear=removelinear
+   else: compile_phot,readC=readC,removelinear=removelinear,$
+                      inject=inject,pretendTransit=pretendTransit
 endcase
 
 restore,'data/specdata.sav'
@@ -47,7 +50,8 @@ case 1 of
                                     normalize=normalize
    else: compile_spec,readC=readC,nwavbins=nwavbinsOrig,$
                       masktelluric=masktelluric,removelinear=removelinear,$
-                      specshift=specshift,normalize=normalize
+                      specshift=specshift,normalize=normalize,$
+                      inject=inject,pretendTransit=pretendTransit
 endcase
 
 ;; Get the spectral data
@@ -90,7 +94,7 @@ Nwavbins = nbands+Nwavbins
 
 ;; For the out-of-transit KIC 1255, we can move the time to see what
 ;; out-of-transit data looks like when fit with transit models
-if keyword_set(pretendTransit) then utgrid = utgrid - 0.30D
+;if keyword_set(pretendTransit) then utgrid = utgrid - 0.30D
 
 
 ; Save all data

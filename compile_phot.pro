@@ -1,5 +1,6 @@
 pro compile_phot,dec23=dec23,dec29=dec29,readC=readC,removelinear=removelinear,$
-                 choosefile=choosefile,thphot=thphot
+                 choosefile=choosefile,thphot=thphot,inject=inject,$
+                 pretendTransit=pretendTransit
 ;; Compiles the MORIS photometry data in the same way as spectra for
 ;; use by other scripts
 ;; dec23 -- look at the dec23 data set (default is jan04)
@@ -8,6 +9,9 @@ pro compile_phot,dec23=dec23,dec29=dec29,readC=readC,removelinear=removelinear,$
 ;; choosefile -- choose a specific file from the CoRoT-1 photometry
 ;;               folder
 ;; thphot - use the photometry that Terry gave me
+;; inject - for the control night, inject a transit to see if it is recovered
+;; pretendTransit - shifts the time series to simulate the fitting
+;;                  process on a transit 
 
 case 1 of 
    keyword_set(choosefile): begin
@@ -74,6 +78,8 @@ endif else begin
 endelse
 
 
+if keyword_set(pretendTransit) then utgrid = utgrid - 0.3
+
 npoints = n_elements(bjd)
 
 binfl = fltarr(Nwavbins,npoints) ;; binned flux ratio
@@ -87,6 +93,11 @@ airmass = fltarr(npoints) + 1.E
 altitude = fltarr(npoints) + 90E
 
 if n_elements(phase) NE 0 then morisPhase = phase
+
+if n_elements(inject) GT 0 then begin
+   inject_transit,float(inject),divspec=binfl,utgrid=utgrid,$
+                  /photMode
+endif
 
 if keyword_set(removelinear) then begin
    remove_linear,utgrid,binfl,bingrid
