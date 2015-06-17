@@ -10,7 +10,8 @@ pro compile_spec,extraction2=extraction2,sum=sum,nwavbins=nwavbins,$
                  backRatio=backRatio,alreadyDivided=alreadyDivided,saveshifts=saveshifts,$
                  wavWeights=wavWeights,indbin=indbin,wavpixel=wavpixel,flipstars=flipstars,$
                  spatialRatio=spatialRatio,pretendTransit=pretendTransit,$
-                 specKey=specKey,normalize=normalize,inject=inject
+                 specKey=specKey,normalize=normalize,inject=inject,$
+                 quickread=quickread
 ;; Compiles the spectra into a few simple arrays to look at the spectrophotometry
 ;; extraction2 -- uses whatever spectra are in the data directory
 ;; sum -- uses the variance weighted (optimal) extraction by
@@ -61,6 +62,8 @@ pro compile_spec,extraction2=extraction2,sum=sum,nwavbins=nwavbins,$
 ;;                  data looks like in transit
 ;; specKey - allows one to set the spectral key by hand
 ;; normalize - normalize all flux ratios to be 1
+;; quickread - re-read the FITS spectral images. Otherwise it uses a
+;;          saved version
 
 ;Nwavbins = 35 ;; number of wavelength bins
 ;Nwavbins = 9 ;; number of wavelength bins
@@ -205,7 +208,21 @@ if keyword_set(flipstars) then begin
    print,"Flipping star order MANUALLY!"
 endif
 
-for i=0l,nfile-1l do begin
+restore,'data/used_date.sav'
+specDataCompressed = 'data/save_specdata/'+specfileListNamePrefix+'_specdata.sav'
+if keyword_set(quickread) and file_exists(specDataCompressed) then begin
+   prevNwavbins= nwavbins
+   restore,specDataCompressed
+   undefine,nwavbins
+   nwavbins=prevNwavbins
+   maxfile=-1
+   prevFileUsed=1
+endif else begin
+   maxfile=nfile
+   prevFileUsed=0
+endelse
+
+for i=0l,maxfile-1l do begin
    ;; Read all files into the grid
    a2 = mrdfits(filen[i],0,header2,/silent)
    ;; Check that the number of points is corrrect
@@ -310,6 +327,7 @@ endfor
 
 ;; The old data uses Julian date, but new uses MJD, so we have to add
 ;; the JD − 2400000.5
+
 if utgrid[0] LT 2400000D then utgrid = utgrid + 2400000.5D
 
 ;; For the out-of-transit KIC 1255, we can move the time to see what
@@ -318,7 +336,7 @@ if keyword_set(pretendTransit) then utgrid = utgrid - 0.30D
 
 ;; Reset all zeros and negative flux values
 badp = where(flgrid LE 0)
-flgrid[badp] = !values.f_nan
+if badp NE [-1] then flgrid[badp] = !values.f_nan
 
 badback = where(backgrid LE 0)
 if badback NE [-1] then backgrid[badback] = !values.f_nan
@@ -630,9 +648,8 @@ if keyword_set(psplot) then begin
    !p.font=-1
 endif
 
-if not keyword_set(skipBJD) then begin
+if not keyword_set(skipBJD) and not prevFileUsed then begin
    ;; Convert the JD data to Barycentric coordinates
-
    BJD_TDB = UTC2BJD(utgrid,raDeg[0],decDeg[0],earthobs=obscode[0])
    utgrid = BJD_TDB
 
@@ -656,7 +673,10 @@ save,flgrid,lamgrid,bingrid,binfl,binflE,backdiv,$
      utgrid,itimegrid,wavname,$
      ErrGrid,SNR,Divspec,DivspecE,backgrid,$
      Nwavbins,binsizes,binind,binindE,filen,$
-     airmass,altitude,backgrid,header,apkey,$
+     airmass,altitude,header,apkey,$
      focus,$
      filename='data/specdata.sav'
+
+file_copy,'data/specdata.sav',specDataCompressed,/overwrite
+
 end
