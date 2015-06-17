@@ -61,6 +61,7 @@ pro plot_stars,psplot=psplot,tryclean=tryclean,saveclean=saveclean,$
   if tdataUseDate NE usedate then begin
      ;; Time data is not updated, so calculate it
      plot_tim_ser,/noplots
+     restore,'data/timedata.sav'
   endif
   ;; divide all time series by the transit model
   ymodel = quadlc(tplot,planetdat.p,planetdat.b_impact,$
