@@ -222,9 +222,11 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
   hstart = (tstart - tmid)/planetdat.period
   hend = (tend - tmid)/planetdat.period
 
+  restore,'data/used_date.sav'
+  tdataUseDate = usedate ;; save the speclist used date associated with the file
   ;; save the phase, time and planet data in array
   save,tmid,tend,tstart,tplot,hstart,hend,$
-       planetdat,u1parm,u2parm,$
+       planetdat,u1parm,u2parm,tdataUseDate,$
        filename='data/timedata.sav'
 
   ;; try the alternate flux grid

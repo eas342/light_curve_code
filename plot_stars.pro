@@ -54,9 +54,14 @@ pro plot_stars,psplot=psplot,tryclean=tryclean,saveclean=saveclean,$
   ;; get the compiled spectroscopic data
   restore,'data/specdata.sav'
 
+  restore,'data/used_date.sav'
+
   ;; get the time info
   restore,'data/timedata.sav'
-
+  if tdataUseDate NE usedate then begin
+     ;; Time data is not updated, so calculate it
+     plot_tim_ser,/noplots
+  endif
   ;; divide all time series by the transit model
   ymodel = quadlc(tplot,planetdat.p,planetdat.b_impact,$
                   u1parm,u2parm,planetdat.a_o_rstar)
@@ -168,8 +173,10 @@ pro plot_stars,psplot=psplot,tryclean=tryclean,saveclean=saveclean,$
   if n_elements(custYrange) NE 0 then myYrange = custYrange
   if n_elements(custXmargin) EQ 0 then custXmargin = [10,4]
 
-  middle80ref = threshold(yref,mult=0.05)
-  maxyref = middle80ref[1]
+;  middle80ref = threshold([yref,yhost],mult=0,high=0.95)
+  wavthresh = threshold(lamgrid,mult=0,high=0.95)
+  swavpt = where(lamgrid LT wavthresh[1])
+  maxnorm = max([yref[swavpt],yhost[swavpt]],/nan);middle80ref[1]
 
   case 1 of
      keyword_set(noNorm): ystarplot = yhost
@@ -181,7 +188,7 @@ pro plot_stars,psplot=psplot,tryclean=tryclean,saveclean=saveclean,$
         ystarplot = yhost/yref
         yref = fltarr(n_elements(yref))
      end
-     else: ystarplot = yhost/maxyref
+     else: ystarplot = yhost/maxnorm
   endcase
   
   if keyword_set(skipXtitle) then begin
@@ -206,12 +213,12 @@ pro plot_stars,psplot=psplot,tryclean=tryclean,saveclean=saveclean,$
      middle60ref = threshold(yref,mult=0.05)
      yrefNorm = yref/middle60ref[1]
 
-  endif else yrefNorm = yref/maxyref
+  endif else yrefNorm = yref/maxnorm
   oplot,lamgrid[goodp],yrefNorm,color=mycol('blue'),linestyle=3
 
   if n_elements(choose2) GT 0 then begin
-     yhost2 = flgrid[*,0,choose2]/maxyref
-     yref2 = flgrid[*,1,choose2] /maxyref
+     yhost2 = flgrid[*,0,choose2]/maxnorm
+     yref2 = flgrid[*,1,choose2] /maxnorm
      oplot,lamgrid,yhost2,color=mycol('red')
      oplot,lamgrid,yref2,color=mycol('dgreen'),linestyle=3
   endif
@@ -249,7 +256,7 @@ pro plot_stars,psplot=psplot,tryclean=tryclean,saveclean=saveclean,$
      midpt = n_elements(lamgrid)/2
      dataperYpix = (!y.crange[1] - !y.crange[0]) /((!y.window[1] - !y.window[0]) * !d.y_vsize)
      ybump = !D.Y_CH_SIZE * 0.5E * dataperYpix * 0.7E
-     oplot,[lamgrid[goodp[midpt]],xrefText],[yref[midpt]/maxyref,yrefText + ybump],color=mycol('blue')
+     oplot,[lamgrid[goodp[midpt]],xrefText],[yref[midpt]/maxnorm,yrefText + ybump],color=mycol('blue')
   endif else begin
      case 1 of 
         keyword_set(noLegend): print,''
