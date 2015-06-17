@@ -3,7 +3,8 @@ pro multi_night_plots,psplot=psplot,$
                       starRatios=starRatios,fitdepths=fitdepths,$
                       statep=statep,fixrange=fixrange,$
                       indWav=indWav,photometry=photometry,$
-                      differential=differential
+                      differential=differential,$
+                      starplots=starplots
 ;; Goes through all nights in order to plot the different things (such
 ;; as specphot images)
 ;; psplot - save a postcript plot for each night
@@ -19,8 +20,11 @@ pro multi_night_plots,psplot=psplot,$
      keyword_set(photometry): begin
         plotprenm = 'plots/spec_t_series/all_phot'
      end
-     keyword_set(starRatios): begin
+     keyword_set(starplots): begin
         plotprenm = 'plots/individual_spectra/all_indspec'
+     end
+     keyword_set(starRatios): begin
+        plotprenm = 'plots/individual_spectra/all_indspec_ratio'
      end
      else: plotprenm = 'plots/specphot_images/all_specphots'
   endcase
@@ -69,7 +73,7 @@ for i=0l,nNights-1l do begin
          compile_spec,/readC,nwavbins=1,custrange=custwavrange,/specshift,/saveshifts
       end
       else: begin
-         compile_spec,/readC,/specsh,custrange=custwavrange,nwavbins=25
+         compile_spec,/specsh,/readC,custrange=custwavrange,nwavbins=25
       end
    endcase
 
@@ -97,6 +101,9 @@ for i=0l,nNights-1l do begin
       end
       keyword_set(starRatios): begin
          plot_stars,/divide,custyrange=[0.8,2.8],/nolegend,custtitle=usedate
+      end
+      keyword_set(starplots): begin
+         plot_stars,/nolegend,custtitle=usedate,/showb
       end
       keyword_set(statep): begin
          state_parameters,/psplot
