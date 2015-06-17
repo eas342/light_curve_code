@@ -15,7 +15,8 @@ pro plot_tim_ser,fitcurve=fitcurve,fitpoly=fitpoly,usepoly=usepoly,makestops=mak
                  custyrange=custyrange,tryAlt=tryAlt,trycorrect=trycorrect,$
                  secondary=secondary,$
                  presentation=presentation,slitmod=slitmod,fixprof=fixprof,psmooth=psmooth,$
-                 custxrange=custxrange,noplots=noplots,custTitle=custTitle,tmedian=tmedian
+                 custxrange=custxrange,noplots=noplots,custTitle=custTitle,tmedian=tmedian,$
+                 custxmargin=custxmargin,custymargin=custymargin
 ;; plots the binned data as a time series and can also fit the Rp/R* changes
 ;; apPlot -- this optional keyword allows one to choose the aperture
 ;;           to plot
@@ -630,6 +631,7 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
         endif
 
         if keyword_set(custyrange) then ydynam = custyrange
+
         plot,tplot,y,psym=4,$
              xtitle=myXtitle,$
              title=myTitle,$
@@ -637,7 +639,7 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
              yrange=ydynam,ystyle=1,/nodata,xstyle=1,$
              noerase=myNoErase,$
              xtickformat=tickformat,ytickformat=tickformat,$
-             xrange=myXrange,xmargin=[10,3]
+             xrange=myXrange,xmargin=custxmargin,ymargin=custymargin
         if k mod 2 EQ 0 then dataColor=!p.color else dataColor=mycol('red')
         if not keyword_set(differential) then begin
            if keyword_set(showclipping) then begin
