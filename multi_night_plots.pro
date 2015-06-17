@@ -70,10 +70,10 @@ for i=0l,nNights-1l do begin
       end
       keyword_set(statep): begin
          get_profile_widths,/esX
-         compile_spec,/readC,nwavbins=1,custrange=custwavrange,/specshift,/saveshifts
+         compile_spec,/readC,nwavbins=1,custrange=custwavrange,/specshift,/saveshifts,/quickread
       end
       else: begin
-         compile_spec,/specsh,/readC,custrange=custwavrange,nwavbins=25
+         compile_spec,/specsh,/readC,custrange=custwavrange,nwavbins=25,/quickread
       end
    endcase
 
@@ -118,7 +118,7 @@ for i=0l,nNights-1l do begin
                'radius_vs_wavelength/rad_vs_wavl_'+usedate+'.txt'
       end
       keyword_set(differential): begin
-         compile_spec,nwavbins=5,/readc,/specsh
+         compile_spec,nwavbins=5,/readc,/specsh,/quickread
          plot_tim_ser,timebin=40,/singlep,custxrange=[-0.2,0.13],$
                       custsep=0.01,/fitcurve,/kepdiff,/offtranserr,/lind,/diff,legord=1
          spawn,'cp radius_vs_wavelength/radius_vs_wavl.txt '+$
