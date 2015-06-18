@@ -576,6 +576,9 @@ binfl = fltarr(Nwavbins,nfile) ;; binned flux ratio
 binflE = fltarr(Nwavbins,nfile)
 binind = fltarr(Nwavbins,Nap,nfile) ;; individual binned fluxes
 binindE = fltarr(Nwavbins,Nap,nfile)
+binback = fltarr(Nwavbins,Nap,nfile) ;; individual binned background flux
+binbackE = fltarr(Nwavbins,Nap,nfile) ;; individual binned background flux error
+
 
 if keyword_set(molecbin) then begin
    for i=0l,nfile-1l do begin
@@ -619,6 +622,12 @@ endif else begin
                             oreject=sigRejCrit,eArr=yerr2,/silent,errIn=Errgrid[*,k,i])
             binind[*,k,i] = y2
             binindE[*,k,i] = yerr2
+            y3 = avg_series(lamgrid,backgrid[*,k,i],fltarr(Ngpts)+1E,binGrid,$
+                            binsizes,weighted=wavWeights,$
+                            oreject=sigRejCrit,/silent,stdevArr=binbackStDev)
+
+            binback[*,k,i] = y3
+            binbackE[*,k,i] = binbackStDev
          endfor
       endfor
    endelse
@@ -673,7 +682,7 @@ save,flgrid,lamgrid,bingrid,binfl,binflE,backdiv,$
      utgrid,itimegrid,wavname,$
      ErrGrid,SNR,Divspec,DivspecE,backgrid,$
      Nwavbins,binsizes,binind,binindE,filen,$
-     airmass,altitude,header,apkey,$
+     airmass,altitude,header,apkey,binback,binbackE,$
      focus,$
      filename='data/specdata.sav'
 
