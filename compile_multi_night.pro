@@ -20,15 +20,7 @@ if n_elements(noremovelinear) EQ 0 then noremovelinear=0
 nNights = n_elements(listFile)
 
 for i=0l,nNights-1l do begin
-   spawn,'cp '+listFile[i]+' file_lists/current_speclist.txt'
-
-   ;; If it's KIC 1255 data, search for an associated date to
-   ;; recall the MORIS photometry
-   startpos = strpos(listFile[i],'kic1255') + 8
-   if startpos NE -1 then begin
-      useDate = strmid(listFile[i],startpos,9)
-      save,useDate,filename='data/used_date.sav'
-   endif
+   choose_speclist,fchoice=listFile[i]
 
    ;; Get the spectral data, removing linear trends in the time series
 ;   compile_both,/readC,/removelinear,nwavbins=mnwavbins
@@ -37,7 +29,7 @@ for i=0l,nNights-1l do begin
    case 1 of 
       keyword_set(differential): begin
          compile_spec,/readC,removelinear=(1-noremovelinear),nwavbins=nwavbins,/specshift,$
-                      masktelluric=masktelluric,/normalize
+                      masktelluric=masktelluric,/normalize,/quickread
       end
       keyword_set(photonly): begin
          compile_phot,/readC,removelinear=(1-noremovelinear)

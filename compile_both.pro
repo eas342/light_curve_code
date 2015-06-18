@@ -51,7 +51,7 @@ case 1 of
    else: compile_spec,readC=readC,nwavbins=nwavbinsOrig,$
                       masktelluric=masktelluric,removelinear=removelinear,$
                       specshift=specshift,normalize=normalize,$
-                      inject=inject,pretendTransit=pretendTransit
+                      inject=inject,pretendTransit=pretendTransit,/quickread
 endcase
 
 ;; Get the spectral data
