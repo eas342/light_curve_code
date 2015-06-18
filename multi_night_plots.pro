@@ -4,7 +4,7 @@ pro multi_night_plots,psplot=psplot,$
                       statep=statep,fixrange=fixrange,$
                       indWav=indWav,photometry=photometry,$
                       differential=differential,$
-                      starplots=starplots
+                      starplots=starplots,indflux=indflux
 ;; Goes through all nights in order to plot the different things (such
 ;; as specphot images)
 ;; psplot - save a postcript plot for each night
@@ -15,10 +15,14 @@ pro multi_night_plots,psplot=psplot,$
 ;; indWav - show the individual wavelengths
 ;; photometry - just show the photometry
 ;; differential - find the differential spectrum
+;; indflux - show the individual flux
 
   case 1 of
      keyword_set(photometry): begin
         plotprenm = 'plots/spec_t_series/all_phot'
+     end
+     keyword_set(indflux): begin
+        plotprenm = 'plots/spec_t_series/individ_flux'
      end
      keyword_set(starplots): begin
         plotprenm = 'plots/individual_spectra/all_indspec'
@@ -72,6 +76,9 @@ for i=0l,nNights-1l do begin
          get_profile_widths,/esX
          compile_spec,/readC,nwavbins=1,custrange=custwavrange,/specshift,/saveshifts,/quickread
       end
+      keyword_set(indflux): begin
+         compile_spec,nwavbins=1,/readc,/quickread,/specsh,custrange=[0.9,1.2]
+      end
       else: begin
          compile_spec,/specsh,/readC,custrange=custwavrange,nwavbins=25,/quickread
       end
@@ -89,8 +96,6 @@ for i=0l,nNights-1l do begin
    plot_tim_ser,timebin=40,/lind,/offtranserr,/noplots,secondary=secondary,$
                 custXrange=custXrange
 
-
-
    case 1 of
       keyword_set(photometry): begin
          plot_tim_ser,timebin=40,/lind,/offtranserr,secondary=secondary,$
@@ -98,6 +103,9 @@ for i=0l,nNights-1l do begin
                       custyrange=[0.992,1.008]
          ;; use the same variable as custom specphot range
          
+      end
+      keyword_set(indflux): begin
+         plot_tim_ser,/ind,custtitle=usedate,custyrange=[0.9,1.15],secondary=secondary
       end
       keyword_set(starRatios): begin
          plot_stars,/divide,custyrange=[0.8,2.8],/nolegend,custtitle=usedate
