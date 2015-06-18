@@ -7,7 +7,7 @@ pro plot_stars,psplot=psplot,tryclean=tryclean,saveclean=saveclean,$
                showback=showback,directText=directText,custXmargin=custXmargin,$
                custYmargin=custYmargin,skipXtitle=skipXtitle,$
                choose2=choose2,digfilter=digfilter,biggerImage=biggerImage,$
-               rmean=rmean,custtitle=custtitle
+               rmean=rmean,custtitle=custtitle,nobacknorm=nobacknorm
 ;; Plots the reference star and planet host
 ;; spectrum
 ;; psplot -- makes a postscript plot of the RMS spectrum
@@ -26,6 +26,8 @@ pro plot_stars,psplot=psplot,tryclean=tryclean,saveclean=saveclean,$
 ;; normall -- normalize all spectra (both the host star and reference star)
 ;; noNorm - do not normalize spectra
 ;; showback -- show a background spectra
+;; nobacknorm - don't normalize the background by itself so you
+;;              can compare to the stars
 ;; directText -- show the text directly instead of with a legend
 ;; custX/Ymargin - used by double_spec to fine-tune margins
 ;; skipXtitle - skips X title and tick labels, for use by double specphot
@@ -177,7 +179,12 @@ pro plot_stars,psplot=psplot,tryclean=tryclean,saveclean=saveclean,$
 ;  middle80ref = threshold([yref,yhost],mult=0,high=0.95)
   wavthresh = threshold(lamgrid,mult=0,high=0.95)
   swavpt = where(lamgrid LT wavthresh[1])
-  maxnorm = max([yref[swavpt],yhost[swavpt]],/nan);middle80ref[1]
+  scaleData = [yref[swavpt],yhost[swavpt]]
+  if keyword_set(nobacknorm) then begin
+     scaleData = [scaleData,backspec[swavpt]]
+  endif
+     
+  maxnorm = max(scaleData,/nan);middle80ref[1]
 
   case 1 of
      keyword_set(noNorm): ystarplot = yhost
@@ -317,7 +324,9 @@ pro plot_stars,psplot=psplot,tryclean=tryclean,saveclean=saveclean,$
   endif
 
   if keyword_set(showback) then begin
-     oplot,lamgrid,backspec/(10E * median(backspec)),color=mycol('red')
+     if keyword_set(nobacknorm) then bnormFac = maxnorm else bnormFac=(10E * median(backspec))
+     oplot,lamgrid,backspec/bnormFac,color=mycol('red')
+
   endif
 
   if keyword_set(psplot) then begin
