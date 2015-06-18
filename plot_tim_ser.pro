@@ -3,7 +3,8 @@ pro plot_tim_ser,fitcurve=fitcurve,fitpoly=fitpoly,usepoly=usepoly,makestops=mak
                  offtranserr=offtranserr,straightupRMS=straightupRMS,$
                  freelimbquad=freelimbquad,clarlimb=clarlimb,$
                  psplot=psplot,noreject=noreject,differential=differential,$
-                 individual=individual,pngcopy=pngcopy,freeall=freeall,fixall=fixall,$
+                 individual=individual,background=background,ratioback=ratioback,$
+                 pngcopy=pngcopy,freeall=freeall,fixall=fixall,$
                  timebin=timebin,offreject=offreject,showclipping=showclipping,$
                  errorDistb=errorDistb,colorclip=colorclip,quadfit=quadfit,legorder=legorder,$
                  fixrad=fixrad,freelimblin=freelimblin,showDiffAirmass=showDiffairmass,$
@@ -44,7 +45,9 @@ pro plot_tim_ser,fitcurve=fitcurve,fitpoly=fitpoly,usepoly=usepoly,makestops=mak
 ;;                       the all the points in the time series
 ;; differential -- makes a differential measurment the spectrum by
 ;;                 dividing by one of the bins
-;; individual -- plots the individual stars instead of just one at a time
+;; individual -- plots the individual stars instead of just one at a
+;;               time
+;; individual -- plots the stars' backgrounds instead of just one at a time
 ;; pngcopy -- saves an exported PNG file for each PDF plot
 ;; freeall -- frees the limb darkening parameters, a/R*, impact
 ;;            parameter as well
@@ -316,22 +319,48 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
 
      reffactor=0.45E ;; factor to multiply the reference star by
 
-     if keyword_set(individual) then begin
-        y = double(transpose(binind[k,0,*]))
-        yerr = double(transpose(binindE[k,0,*]))
-        y2 = double(transpose(binind[k,1,*])) * reffactor
-        y2err = double(transpose(binindE[k,1,*])) * reffactor
-        yptitle='Flux (DN)'
-        if n_elements(timebin) NE 0 then begin
-           print,"Binning not set up for individual star fluxes"
-           return
-        endif
-
-     endif else begin
-        y = double(transpose(binfl[k,*]))
-        yerr = double(transpose(binfle[k,*]))
-        yptitle='Flux Ratio'
-     endelse
+     case 1 of
+        keyword_set(ratioback): begin
+           y = double(transpose(binback[k,0,*]))
+           yerr = double(transpose(binbackE[k,0,*]))
+           y2 = double(transpose(binback[k,1,*]))
+           y2err = double(transpose(binbackE[k,1,*]))
+           yptitle='Back Ratio'
+           if n_elements(timebin) NE 0 then begin
+              print,"Binning not set up for individual background fluxes"
+              return
+           endif
+           y = y / y2
+        end
+        keyword_set(background): begin
+           y = double(transpose(binback[k,0,*]))
+           yerr = double(transpose(binbackE[k,0,*]))
+           y2 = double(transpose(binback[k,1,*]))
+           y2err = double(transpose(binbackE[k,1,*]))
+           yptitle='Flux (DN)'
+           if n_elements(timebin) NE 0 then begin
+              print,"Binning not set up for individual background fluxes"
+              return
+           endif
+           individual=1
+        end
+        keyword_set(individual): begin
+           y = double(transpose(binind[k,0,*]))
+           yerr = double(transpose(binindE[k,0,*]))
+           y2 = double(transpose(binind[k,1,*])) * reffactor
+           y2err = double(transpose(binindE[k,1,*])) * reffactor
+           yptitle='Flux (DN)'
+           if n_elements(timebin) NE 0 then begin
+              print,"Binning not set up for individual star fluxes"
+              return
+           endif
+        end
+        else: begin
+           y = double(transpose(binfl[k,*]))
+           yerr = double(transpose(binfle[k,*]))
+           yptitle='Flux Ratio'
+        end
+     endcase
 
      if keyword_set(differential) then begin
 ;        DiffInd = 9
