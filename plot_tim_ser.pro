@@ -662,15 +662,18 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
         endif
 
         if keyword_set(custyrange) then ydynam = custyrange
-
-        plot,tplot,y,psym=4,$
-             xtitle=myXtitle,$
-             title=myTitle,$
-             ytitle=yptitle,$
-             yrange=ydynam,ystyle=1,/nodata,xstyle=1,$
-             noerase=myNoErase,$
-             xtickformat=tickformat,ytickformat=tickformat,$
-             xrange=myXrange,xmargin=custxmargin,ymargin=custymargin
+        if (1 - keyword_set(singleplot)) OR k EQ 0 then begin
+           ;; If in regular mode, plot each time, but in singleplot
+           ;; mode, it only should draw axis the first time
+           plot,tplot,y,psym=4,$
+                xtitle=myXtitle,$
+                title=myTitle,$
+                ytitle=yptitle,$
+                yrange=ydynam,ystyle=1,/nodata,xstyle=1,$
+                noerase=myNoErase,xthick=2.5,ythick=2.5,$
+                xtickformat=tickformat,ytickformat=tickformat,$
+                xrange=myXrange,xmargin=custxmargin,ymargin=custymargin
+        endif
         if k mod 2 EQ 0 then dataColor=!p.color else dataColor=mycol('red')
         if not keyword_set(differential) then begin
            if keyword_set(showclipping) then begin
