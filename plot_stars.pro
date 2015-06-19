@@ -66,6 +66,7 @@ pro plot_stars,psplot=psplot,tryclean=tryclean,saveclean=saveclean,$
      restore,'data/timedata.sav'
   endif
   ;; divide all time series by the transit model
+  tplot = find_phase(utgrid)
   ymodel = quadlc(tplot,planetdat.p,planetdat.b_impact,$
                   u1parm,u2parm,planetdat.a_o_rstar)
   divsize = size(DivSpec)
