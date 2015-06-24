@@ -66,7 +66,7 @@ endcase
 
 Nwavbins = 1 ;; photometry!
 if keyword_set(readC) or keyword_set(thphot) then begin
-   bingrid = [0.62] ;; R band photometry from curve
+   bingrid = [0.626] ;; R band photometry from curve
    binsizes = [0.070]
    wavname='r-prime'
    utgrid = bjd
