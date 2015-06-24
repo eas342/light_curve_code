@@ -91,7 +91,7 @@ for i=0l,nNights-1l do begin
       endif else begin
          custSpecPhRange = [-0.1,0.13]
       endelse
-   endif
+   endif else undefine,custSpecPhRange
 
    plot_tim_ser,timebin=40,/lind,/offtranserr,/noplots,secondary=secondary,$
                 custXrange=custXrange
@@ -135,7 +135,7 @@ for i=0l,nNights-1l do begin
       else: begin
          plot_specphot,usebin=usebin,/removel,custtitle=usedate,$
                        custxmargin=[9,0],/skipI,secondary=secondary,$
-                       custyrange=custSpecPhRange
+                       custyrange=custSpecPhRange,thickmarkers=2
       end
    endcase
 
