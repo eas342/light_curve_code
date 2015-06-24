@@ -273,24 +273,26 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
 
   if keyword_set(showmie) then begin
      restore,'data/models/model_mie_lnorm_examples.sav'
-     modNm = ['r=0.1um','r=1.0um']
-     modInd = [0,3]
+     modNm = gparam.slabel
+     modInd = [0,1]
      modCol = mycol(['blue','dgreen'])
      modStyles = [0,1]
      modThick=[1,5]
      nmod = n_elements(modNm)
      for i=0l,nmod-1l do begin
         modelP = where(dat.ev_oplot_ser EQ modInd[i])
-        yplotMod = rescale_model(rad,rade,dat[modelP].d,dat[modelP].wav,wavl)*multiplier
-        oplot,dat[modelP].wav,yplotMod,$
+        yplotMod = rescale_model(rad,rade,dat[modelP].d,dat[modelP].wav,wavl,$
+                                 interpolated=yfitMod)
+        oplot,dat[modelP].wav,yplotmod * multiplier,$
            color=modCol[i],linestyle=modStyles[i],thick=modThick[i]
-        chisQ = total((rad * multiplier - yplotMod)^2/rade^2)
+        chisQ = total((rad - yfitMod)^2/rade^2)
         dof = float(n_elements(rad) - 1)
         chisQN = chisQ / dof
         print,modNm[i],' reduced chi-squared= ',chisQN
+
      endfor
      if keyword_set(psplot) then legSize=0.7 else legsize=1
-     al_legend,['r =0.1um','r =1.0um'],/right,/top,$
+     al_legend,modNm,/right,/top,$
                linestyle=modStyles,color=modCol,charsize=legsize,$
                thick=modThick
   endif
