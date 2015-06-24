@@ -6,7 +6,8 @@ pro plot_specphot,divbymodel=divbymodel,usebin=usebin,removelin=removelin,$
                   backratio=backratio,custxrange=custxrange,custyrange=custyrange,$
                   secondary=secondary,domedian=domedian,ymedian=ymedian,$
                   xmedian=xmedian,$
-                  useclean=useclean,showMod=showMod,custtitle=custtitle
+                  useclean=useclean,showMod=showMod,custtitle=custtitle,$
+                  thickmarkers=thickmarkers
 ;; Makes an image of the spectrophotometry to get a visual sense of
 ;; the transit
 ;; divbymodel -- divide the image by the nominal transit model
@@ -29,6 +30,7 @@ pro plot_specphot,divbymodel=divbymodel,usebin=usebin,removelin=removelin,$
 ;; useclean - use the cleaned time series from plot_tim_ser
 ;; showMod - in useclean mode, show the KIC 1255 transit model
 ;; custtitle - to be displayed as the title
+;; thickmarkers - make egress/ingress markers thickmarkers X thicker
 
   ;; get the time info
 
@@ -276,10 +278,15 @@ pro plot_specphot,divbymodel=divbymodel,usebin=usebin,removelin=removelin,$
   endif
 
   ;; Show ingress and egress
-  oplot,[wavrange[0],wavrange[1]],[hstart,hstart],color=mycol('black'),linestyle=2,thick=6
-  oplot,[wavrange[0],wavrange[1]],[hstart,hstart],color=mycol('yellow'),linestyle=2,thick=3
-  oplot,[wavrange[0],wavrange[1]],[hend,hend],color=mycol('black'),linestyle=2,thick=6
-  oplot,[wavrange[0],wavrange[1]],[hend,hend],color=mycol('yellow'),linestyle=2,thick=3
+  if n_elements(thickmarkers) EQ 0 then thickmarkers=1.0
+  oplot,[wavrange[0],wavrange[1]],[hstart,hstart],color=mycol('black'),linestyle=2,$
+        thick=6 * thickmarkers
+  oplot,[wavrange[0],wavrange[1]],[hstart,hstart],color=mycol('yellow'),linestyle=2,$
+        thick=3 * thickmarkers
+  oplot,[wavrange[0],wavrange[1]],[hend,hend],color=mycol('black'),linestyle=2,$
+        thick=6 * thickmarkers
+  oplot,[wavrange[0],wavrange[1]],[hend,hend],color=mycol('yellow'),linestyle=2,$
+        thick=3 * thickmarkers
   loadct,1
 
   ;; Make an outline for thick axes
