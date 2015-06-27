@@ -4,7 +4,8 @@ pro multi_night_plots,psplot=psplot,$
                       statep=statep,fixrange=fixrange,$
                       indWav=indWav,photometry=photometry,$
                       differential=differential,$
-                      starplots=starplots,indflux=indflux
+                      starplots=starplots,indflux=indflux,$
+                      nightsummary=nightsummary
 ;; Goes through all nights in order to plot the different things (such
 ;; as specphot images)
 ;; psplot - save a postcript plot for each night
@@ -16,6 +17,7 @@ pro multi_night_plots,psplot=psplot,$
 ;; photometry - just show the photometry
 ;; differential - find the differential spectrum
 ;; indflux - show the individual flux
+;; nightsummary - print out a summary of the nights
 
   case 1 of
      keyword_set(photometry): begin
@@ -132,6 +134,24 @@ for i=0l,nNights-1l do begin
          spawn,'cp radius_vs_wavelength/radius_vs_wavl.txt '+$
                'radius_vs_wavelength/diff_spec_'+usedate+'.txt'
       end
+      keyword_set(nightsummary): begin
+         get_profile_widths,/useSaved
+         restore,'data/prof_widths.sav'
+         restore,'data/specdata.sav'
+         if median(utgrid) LT date_conv('2014-07-25T12:00:00.00','JD') then begin
+            ;; Pre-upgrade for detector
+            PSDetect = 0.15E
+         endif else begin
+            PSDetect = 0.1E
+         endelse
+         medSeeing = median(widths * 2.35E * PSdetect) ;; FWHM in arcsec
+         medExpTime = median(itimeGrid) ;; in sec
+         if i EQ 0 then begin
+            openw,1,'data/night_summary.txt'
+            printf,1,'Date','FWHM (arcsec)','T_exp',format='(A12,A10,A10)'
+         endif
+         printf,1,useDate,medSeeing,medExpTime,format='(A12,F10.2,F10.1)'
+      end
       else: begin
          plot_specphot,usebin=usebin,/removel,custtitle=usedate,$
                        custxmargin=[9,0],/skipI,secondary=secondary,$
@@ -144,7 +164,7 @@ for i=0l,nNights-1l do begin
 ;   spawn,'mv plots/specphot_images/specphot_image.png plots/specphot_images/specphot_image_'+usedate+'.png'
 
 endfor
-
+close,1
   if keyword_set(psplot) then begin
      device,/close
      cgPS2PDF,plotprenm+'.eps'

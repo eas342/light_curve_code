@@ -33,6 +33,7 @@ data/mcmc/*/*/*.txt
 data/mcmc/*.sav
 data/simulated_series/*.txt
 data/model_expr.txt
+data/night_summary.txt
 molec_inputs/*bin_locations.txt
 molec_inputs/*.eps
 molec_inputs/*.png
