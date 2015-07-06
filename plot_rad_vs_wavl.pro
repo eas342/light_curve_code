@@ -11,7 +11,8 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
                      filterCurveColor=filterCurveColor,$
                      prevChoices=prevChoices,secondary=secondary,$
                      showAlonso=showalonso,differential=differential,$
-                     custxmargin=custxmargin,showmie=showmie
+                     custxmargin=custxmargin,showmie=showmie,$
+                     kepthick=kepthick
 ;;psplot -- saves a postscript plot
 ;;showstarspec -- shows a star spectrum on the same plot
 ;;nbins -- number of points bo bin in Rp/R*
@@ -46,6 +47,7 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
 ;;                and label is differential)
 ;; custxmargin - custom x margin
 ;; showmie - show representative models for MIE scattering
+;; kepthick - thickness of Kepler dashed line
 
   if keyword_set(showstar) then !x.margin = [9,9] else begin
      if keyword_set(custxmargin) then !x.margin=custxmargin else !x.margin=[10,3]
@@ -434,7 +436,9 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
      if keyword_set(differential) then begin
         refshowP = 0E
      endif else refshowP = multiplier
-     oplot,[0.43,0.88],[1,1] * refshowP,linestyle=2,color=mycol('red')
+     if n_elements(kepthick) EQ 0 then kepthick=1
+     oplot,[0.43,0.88],[1,1] * refshowP,linestyle=2,color=mycol('red'),$
+           thick=kepthick
   endif
 
   if keyword_set(psplot) then begin
