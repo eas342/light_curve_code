@@ -27,7 +27,7 @@ pro state_parameters,reInitialize=reInitialize,psplot=psplot,$
 
 
   paramnames = ["Airmass","FWHM (px)","Relative Position (px)","Individual Flux",$
-                "Spectral Shift (~px)","Voigt a","Slit Model"];"Voigt sigV"]
+                "Spectral Shift (~px)","Voigt a","Slit Model","Voigt sigV"]
   nparams = n_elements(paramnames)
 
   !p.multi=[0,1,nparams+1]
@@ -101,7 +101,7 @@ pro state_parameters,reInitialize=reInitialize,psplot=psplot,$
         "Voigt sigV": begin
            y = ev_sigV(widths[*,apkey[0]],voigts[*,apkey[0]])
            y2 = ev_sigV(widths[*,apkey[1]],voigts[*,apkey[1]])
-           showY2 = 0
+           showY2 = 1
            shorthand = 'voitSig'
         end
         "Slit Model": begin
@@ -153,6 +153,15 @@ pro state_parameters,reInitialize=reInitialize,psplot=psplot,$
         endelse
         statePStruct = create_struct(statePStruct,shorthand,y)
      endelse
+     if shorthand EQ 'slitmodel' then begin
+        zerop = where(y2 EQ 0)
+        if zerop NE [-1] then y2[zerop] = !values.f_nan
+        modRatio = y/y2
+        modRatio = modRatio/median(modRatio)
+        statePstruct = create_struct(statePstruct,'slitModRatio',modRatio)
+     endif
+
+
      myXrange = !x.crange
 
      plot,tplot,y,ytitle=myYtitle,$
