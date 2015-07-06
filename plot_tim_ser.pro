@@ -819,7 +819,7 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
            kphaseS = min(tplot) + findgen(round(np))/np * $
                      (max(tplot,/nan)-min(tplot,/nan))
            keplerF = kepler_func(kphaseS,1E)
-           oplot,kphaseS,keplerF - offset,color=mycol('dgreen'),thick=2
+           oplot,kphaseS,keplerF - offset,color=mycol('dgreen'),thick=4
 
         endif
 
