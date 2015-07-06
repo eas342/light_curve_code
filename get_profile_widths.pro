@@ -302,7 +302,7 @@ pro get_profile_widths,showplot=showplot,jan04corot1=jan04corot1,$
 ;                                               SubarrayX,thick=2,color=mycol('blue')
                     ;; stop
 ;                    oplot,zsubarrayX,zresult,color=mycol('lblue'),thick=thickline
-;                    if j GE 50 then stop
+                    if j GE 50 then stop
                  endelse
               endif
            endfor
