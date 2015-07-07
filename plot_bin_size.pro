@@ -59,6 +59,7 @@ for i=0l,ntbin-1l do begin
    if not keyword_set(wavl) then begin
       bintsizeArr[i] = tsizes[0]
    endif
+   print,i,' of ',ntbin,' done'
 endfor
 
 if keyword_set(wavlmode) then begin
