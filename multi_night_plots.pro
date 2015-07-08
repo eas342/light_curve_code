@@ -101,19 +101,19 @@ for i=0l,nNights-1l do begin
    case 1 of
       keyword_set(photometry): begin
          plot_tim_ser,timebin=40,/lind,/offtranserr,secondary=secondary,$
-                      custXrange=custSpecPhRange,/showkep,custtitle=usedate,$
-                      custyrange=[0.992,1.008]
+                      custXrange=custSpecPhRange,/showkep,custtitle=showdate,$
+                      custyrange=[0.985,1.0045]
          ;; use the same variable as custom specphot range
          
       end
       keyword_set(indflux): begin
-         plot_tim_ser,/ind,custtitle=usedate,custyrange=[0.9,1.15],secondary=secondary
+         plot_tim_ser,/ind,custtitle=showdate,custyrange=[0.9,1.15],secondary=secondary
       end
       keyword_set(starRatios): begin
-         plot_stars,/divide,custyrange=[0.8,2.8],/nolegend,custtitle=usedate
+         plot_stars,/divide,custyrange=[0.8,2.8],/nolegend,custtitle=showdate
       end
       keyword_set(starplots): begin
-         plot_stars,/nolegend,custtitle=usedate,/showb
+         plot_stars,/nolegend,custtitle=showdate,/showb
       end
       keyword_set(statep): begin
          state_parameters,/psplot
@@ -146,14 +146,19 @@ for i=0l,nNights-1l do begin
          endelse
          medSeeing = median(widths * 2.35E * PSdetect) ;; FWHM in arcsec
          medExpTime = median(itimeGrid) ;; in sec
+         restore,'data/timedata.sav'
+         tingress = (hstart - min(tplot)) * planetdat.period * 24D
+         tegress = (max(tplot) - hend) * planetdat.period * 24D
+
          if i EQ 0 then begin
             openw,1,'data/night_summary.txt'
-            printf,1,'Date','FWHM (arcsec)','T_exp',format='(A12,A10,A10)'
+            printf,1,'Date','FWHM (arcsec)','T_exp','T_ingress','T_egress',$
+                   format='(A12,4A10)'
          endif
-         printf,1,useDate,medSeeing,medExpTime,format='(A12,F10.2,F10.1)'
+         printf,1,useDate,medSeeing,medExpTime,tingress,tegress,format='(A12,F10.2,3F10.1)'
       end
       else: begin
-         plot_specphot,usebin=usebin,/removel,custtitle=usedate,$
+         plot_specphot,usebin=usebin,/removel,custtitle=showdate,$
                        custxmargin=[9,0],/skipI,secondary=secondary,$
                        custyrange=custSpecPhRange,thickmarkers=2
       end
