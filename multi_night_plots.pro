@@ -88,11 +88,12 @@ for i=0l,nNights-1l do begin
 
    if strmatch(usedate,'*2014sep03*') then secondary=1 else secondary=0
    if keyword_set(fixRange) then begin
-      if secondary then begin
-         custSpecPhRange = [.37,.55]
-      endif else begin
-         custSpecPhRange = [-0.1,0.13]
-      endelse
+      case 1 of
+         secondary EQ 1: begin
+            custSpecPhRange = [.37,.55]
+         end
+         else: custSpecPhRange = [-0.1,0.13]
+      endcase
    endif else undefine,custSpecPhRange
 
    plot_tim_ser,timebin=40,/lind,/offtranserr,/noplots,secondary=secondary,$
@@ -102,7 +103,7 @@ for i=0l,nNights-1l do begin
       keyword_set(photometry): begin
          plot_tim_ser,timebin=40,/lind,/offtranserr,secondary=secondary,$
                       custXrange=custSpecPhRange,/showkep,custtitle=showdate,$
-                      custyrange=[0.985,1.0045]
+                      custyrange=[0.992,1.008]
          ;; use the same variable as custom specphot range
          
       end

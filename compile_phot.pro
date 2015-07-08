@@ -1,6 +1,7 @@
 pro compile_phot,dec23=dec23,dec29=dec29,readC=readC,removelinear=removelinear,$
                  choosefile=choosefile,thphot=thphot,inject=inject,$
-                 pretendTransit=pretendTransit,hband=hband
+                 pretendTransit=pretendTransit,hband=hband,$
+                 bothband=bothband
 ;; Compiles the MORIS photometry data in the same way as spectra for
 ;; use by other scripts
 ;; dec23 -- look at the dec23 data set (default is jan04)
@@ -13,6 +14,7 @@ pro compile_phot,dec23=dec23,dec29=dec29,readC=readC,removelinear=removelinear,$
 ;; pretendTransit - shifts the time series to simulate the fitting
 ;;                  process on a transit 
 ;; hband - use the H band photometry
+;; bothband - use both the H band and r' band photometry
 
 case 1 of 
    keyword_set(choosefile): begin
@@ -81,6 +83,15 @@ case 1 of
       binsizes = [0.070]
       wavname='r-prime'
       utgrid = bjd
+      if keyword_set(bothband) then begin
+         restore,'../moris_data/reduced_lightc/kic1255_UT2014Aug18_zhao.sav'
+         bingrid = [bingrid,1.63]
+         binsizes = [binsizes,0.307]
+         wavname = [wavname,'H']
+         nextUT = dat.mjd + 2400000.5D
+         nwavbins=nwavbins+1
+      endif
+      
    end
    else: begin
       bingrid = [0.826] ;; Z band photometry from curve
@@ -105,6 +116,13 @@ case 1 of
    keyword_set(readC): begin
       binfl[0,*] = best_flux
       binflE[0,*] = datastruct.err
+      if keyword_set(bothband) then begin
+         tabinv,utgrid,nextUT,nearInd
+         binfl[1,*] = !values.f_nan
+         binflE[1,*] = !values.f_nan
+         binfl[1,nearInd] = dat.flux_normalized
+         binflE[1,nearInd] = dat.flux_err
+      endif
    end
    else: begin
       binfl[0,*] = best_flux
