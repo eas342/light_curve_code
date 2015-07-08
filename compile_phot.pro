@@ -73,19 +73,19 @@ endcase
 Nwavbins = 1 ;; photometry!
 case 1 of
    keyword_set(hband): begin
-      bingrid = [1.63]
+      bingrid = [1.63 - 0.307/2E]
       binsizes = [0.307]
       wavname = ['H']
       utgrid = dat.mjd + 2400000.5D
    end
    keyword_set(readC) or keyword_set(thphot): begin
-      bingrid = [0.626] ;; R band photometry from curve
+      bingrid = [0.626 - 0.07/2E] ;; R band photometry from curve
       binsizes = [0.070]
-      wavname='r-prime'
+      wavname='r'
       utgrid = bjd
       if keyword_set(bothband) then begin
          restore,'../moris_data/reduced_lightc/kic1255_UT2014Aug18_zhao.sav'
-         bingrid = [bingrid,1.63]
+         bingrid = [bingrid,1.63 - 0.307/2E]
          binsizes = [binsizes,0.307]
          wavname = [wavname,'H']
          nextUT = dat.mjd + 2400000.5D
