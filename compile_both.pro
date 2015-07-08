@@ -2,7 +2,7 @@ pro compile_both,dec23=dec23,dec29=dec29,readC=readC,$
                  masktelluric=masktelluric,$
                  removelinear=removelinear,specshift=specshift,$
                  nwavbins=nwavbins,normalize=normalize,pretendTransit=pretendTransit,$
-                 inject=inject
+                 inject=inject,bothband=bothband,custrange=custrange
 ;; Compiles the both MORIS photometry & SpeX data so they can be
 ;; plotted & fit together
 ;; dec23 -- look at the dec23 data set (default is jan04)
@@ -13,6 +13,7 @@ pro compile_both,dec23=dec23,dec29=dec29,readC=readC,$
 ;; pretendTransit - shift the time to simulate what out-of-transit
 ;;                  data looks like in transit
 ;; inject - allows you to inject a transit to see if it is recovered
+;; bothband/custrange - passed on to compile_phot and compile_spec
 
 if n_elements(nwavbins) EQ 0 then nwavbins=9
 
@@ -22,7 +23,7 @@ case 1 of
    keyword_set(dec23): compile_phot,/dec23,readC=readC,removelinear=removelinear
    keyword_set(dec29): compile_phot,/dec29,readC=readC,removelinear=removelinear
    else: compile_phot,readC=readC,removelinear=removelinear,$
-                      inject=inject,pretendTransit=pretendTransit
+                      inject=inject,pretendTransit=pretendTransit,bothband=bothband
 endcase
 
 restore,'data/specdata.sav'
@@ -51,7 +52,8 @@ case 1 of
    else: compile_spec,readC=readC,nwavbins=nwavbinsOrig,$
                       masktelluric=masktelluric,removelinear=removelinear,$
                       specshift=specshift,normalize=normalize,$
-                      inject=inject,pretendTransit=pretendTransit,/quickread
+                      inject=inject,pretendTransit=pretendTransit,/quickread,$
+                      custrange=custrange
 endcase
 
 ;; Get the spectral data
