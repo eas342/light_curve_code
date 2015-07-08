@@ -1,6 +1,6 @@
 pro compile_phot,dec23=dec23,dec29=dec29,readC=readC,removelinear=removelinear,$
                  choosefile=choosefile,thphot=thphot,inject=inject,$
-                 pretendTransit=pretendTransit
+                 pretendTransit=pretendTransit,hband=hband
 ;; Compiles the MORIS photometry data in the same way as spectra for
 ;; use by other scripts
 ;; dec23 -- look at the dec23 data set (default is jan04)
@@ -12,6 +12,7 @@ pro compile_phot,dec23=dec23,dec29=dec29,readC=readC,removelinear=removelinear,$
 ;; inject - for the control night, inject a transit to see if it is recovered
 ;; pretendTransit - shifts the time series to simulate the fitting
 ;;                  process on a transit 
+;; hband - use the H band photometry
 
 case 1 of 
    keyword_set(choosefile): begin
@@ -45,6 +46,9 @@ case 1 of
       bjd = datastruct.bjd_tdb
       best_flux = datastruct.flux
    end
+   keyword_set(hband): begin
+      restore,'../moris_data/reduced_lightc/kic1255_UT2014Aug18_zhao.sav'
+   end
    keyword_Set(thphot): begin
       restore,'../moris_data/reduced_lightc/kic1255_tlh_UT2014.09.04_data.sav'
    end
@@ -65,29 +69,49 @@ endcase
 
 
 Nwavbins = 1 ;; photometry!
-if keyword_set(readC) or keyword_set(thphot) then begin
-   bingrid = [0.626] ;; R band photometry from curve
-   binsizes = [0.070]
-   wavname='r-prime'
-   utgrid = bjd
-endif else begin
-   bingrid = [0.826] ;; Z band photometry from curve
-   binsizes = [0.076]
-   wavname='z-prime'
-   utgrid = bjd + 2400000.5D    ;- 0.0055D
-endelse
+case 1 of
+   keyword_set(hband): begin
+      bingrid = [1.63]
+      binsizes = [0.307]
+      wavname = ['H']
+      utgrid = dat.mjd + 2400000.5D
+   end
+   keyword_set(readC) or keyword_set(thphot): begin
+      bingrid = [0.626] ;; R band photometry from curve
+      binsizes = [0.070]
+      wavname='r-prime'
+      utgrid = bjd
+   end
+   else: begin
+      bingrid = [0.826] ;; Z band photometry from curve
+      binsizes = [0.076]
+      wavname='z-prime'
+      utgrid = bjd + 2400000.5D
+   end
+endcase
 
 
 if keyword_set(pretendTransit) then utgrid = utgrid - 0.3
 
-npoints = n_elements(bjd)
+npoints = n_elements(utgrid)
 
 binfl = fltarr(Nwavbins,npoints) ;; binned flux ratio
 binflE = fltarr(Nwavbins,npoints)
-binfl[0,*] = best_flux
-if keyword_set(readC) then begin
-   binflE[0,*] = datastruct.err
-endif else binflE[0,*] = 1E
+case 1 of
+   keyword_set(hband): begin
+      binfl[0,*] = dat.flux_normalized
+      binflE[0,*] = dat.flux_err
+   end
+   keyword_set(readC): begin
+      binfl[0,*] = best_flux
+      binflE[0,*] = datastruct.err
+   end
+   else: begin
+      binfl[0,*] = best_flux
+      binflE[0,*] = 1E
+   end
+endcase
+
 
 airmass = fltarr(npoints) + 1.E
 altitude = fltarr(npoints) + 90E
