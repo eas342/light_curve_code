@@ -1,0 +1,2 @@
+# Depth from the KSC curve
+0.504
