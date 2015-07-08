@@ -12,7 +12,7 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
                      prevChoices=prevChoices,secondary=secondary,$
                      showAlonso=showalonso,differential=differential,$
                      custxmargin=custxmargin,showmie=showmie,$
-                     kepthick=kepthick
+                     kepthick=kepthick,noconnect=noconnect
 ;;psplot -- saves a postscript plot
 ;;showstarspec -- shows a star spectrum on the same plot
 ;;nbins -- number of points bo bin in Rp/R*
@@ -48,6 +48,7 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
 ;; custxmargin - custom x margin
 ;; showmie - show representative models for MIE scattering
 ;; kepthick - thickness of Kepler dashed line
+;; noconnect - don't connect the spectral points
 
   if keyword_set(showstar) then !x.margin = [9,9] else begin
      if keyword_set(custxmargin) then !x.margin=custxmargin else !x.margin=[10,3]
@@ -200,7 +201,8 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
      oploterror,wavl,rad * multiplier,wavlwidth,radep * multiplier,psym=8,thick=2,/hibar
      oploterror,wavl,rad * multiplier,wavlwidth,radem * multiplier,psym=8,thick=2,/lobar
   endelse
-  if keyword_set(depthkep) then oplot,wavl,rad * multiplier,thick=2,linestyle=0
+  if keyword_set(depthkep) and not keyword_set(noconnect) then $
+     oplot,wavl,rad * multiplier,thick=2,linestyle=0
 
 ;                color=mycol('yellow') 
   
