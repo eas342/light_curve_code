@@ -1,0 +1,9 @@
+file_lists/speclist_kic1255_2013aug13_es_xtract.txt
+#file_lists/speclist_kic1255_2013aug15_es_Xtract.txt
+#file_lists/speclist_kic1255_2013aug17_es_Xtract.txt
+file_lists/speclist_kic1255_2013sep03_es.txt
+file_lists/speclist_kic1255_2014aug14es_xtract.txt
+file_lists/speclist_kic1255_2014aug18_es_xtract.txt
+file_lists/speclist_kic1255_2014sep02es_xtract.txt
+file_lists/speclist_kic1255_2014sep04es_xtract.txt
+#file_lists/speclist_kic1255_2014sep03es_xtract.txt
