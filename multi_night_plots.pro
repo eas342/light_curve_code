@@ -105,7 +105,7 @@ for i=0l,nNights-1l do begin
       keyword_set(photometry): begin
          plot_tim_ser,timebin=40,/lind,/offtranserr,secondary=secondary,$
                       custXrange=custSpecPhRange,/showkep,custtitle=showdate,$
-                      custyrange=[0.985,1.0045],/singlep,/skipreset,custsep=0.007
+                      custyrange=[0.983,1.0045],/singlep,/skipreset,custsep=0.0075
          ;; use the same variable as custom specphot range
          
       end
