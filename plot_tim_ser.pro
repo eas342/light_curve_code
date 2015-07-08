@@ -696,9 +696,7 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
                   /right,/clear
         endif
         if keyword_set(singleplot) then begin
-           if (strpos(wavname[k],'prime') EQ -1 AND $
-               strpos(wavname[k],'In') EQ -1 AND $
-               strpos(wavname[k],'Out') EQ -1 ) then begin
+           if valid_num(wavname[k]) then begin
               wavelabel = wavname[k]+' um'
            endif else begin
               wavelabel = wavname[k]
