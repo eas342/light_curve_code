@@ -11,7 +11,14 @@ spawn,'cp '+fchoice+' file_lists/current_speclist.txt'
 startpos = strpos(fchoice,'kic1255') + 8
 if startpos NE -1 then begin
    useDate = strmid(fchoice,startpos,9)
-endif else useDate = 'NA'
+   dateLength = strlen(useDate)
+   showDate = strmid(useDate,0,4) + ' ' + strupcase(strmid(useDate,4,1)) +$
+              strmid(useDate,5,dateLength - 5)
+
+endif else begin
+   useDate = 'NA'
+   showDate = 'NA'
+end
 SpecListName = fchoice
 
 splitName = strsplit(speclistname,'/',/extract)
@@ -19,6 +26,7 @@ nsplitNames = n_elements(splitName)
 splitFileName = strsplit(splitName[nsplitNames-1],'.',/extract)
 specfileListNamePrefix = splitFileName[0]
 
-save,useDate,SpecListName,specfileListNamePrefix,filename='data/used_date.sav'
+save,useDate,SpecListName,specfileListNamePrefix,showDate,$
+     filename='data/used_date.sav'
 
 end
