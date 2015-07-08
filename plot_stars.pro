@@ -66,6 +66,7 @@ pro plot_stars,psplot=psplot,tryclean=tryclean,saveclean=saveclean,$
      restore,'data/timedata.sav'
   endif
   ;; divide all time series by the transit model
+
   tplot = find_phase(utgrid)
   ymodel = quadlc(tplot,planetdat.p,planetdat.b_impact,$
                   u1parm,u2parm,planetdat.a_o_rstar)
@@ -73,9 +74,9 @@ pro plot_stars,psplot=psplot,tryclean=tryclean,saveclean=saveclean,$
   replicatedmodel = rebin(ymodel,divsize[3],divsize[2],divsize[1])
   rebinmodel = transpose(replicatedmodel,[2,1,0])
   divbycurve = flgrid[*,0,*] / rebinmodel
-
+  
   if keyword_set(wavenum) then lamgrid = 1E4/lamgrid
-
+  
   nwavs = n_elements(lamgrid)
   ntime = n_elements(tplot)
   hostspec = fltarr(nwavs)
@@ -254,8 +255,8 @@ pro plot_stars,psplot=psplot,tryclean=tryclean,saveclean=saveclean,$
   if keyword_set(directText) then begin
      xsize = !x.crange[1] - !x.crange[0]
      ysize = !y.crange[1] - !y.crange[0]
-     xrefText = 0.55E * xsize+!x.crange[0]
-     yrefText = 0.55E * ysize + !y.crange[0]
+     xrefText = 0.65E * xsize+!x.crange[0]
+     yrefText = 0.7E * ysize + !y.crange[0]
      xyouts,0.4E * xsize+!x.crange[0],0.85E * ysize + !y.crange[0],$
             'Planet Host',color=!p.color,charsize=0.7
      xyouts,xrefText,yrefText,$
@@ -265,7 +266,7 @@ pro plot_stars,psplot=psplot,tryclean=tryclean,saveclean=saveclean,$
      midpt = n_elements(lamgrid)/2
      dataperYpix = (!y.crange[1] - !y.crange[0]) /((!y.window[1] - !y.window[0]) * !d.y_vsize)
      ybump = !D.Y_CH_SIZE * 0.5E * dataperYpix * 0.7E
-     oplot,[lamgrid[goodp[midpt]],xrefText],[yref[midpt]/maxnorm,yrefText + ybump],color=mycol('blue')
+     oplot,[lamgrid[goodp[midpt]],xrefText],[yrefNorm[midpt],yrefText + ybump],color=mycol('blue')
   endif else begin
      case 1 of 
         keyword_set(noLegend): print,''
