@@ -72,7 +72,9 @@ for i=0l,nNights-1l do begin
 
    case 1 of
       keyword_set(photometry): begin
-         compile_phot,/readC
+         if strmatch(usedate,'*2014aug18*') then begin
+            compile_phot,/readc,/both
+         endif else compile_phot,/readC
       end
       keyword_set(statep): begin
          get_profile_widths,/esX
@@ -103,7 +105,7 @@ for i=0l,nNights-1l do begin
       keyword_set(photometry): begin
          plot_tim_ser,timebin=40,/lind,/offtranserr,secondary=secondary,$
                       custXrange=custSpecPhRange,/showkep,custtitle=showdate,$
-                      custyrange=[0.992,1.008]
+                      custyrange=[0.985,1.0045],/singlep,/skipreset,custsep=0.007
          ;; use the same variable as custom specphot range
          
       end
