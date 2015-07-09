@@ -12,7 +12,8 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
                      prevChoices=prevChoices,secondary=secondary,$
                      showAlonso=showalonso,differential=differential,$
                      custxmargin=custxmargin,showmie=showmie,$
-                     kepthick=kepthick,noconnect=noconnect
+                     kepthick=kepthick,noconnect=noconnect,$
+                     preset=preset
 ;;psplot -- saves a postscript plot
 ;;showstarspec -- shows a star spectrum on the same plot
 ;;nbins -- number of points bo bin in Rp/R*
@@ -42,6 +43,7 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
 ;; filterCurveColor -- lets you specify the filter curve color
 ;; prevChoices - Use the previous choices for rad_vs_wavl files and
 ;;               legend labels
+;; preset - use a specified file for a preset list of radii files and labels
 ;; secondary - secondary eclipse depth labels (instead of radius)
 ;; differential - goes into differential mode (so reference is zero
 ;;                and label is differential)
@@ -67,12 +69,22 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
   ;; might be
   restore,'data/specdata.sav'
 
-  if keyword_set(prevChoices) then restore,'param_input/rad_file_choices.sav'
+
+  case 1 of
+     keyword_set(prevChoices): restore,'param_input/rad_file_choices.sav'
+     keyword_set(preset): begin
+        prePlData = ev_delim_read(preset,delimiter='|')
+        prevLegNmArr = prePlData.legNm
+        prevRadFarr = prePldata.radf
+     end
+     else:junk=junk
+  endcase
 
   ;; read in the radius versus wavelength file
   case 1 of
      keyword_set(custfile): radfile=custfile
      keyword_set(prevChoices): radfile = prevRadFArr[0]
+     keyword_set(preset): radfile=prevRadFarr[0]
      keyword_set(choosefile): begin
         radfile = choose_file(searchDir='radius_vs_wavelength',$
                               filetype='.txt')
@@ -322,7 +334,7 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
      legnamearr = strarr(totsets)
      print,'Name for file '+radfile+' ?'
      tempnm=''
-     if keyword_set(prevChoices) then begin
+     if keyword_set(prevChoices) or keyword_set(preset) then begin
         tempnm = prevLegNmArr[0]
      endif else read,tempnm,format='(A)'
      legnamearr[0l] = tempnm
@@ -335,7 +347,7 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
   for i=2l,totsets do begin
      ;; If asked to, overplot another Rad/vs wavlength file
      print,'Choose Additional file ',strtrim(i-1l,1)
-     if keyword_set(prevChoices) then begin
+     if keyword_set(prevChoices) or keyword_set(preset) then begin
         file2 = prevRadFarr[i-1]
      endif else file2 = choose_file(searchDir='radius_vs_wavelength',filetype='.txt')
      undefine,radscatter
@@ -374,7 +386,7 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
 
      print,'Legend Name for data from file '+file2+' ?'
      tempnm = ''
-     if keyword_set(prevChoices) then begin
+     if keyword_set(prevChoices) or keyword_set(preset) then begin
         tempnm = prevLegNmArr[i-1]
      endif else read,tempnm,format='(A)'
      legnamearr[i-1l] = tempnm
@@ -440,10 +452,12 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
   if keyword_set(depthkep) then begin
      if keyword_set(differential) then begin
         refshowP = 0E
-     endif else refshowP = multiplier
-     if n_elements(kepthick) EQ 0 then kepthick=1
-     oplot,[0.43,0.88],[1,1] * refshowP,linestyle=2,color=mycol('red'),$
-           thick=kepthick
+     endif else begin
+        refshowP = multiplier
+        if n_elements(kepthick) EQ 0 then kepthick=1
+        oplot,[0.43,0.88],[1,1] * refshowP,linestyle=2,color=mycol('red'),$
+              thick=kepthick
+     endelse
   endif
 
   if keyword_set(psplot) then begin

@@ -10,6 +10,10 @@ case type of
                    /fitcurve,/kepfit,/offtranserr,/lind,custyrange=[0.95,1.01]
       spawn,'open radius_vs_wavelength/radius_vs_wavl.txt'
    end
+   'inddiff': begin
+      plot_rad_vs_wavl,/depthk,custyrange=[-1,1],totsets=6,custxmargin=[7,2],/diff,$
+                       preset='param_input/rad_choices_6_diff.txt'
+   end
    'photonly': begin
       spawn,'cp file_lists/multi_night_6night.txt file_lists/multi_night.txt'
       compile_multi_night,/photonly
