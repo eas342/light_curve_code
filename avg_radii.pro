@@ -62,13 +62,19 @@ pro avg_radii,totsets=totsets,statistics=statistics,psplot=psplot,$
      avgRad = avgRad + diffconst
   endif
 
-  for j=0l,nwavs-1l do begin
-     scatterE[j] = stdev(totrad[j,*])/sqrt(float(totsets))
-  endfor
+  if totsets LE 1 then begin
+     scatterE = fltarr(nwavs) * !values.f_nan
+     scatterName = 'No data to stdev'
+  endif else begin
+     for j=0l,nwavs-1l do begin
+        scatterE[j] = stdev(totrad[j,*])/sqrt(float(totsets))
+        scatterName = 'Scatter Err'
+     endfor
+  endelse
 
   forprint,avgwavl,avgwavlsize,avgrad,avgrade,scatterE,$
            textout='radius_vs_wavelength/avg_rp_rs.txt',$
-           comment='# Wavelength(um)  Bin size     Rp/R*      Rp/R* Error   Scatter Err'
+           comment='# Wavelength(um)  Bin size     Rp/R*      Rp/R* Error   '+scatterName
 
   if keyword_set(statistics) then begin
      if keyword_set(psplot) then begin
