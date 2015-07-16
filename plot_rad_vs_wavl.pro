@@ -210,7 +210,7 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
                 psym=8,thick=2,linestyle=mylinestyle
   endif else begin
      if n_elements(radscatter) NE 0 then begin
-        oploterror,wavl,rad * multiplier,wavlwidth,radscatter * multiplier,psym=8,thick=1,$
+        oploterror,wavl,rad * multiplier,wavlwidth,radscatter * multiplier,psym=8,thick=2,$
                    linestyle=1,errstyle=1,hatlength=!D.X_VSIZE / 50E
      endif
      oploterror,wavl,rad * multiplier,wavlwidth,radep * multiplier,psym=8,thick=2,/hibar
@@ -298,17 +298,25 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
      modStyles = [0,1]
      modThick=[1,5]
      nmod = n_elements(modNm)
-     for i=0l,nmod-1l do begin
-        modelP = where(dat.ev_oplot_ser EQ modInd[i])
-        yplotMod = rescale_model(rad,rade,dat[modelP].d,dat[modelP].wav,wavl,$
-                                 interpolated=yfitMod)
-        oplot,dat[modelP].wav,yplotmod * multiplier,$
-           color=modCol[i],linestyle=modStyles[i],thick=modThick[i]
-        chisQ = total((rad - yfitMod)^2/rade^2)
-        dof = float(n_elements(rad) - 1)
-        chisQN = chisQ / dof
-        print,modNm[i],' reduced chi-squared= ',chisQN
-
+     errMethods = ['Propagated','Scatter Err']
+     ;; If scatter error is calculated, also look at its chi-squared
+     if n_elements(radscatter) EQ 0 then nerrMeth = 1 else nerrMeth = 2
+     for j=0l,nerrMeth-1l do begin
+        if j EQ 0 then errForChisq=rade else errForChisq=radscatter
+        for i=0l,nmod-1l do begin
+           modelP = where(dat.ev_oplot_ser EQ modInd[i])
+           yplotMod = rescale_model(rad,errForChisq,dat[modelP].d,dat[modelP].wav,wavl,$
+                                    interpolated=yfitMod)
+           if j EQ 0 then begin
+              oplot,dat[modelP].wav,yplotmod * multiplier,$
+                    color=modCol[i],linestyle=modStyles[i],thick=modThick[i]
+           endif
+           chisQ = total((rad - yfitMod)^2/errForChisq^2)
+           dof = float(n_elements(rad) - 1)
+           chisQN = chisQ / dof
+           print,modNm[i],' reduced chi-squared= ',chisQN,' (',errMethods[j],')'
+           
+        endfor
      endfor
      if keyword_set(psplot) then legSize=0.7 else legsize=1
      al_legend,modNm,/right,/top,$
@@ -375,7 +383,7 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
                    psym=8,thick=2,color=colorchoices[i-1l]
      endif else begin
         if n_elements(radscatter) NE 0 then begin
-           oploterror,wavl,rad2 * multiplier,wavlwidth2,radscatter * multiplier,psym=8,thick=1,$
+           oploterror,wavl,rad2 * multiplier,wavlwidth2,radscatter * multiplier,psym=8,thick=2,$
                       linestyle=1,errstyle=1,hatlength=!D.X_VSIZE / 50E,color=colorchoices[i-1l]
         endif
         oploterror,wavl2,rad2 * multiplier,wavlwidth2,rade2 * multiplier,psym=8,thick=2,color=colorchoices[i-1l]

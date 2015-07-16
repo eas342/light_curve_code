@@ -1,0 +1,4 @@
+LEGNM| RADF
+String| String
+Time Series Avg|	radius_vs_wavelength/radius_vs_wavl.txt
+Avg Spectra|		radius_vs_wavelength/avg_rp_rs.txt

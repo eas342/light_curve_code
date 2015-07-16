@@ -103,9 +103,12 @@ for i=0l,nNights-1l do begin
 
    case 1 of
       keyword_set(photometry): begin
+         if showdate EQ '2014 Sep03' then showdate = showdate +' (Control)'
+         if showdate EQ '2013 Aug13' then labelKep=1 else labelKep=0
          plot_tim_ser,timebin=40,/lind,/offtranserr,secondary=secondary,$
                       custXrange=custSpecPhRange,/showkep,custtitle=showdate,$
-                      custyrange=[0.983,1.0045],/singlep,/skipreset,custsep=0.0075
+                      custyrange=[0.983,1.0045],/singlep,/skipreset,custsep=0.0075,$
+                      labelKep=labelKep
          ;; use the same variable as custom specphot range
          
       end

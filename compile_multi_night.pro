@@ -29,7 +29,7 @@ for i=0l,nNights-1l do begin
    case 1 of 
       keyword_set(differential): begin
          compile_spec,/readC,removelinear=(1-noremovelinear),nwavbins=nwavbins,/specshift,$
-                      masktelluric=masktelluric,/normalize,/quickread
+                      masktelluric=masktelluric,/normalize;,/quickread
       end
       keyword_set(photonly): begin
          compile_phot,/readC,removelinear=(1-noremovelinear)

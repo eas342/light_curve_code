@@ -17,7 +17,7 @@ pro plot_tim_ser,fitcurve=fitcurve,fitpoly=fitpoly,usepoly=usepoly,makestops=mak
                  secondary=secondary,$
                  presentation=presentation,slitmod=slitmod,fixprof=fixprof,psmooth=psmooth,$
                  custxrange=custxrange,noplots=noplots,custTitle=custTitle,tmedian=tmedian,$
-                 custxmargin=custxmargin,custymargin=custymargin
+                 custxmargin=custxmargin,custymargin=custymargin,labelKep=labelKep
 ;; plots the binned data as a time series and can also fit the Rp/R* changes
 ;; apPlot -- this optional keyword allows one to choose the aperture
 ;;           to plot
@@ -101,6 +101,7 @@ pro plot_tim_ser,fitcurve=fitcurve,fitpoly=fitpoly,usepoly=usepoly,makestops=mak
 ;; noplots - skips all plots (just collects data/fits)
 ;; custTitle - allows you to specify a custom title
 ;; tmedian - do median combining instead of average weighting
+;; labelKep - label the Kepler average light curve
 
 ;sigrejcrit = 6D  ;; sigma rejection criterion
 sigrejcrit = 5D  ;; sigma rejection criterion
@@ -818,7 +819,12 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
                      (max(tplot,/nan)-min(tplot,/nan))
            keplerF = kepler_func(kphaseS,1E)
            oplot,kphaseS,keplerF - offset,color=mycol('dgreen'),thick=4
-
+           if keyword_set(labelKep) then begin
+              kscLabX = (!x.crange[1] - !x.crange[0]) * 0.1 + !x.crange[0]
+              kscLabY = (!y.crange[1] - !y.crange[0]) * 0.5 + !y.crange[0]
+              xyouts,kscLabX,kscLabY,'Kepler 13-Month Avg',color=mycol('dgreen'),$
+                     charsize=0.6
+           endif
         endif
 
         if keyword_set(fitcurve) then begin

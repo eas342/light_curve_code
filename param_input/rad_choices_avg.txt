@@ -1,0 +1,3 @@
+LEGNM| RADF
+String| String
+Avg|	radius_vs_wavelength/avg_rp_rs.txt

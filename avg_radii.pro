@@ -1,5 +1,6 @@
 pro avg_radii,totsets=totsets,statistics=statistics,psplot=psplot,$
-              median=median,scatterErr=scatterErr,diffconst=diffconst
+              median=median,scatterErr=scatterErr,diffconst=diffconst,$
+              preset=preset
 ;;totsets -- optional keyword to specify the number of total sets of
 ;;           data to avg, default is 2
 ;; statistics -- look at the statistics of the variations
@@ -8,12 +9,18 @@ pro avg_radii,totsets=totsets,statistics=statistics,psplot=psplot,$
 ;; scatterErr - use the standard deviation of points to estimate scatter
 ;; diffconst - if averaging differential spectra, you can add a
 ;;             constant to the transit depth
+;; preset - the name of a pre-prepared radius list
 
   if n_elements(totsets) EQ 0 then totsets=2
 
   ;; read in the first radius versus wavelength file
-  radfile = choose_file(searchDir='radius_vs_wavelength',$
+  if keyword_set(preset) then begin
+     prePlData = ev_delim_read(preset,delimiter='|')
+     radfile = prePldata.radf[0]
+  endif else begin
+     radfile = choose_file(searchDir='radius_vs_wavelength',$
                            filetype='.txt')
+  endelse
   ;; Search the radius_vs_wavlength directory for .txt files
 
   readcol,radfile,wavl,wavlsize,rad,rade,skipline=1,format='(F,F,F)'
@@ -29,10 +36,13 @@ pro avg_radii,totsets=totsets,statistics=statistics,psplot=psplot,$
 
   totrad[*,0] = rad
   totrade[*,0] = rade
+
      
   for i=1l,totsets-1l do begin
      print,'Choose Additional file ',strtrim(i-1l,1)
-     file2 = choose_file(searchDir='radius_vs_wavelength',filetype='.txt')
+     if keyword_set(preset) then begin
+        file2 = prePlData.radf[i]
+     endif else file2 = choose_file(searchDir='radius_vs_wavelength',filetype='.txt')
      readcol,file2,wavl2,wavl2size,rad2,rade2,skipline=1,format='(F,F,F)'
      if n_elements(wavl2) NE nwavs then begin
         print,'Different number of wavelength bins in files!'

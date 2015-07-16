@@ -52,7 +52,7 @@ case 1 of
    else: compile_spec,readC=readC,nwavbins=nwavbinsOrig,$
                       masktelluric=masktelluric,removelinear=removelinear,$
                       specshift=specshift,normalize=normalize,$
-                      inject=inject,pretendTransit=pretendTransit,/quickread,$
+                      inject=inject,pretendTransit=pretendTransit,$;/quickread,$
                       custrange=custrange
 endcase
 
