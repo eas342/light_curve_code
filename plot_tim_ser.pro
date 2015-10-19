@@ -17,7 +17,7 @@ pro plot_tim_ser,fitcurve=fitcurve,fitpoly=fitpoly,usepoly=usepoly,makestops=mak
                  secondary=secondary,$
                  presentation=presentation,slitmod=slitmod,fixprof=fixprof,psmooth=psmooth,$
                  custxrange=custxrange,noplots=noplots,custTitle=custTitle,tmedian=tmedian,$
-                 custxmargin=custxmargin,custymargin=custymargin,labelKep=labelKep
+                 custxmargin=custxmargin,custymargin=custymargin,labelKep=labelKep,boot=boot
 ;; plots the binned data as a time series and can also fit the Rp/R* changes
 ;; apPlot -- this optional keyword allows one to choose the aperture
 ;;           to plot
@@ -102,6 +102,7 @@ pro plot_tim_ser,fitcurve=fitcurve,fitpoly=fitpoly,usepoly=usepoly,makestops=mak
 ;; custTitle - allows you to specify a custom title
 ;; tmedian - do median combining instead of average weighting
 ;; labelKep - label the Kepler average light curve
+;; boot - find bootstrap errors instead of mpfit
 
 ;sigrejcrit = 6D  ;; sigma rejection criterion
 sigrejcrit = 5D  ;; sigma rejection criterion
@@ -980,7 +981,11 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
               modelY1 = modelY
               modelX = tplot
            endif else begin
-              result = mpfitexpr(expr,tplot,y,yerr,start,parinfo=pi,perr=punct,/quiet)
+              if keyword_set(boot) then begin
+                 result = boot_mp(expr,tplot,y,yerr,start,parinfo=pi,perr=punct,/quiet)
+              endif else begin
+                 result = mpfitexpr(expr,tplot,y,yerr,start,parinfo=pi,perr=punct,/quiet)
+              endelse
               modelPts = 512l
               ntpoints = n_elements(tplot)
               modelY = expression_eval(expr,tplot,result)
