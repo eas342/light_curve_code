@@ -5,7 +5,7 @@ pro multi_night_plots,psplot=psplot,$
                       indWav=indWav,photometry=photometry,$
                       differential=differential,$
                       starplots=starplots,indflux=indflux,$
-                      nightsummary=nightsummary
+                      nightsummary=nightsummary,boot=boot
 ;; Goes through all nights in order to plot the different things (such
 ;; as specphot images)
 ;; psplot - save a postcript plot for each night
@@ -18,6 +18,7 @@ pro multi_night_plots,psplot=psplot,$
 ;; differential - find the differential spectrum
 ;; indflux - show the individual flux
 ;; nightsummary - print out a summary of the nights
+;; boot - use bootstrap errors
 
   case 1 of
      keyword_set(photometry): begin
@@ -136,9 +137,10 @@ for i=0l,nNights-1l do begin
       keyword_set(differential): begin
          compile_spec,nwavbins=5,/readc,/specsh,/quickread
          plot_tim_ser,timebin=40,/singlep,custxrange=[-0.2,0.13],$
-                      custsep=0.01,/fitcurve,/kepdiff,/offtranserr,/lind,/diff,legord=1
+                      custsep=0.01,/fitcurve,/kepdiff,/offtranserr,/lind,/diff,legord=1,boot=boot
+         if keyword_set(boot) then addDescrip='boot_' else addDescrip=''
          spawn,'cp radius_vs_wavelength/radius_vs_wavl.txt '+$
-               'radius_vs_wavelength/diff_spec_'+usedate+'.txt'
+               'radius_vs_wavelength/'+addDescrip+'diff_spec_'+usedate+'.txt'
       end
       keyword_set(nightsummary): begin
          get_profile_widths,/useSaved
