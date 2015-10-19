@@ -1,0 +1,4 @@
+LEGNM| RADF
+String| String
+mpfit Covar|		radius_vs_wavelength/radius_vs_wavl.txt
+Bootstrap|		radius_vs_wavelength/radius_vs_wavl_boot.txt
