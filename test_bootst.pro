@@ -29,11 +29,11 @@ print,'True',true,format=sigFormat
 print,'InSig',fltarr(n_elements(true)),format=sigFormat
 print,' '
 
-print,'Uncertainties:'
-print,'MPFIT',result,format=sigFormat
-print,'MP+/-',mperr,format=sigFormat
-print,'Boot+/-',perr,format=sigFormat
-
+;print,'Uncertainties:'
+;print,'MPFIT',result,format=sigFormat
+;print,'MP+/-',mperr,format=sigFormat
+;print,'Boot+/-',perr,format=sigFormat
+;
 
 if keyword_set(showp) then genplot,dat,gparam=gparam
 
