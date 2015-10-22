@@ -8,17 +8,27 @@ spawn,'cp '+fchoice+' file_lists/current_speclist.txt'
 
 ;; If it's KIC 1255 data, search for an associated date to
 ;; recall the MORIS photometry
-startpos = strpos(fchoice,'kic1255') + 8
-if startpos NE -1 then begin
-   useDate = strmid(fchoice,startpos,9)
-   dateLength = strlen(useDate)
-   showDate = strmid(useDate,0,4) + ' ' + strupcase(strmid(useDate,4,1)) +$
-              strmid(useDate,5,dateLength - 5)
 
-endif else begin
-   useDate = 'NA'
-   showDate = 'NA'
-end
+case 1 of
+   strpos(fchoice,'kic1255') NE -1: begin
+      startpos = strpos(fchoice,'kic1255') + 8
+      useDate = strmid(fchoice,startpos,9)
+      dateLength = strlen(useDate)
+      showDate = strmid(useDate,0,4) + ' ' + strupcase(strmid(useDate,4,1)) +$
+                 strmid(useDate,5,dateLength - 5)
+   end
+   strpos(fchoice,'corot2') NE -1: begin
+      startpos = strpos(fchoice,'corot2') + 7
+      usedate = strmid(fchoice,startpos,10)
+      showdate = strjoin(strsplit(usedate,'_',/extract),'-')
+
+   end
+   else: begin
+      useDate = 'NA'
+      showDate = 'NA'
+   end
+endcase
+
 SpecListName = fchoice
 
 splitName = strsplit(speclistname,'/',/extract)
