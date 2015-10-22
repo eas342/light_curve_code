@@ -1006,7 +1006,7 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
               nomRadResult = mpfitexpr(expr,tplot,y,yerr,start,parinfo=pi)
               modelY2 = expression_eval(expr,modelX,nomRadResult)
               oplot,modelX,modelY2,color=mycol('orange'),thick=2
-              legend,['Best-Fit Radius','Nominal Radius'],$
+              al_legend,['Best-Fit Radius','Nominal Radius'],$
                      linestyle=[0,0],color=mycol(['blue','orange']),$
                      thick=[2,2],/clear
            endif
