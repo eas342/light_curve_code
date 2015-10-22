@@ -22,7 +22,7 @@ case 1 of
       restore,custfile
    end
    keyword_set(readC): begin
-      restore,'../../../Documents/kic1255/extracted_photometry/zhao_photometry/kic1255_npoly2.idl'
+      restore,'../../../../single_systems/kic1255/extracted_photometry/zhao_photometry/kic1255_npoly2.idl'
       restore,'data/used_date.sav'
       case useDate of 
          '2013aug13': datastruct = data0813
@@ -43,6 +43,9 @@ case 1 of
          end
          '2014aug18': begin
             restore,'../moris_data/reduced_lightc/kic1255_tlh_UT2014.08.18_data.sav'
+         end
+         '2012_07_04': begin
+            restore,'../../../../single_systems/corot2/04jul12_spex_moris_corot2b_primary/MORIS/corot2_moris_faint_ref.sav'
          end
       endcase
       bjd = datastruct.bjd_tdb
