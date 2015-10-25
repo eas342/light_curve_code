@@ -934,7 +934,7 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
               pi[11].limited = [1,1]
 ;              pi[11].limits = [-0.05,0.05]
               pi[11].limits = [-0.1,0.1]
-              start[11] = 0.03
+              start[11] = 0.00
            endif
            
            ;; Details of slit model adjustments (making them free)
@@ -1118,6 +1118,14 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
      forprint,bingridmiddle[*],binsizes,plrad,plrade,$
               textout='radius_vs_wavelength/radius_vs_wavl.txt',$
               comment='#Wavelength(um) Binsize (um)  Rp/R*   Rp/R* Error',/silent
+
+     depth = plrad^2 * 1E6
+     depthErrP = (plrad + plrade)^2 * 1E6 - depth
+     depthErrM = depth - (plrad - plrade)^2 * 1E6 
+     
+     forprint,bingridmiddle[*],binsizes,depth,depthErrP,depthErrM,$
+              textout='radius_vs_wavelength/depth_vs_wavl.txt',$
+              comment='#Wavelength(um) Binsize (um)  Depth (ppm)   Depth Error+(ppm), Depth Error-(ppm)',/silent
      
      ;; Save the parameters to file
      for j=0l,nparams-1l do begin
