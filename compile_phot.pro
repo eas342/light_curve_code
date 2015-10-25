@@ -82,9 +82,15 @@ case 1 of
       utgrid = dat.mjd + 2400000.5D
    end
    keyword_set(readC) or keyword_set(thphot): begin
-      bingrid = [0.626 - 0.07/2E] ;; R band photometry from curve
-      binsizes = [0.070]
-      wavname='r'
+      if not ev_tag_exist(datastruct,'filter') then begin
+         binsizes = [0.070]
+         bingrid = [0.626 - binsizes[0]/2E] ;; R band photometry from curve
+         wavname='r'
+      endif else begin
+         binsizes = [datastruct.filt_width]
+         bingrid = datastruct.filt_cen - binsizes[0]/2E
+         wavname=datastruct.filter
+      endelse
       utgrid = bjd
       if keyword_set(bothband) then begin
          restore,'../moris_data/reduced_lightc/kic1255_UT2014Aug18_zhao.sav'
