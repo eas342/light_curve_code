@@ -18,6 +18,15 @@ case type of
                    deletePS=0
       kic1255_mult
    end
+   'diffcontrol': begin
+      choose_speclist,fchoice='file_lists/speclist_kic1255_2014sep03es_xtract_short.txt'
+;      compile_both,/readc,nwavbins=5,/pretend,inject=0
+      compile_spec,/readc,nwavbins=5,/pretend,inject=0
+      plot_tim_ser,timebin=40,/singlep,custxrange=[-0.2,0.13],$
+                   custsep=0.02,/fitcurve,/kepdiff,/offtranserr,/lind,$
+                   deletePS=0,/diff
+      kic1255_mult
+   end
    'controlboot': begin
       choose_speclist,fchoice='file_lists/speclist_kic1255_2014sep03es_xtract_short.txt'
       compile_both,/readc,nwavbins=5,/pretend,inject=0
