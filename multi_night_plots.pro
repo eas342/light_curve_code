@@ -5,7 +5,7 @@ pro multi_night_plots,psplot=psplot,$
                       indWav=indWav,photometry=photometry,$
                       differential=differential,$
                       starplots=starplots,indflux=indflux,$
-                      nightsummary=nightsummary,boot=boot
+                      nightsummary=nightsummary,boot=boot,stser=stser
 ;; Goes through all nights in order to plot the different things (such
 ;; as specphot images)
 ;; psplot - save a postcript plot for each night
@@ -19,8 +19,12 @@ pro multi_night_plots,psplot=psplot,$
 ;; indflux - show the individual flux
 ;; nightsummary - print out a summary of the nights
 ;; boot - use bootstrap errors
+;; stser - SpeX time series
 
   case 1 of
+     keyword_set(stser): begin
+        plotprenm = 'plots/spec_t_series/all_spex'
+     end
      keyword_set(photometry): begin
         plotprenm = 'plots/spec_t_series/all_phot'
      end
@@ -77,12 +81,15 @@ for i=0l,nNights-1l do begin
             compile_phot,/readc,/both
          endif else compile_phot,/readC
       end
+      keyword_set(stser): begin
+         compile_spec,/readC,nwavbins=5,custrange=custwavrange,/specsh
+      end
       keyword_set(statep): begin
          get_profile_widths,/esX
          compile_spec,/readC,nwavbins=1,custrange=custwavrange,/specshift,/saveshifts,/quickread
       end
       keyword_set(indflux): begin
-         compile_spec,nwavbins=1,/readc,/quickread,/specsh,custrange=[0.9,1.2]
+         compile_spec,nwavbins=5,/readc,/quickread,/specsh;,custrange=[0.9,1.2]
       end
       else: begin
          compile_spec,/specsh,/readC,custrange=custwavrange,nwavbins=25,/quickread
@@ -100,7 +107,7 @@ for i=0l,nNights-1l do begin
    endif else undefine,custSpecPhRange
 
    plot_tim_ser,timebin=40,/lind,/offtranserr,/noplots,secondary=secondary,$
-                custXrange=custXrange
+                custXrange=custSpecPhRange
 
    case 1 of
       keyword_set(photometry): begin
@@ -113,8 +120,14 @@ for i=0l,nNights-1l do begin
          ;; use the same variable as custom specphot range
          
       end
+      keyword_set(stser): begin
+         if i EQ 3 - 1 then skipwavl=0 else skipwavl=1
+         plot_tim_ser,timebin=40,/lind,/offtranserr,secondary=secondary,skipwavl=skipwavl,$
+                      custXrange=custSpecPhRange,/singlep,/skipreset;t,/diff,custsep=0.025
+      end
       keyword_set(indflux): begin
-         plot_tim_ser,/ind,custtitle=showdate,custyrange=[0.9,1.15],secondary=secondary
+         plot_tim_ser,/ind,custtitle=showdate,secondary=secondary,$
+                      /singlep,/skipreset,custsep=0.05 ;custyrange=[0.9,1.15],
       end
       keyword_set(starRatios): begin
          plot_stars,/divide,custyrange=[0.8,2.8],/nolegend,custtitle=showdate
