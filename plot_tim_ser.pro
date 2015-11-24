@@ -17,7 +17,8 @@ pro plot_tim_ser,fitcurve=fitcurve,fitpoly=fitpoly,usepoly=usepoly,makestops=mak
                  secondary=secondary,$
                  presentation=presentation,slitmod=slitmod,fixprof=fixprof,psmooth=psmooth,$
                  custxrange=custxrange,noplots=noplots,custTitle=custTitle,tmedian=tmedian,$
-                 custxmargin=custxmargin,custymargin=custymargin,labelKep=labelKep,boot=boot
+                 custxmargin=custxmargin,custymargin=custymargin,labelKep=labelKep,boot=boot,$
+                 skipwavl=skipwavl
 ;; plots the binned data as a time series and can also fit the Rp/R* changes
 ;; apPlot -- this optional keyword allows one to choose the aperture
 ;;           to plot
@@ -103,6 +104,7 @@ pro plot_tim_ser,fitcurve=fitcurve,fitpoly=fitpoly,usepoly=usepoly,makestops=mak
 ;; tmedian - do median combining instead of average weighting
 ;; labelKep - label the Kepler average light curve
 ;; boot - find bootstrap errors instead of mpfit
+;; skipwavl - skip the wavelength label
 
 ;sigrejcrit = 6D  ;; sigma rejection criterion
 sigrejcrit = 5D  ;; sigma rejection criterion
@@ -692,12 +694,12 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
            endelse 
         endif
         if keyword_set(individual) then begin
-           oplot,tplot,y2,psym=4,color=mycol('blue')
+           oplot,tplot,y2 - offset,psym=4,color=mycol('blue')
            al_legend,['Planet Host','Reference Star'],$
                   psym=[4,4],color=mycol(['black','blue']),$
                   /right,/clear
         endif
-        if keyword_set(singleplot) then begin
+        if keyword_set(singleplot) and not keyword_set(skipwavl) then begin
            if valid_num(wavname[k]) then begin
               wavelabel = wavname[k]+' um'
            endif else begin
@@ -1005,7 +1007,7 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
               pi[0].fixed = 1 ;; fix the radius
               nomRadResult = mpfitexpr(expr,tplot,y,yerr,start,parinfo=pi)
               modelY2 = expression_eval(expr,modelX,nomRadResult)
-              oplot,modelX,modelY2,color=mycol('orange'),thick=2
+              oplot,modelX,modelY2 - offset,color=mycol('orange'),thick=2
               al_legend,['Best-Fit Radius','Nominal Radius'],$
                      linestyle=[0,0],color=mycol(['blue','orange']),$
                      thick=[2,2],/clear
