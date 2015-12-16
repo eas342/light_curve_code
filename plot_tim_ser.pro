@@ -566,7 +566,7 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
         endif
      endif
 
-     if total(finite(y)) GT 2 and total(finite(yerr)) GT 2 and not keyword_set(noplots) then begin
+     if total(finite(y)) GT 2 and total(finite(yerr)) GT 2 then begin
         ;; if keyword set, replace the error w/ the off transit stddev
 
         ;find the range where 95% or more of the points are shown
@@ -608,497 +608,498 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
         print,'Frac lin corr robust sigma for ',wavname[k],': ',fracRMSarr[k]
         ;; Show the off transit fit
 ;        oplot,tplot,fity[0] + fity[1]*tplot,color=mycol('red')
-
-        if keyword_set(offtranserr) then begin
-
-           if keyword_set(straightupRMS) then begin
-              rstdevOff = robust_sigma(y[offp])
-           endif else rstdevOff = robust_sigma(Offresid)
-           yerr = fltarr(n_elements(goodp)) + rstdevOff
-        endif
-
-        if keyword_set(psplot) and (not keyword_set(singleplot) OR k EQ 0)  then begin
-           plotnmpre = 'plots/spec_t_series/tser_'+wavname[k]
-           device,encapsulated=1, /helvetica,$
-                  filename=plotnmpre+'.eps'
-           if keyword_set(singleplot) then begin
-              device,xsize=PSSingleXsize, ysize=PSSingleYsize,decomposed=1,/color
-           endif else device,xsize=PSplotXsize, ysize=PSplotYsize,decomposed=1,/color
-        endif
-;        plot,tplot,y,psym=2,$
-        custXrange=[-0.1,0.1]
-        if keyword_set(singleplot) then begin
-           if k EQ 0 then begin
-              ;; Set up everything for the first time plot
-              myNoerase=0
-              yptitle= yptitle + ' + Offset'
-              myXtitle='Orbital Phase'
-              tickformat=''
-              myXrange=[min(tplot),max(tplot)+0.25*(max(tplot)-min(tplot))]
-              ;; If it's Dec 23, make an adjustment to avoid
-              ;; squishing numbers
-              if myXrange[0] GT -0.06254 and myXrange[0] LE -0.0625 and $
-                 myXrange[1] GT 0.0954 and myXrange[1] LE 0.09542 then myXrange=[-0.07,0.1]
-           endif else begin
-              ;; Set up for subsequent plots
-              myNoerase=1
-              yptitle=''
-              myXtitle=''
-              tickformat='(A1)'
-           endelse
-           if n_elements(custSep) EQ 0 then begin
-              if keyword_set(differential) then spacing = 0.08E else begin
-                 spacing=separationA[0]
-              endelse
-           endif else spacing = custSep
-           ydynam=[1E - spacing * (1+Nwavbins),1+spacing]
-           offset = k * spacing
-           myTitle=''
-        endif else begin
-           myNoErase=0
-           offset = 0
-           myTitle=wavname[k]+' um Flux'
-           tickformat=''
-           myXtitle='Orbital Phase'
-        endelse
-        if keyword_set(custTitle) then begin
-           myTitle = custTitle
-        endif
-
-        if keyword_set(custyrange) then ydynam = custyrange
-        if (1 - keyword_set(singleplot)) OR k EQ 0 then begin
-           ;; If in regular mode, plot each time, but in singleplot
-           ;; mode, it only should draw axis the first time
-           plot,tplot,y,psym=4,$
-                xtitle=myXtitle,$
-                title=myTitle,$
-                ytitle=yptitle,$
-                yrange=ydynam,ystyle=1,/nodata,xstyle=1,$
-                noerase=myNoErase,xthick=2.5,ythick=2.5,$
-                xtickformat=tickformat,ytickformat=tickformat,$
-                xrange=myXrange,xmargin=custxmargin,ymargin=custymargin
-        endif
-        if k mod 2 EQ 0 then dataColor=!p.color else dataColor=mycol('red')
-        if not keyword_set(differential) then begin
-           if keyword_set(showclipping) then begin
-              oplot,tplot,y,psym=5,color=mycol('red') ;; original data
-              oplot,tplotdivcurves,divbycurve,psym=4  ;; divided by light curve
-              oplot,tplot,yfit,color=mycol('blue')    ;; fitted line to curve
-           endif else begin
-              if n_elements(timebin) EQ 0 then begin
-                 oplot,tplot,y-offset,psym=4,color=dataColor
-              endif else begin
-                 oploterror,tplot,y-offset,tsizes/2E,yerr,psym=3,$
-                            hatlength=0,thick=2,color=dataColor
-              endelse
-           endelse 
-        endif
-        if keyword_set(individual) then begin
-           oplot,tplot,y2 - offset,psym=4,color=mycol('blue')
-           al_legend,['Planet Host','Reference Star'],$
-                  psym=[4,4],color=mycol(['black','blue']),$
-                  /right,/clear
-        endif
-        if keyword_set(singleplot) and not keyword_set(skipwavl) then begin
-           if valid_num(wavname[k]) then begin
-              wavelabel = wavname[k]+' um'
-           endif else begin
-              wavelabel = wavname[k]
-           endelse
-           xyouts,!x.crange[1]-0.1*(!x.crange[1]-!x.crange[0]),$
-                  median(y)-offset,$
-                  [wavelabel],alignment=0.5
-        endif
-        ;; print the stdev for y for off points
-;        print,'Fractional off transit Stdev in F for ',wavname,': ',stddev(y[offp])/mean(y[offp])
-;        print,'Fractional off transit Robust sigma for ',wavname,': ',robust_sigma(y[offp])/median(y[offp])
-        ;; try fitting the off transit to a function first
-
-        ;; show the transit epochs
-        drawy = [!y.crange[0],!y.crange[1]]
-        oplot,[hstart,hstart],drawy,color=mycol('brown'),linestyle=2
-        oplot,[hend,hend],drawy,color=mycol('brown'),linestyle=2
-
-        ;; Show the jump point
-        if keyword_set(showjump) then begin
-           tjumpJD = date_conv('2013-08-15T09:39.00','J')
-           tjump = (tjumpJD - tmid)/planetdat.period
-           tjump = tjump mod 1D
-           plots,[tjump,tjump],drawy,color=mycol('red'),thick=2,linestyle=2
-        endif
-
-        ;; show the off-transit fit for differential measurements (as
-        if keyword_set(differential) then begin
-           if not keyword_set(fitcurve) then begin
-                 ;; long as fits aren't being performed)
-                 
-              if keyword_set(quadfit) then begin
-                 oplot,tplot,(result[0] + result[1] *tplot + result[2] * tplot^2)-offset,$
-                       thick=2,color=mycol('blue')
-              endif else begin
-                 oplot,tplot,(fitY[0] + fitY[1] *tplot)-offset,thick=2,color=mycol('blue')
-              endelse
+        if not keyword_set(noplots) then begin
+           if keyword_set(offtranserr) then begin
+              
+              if keyword_set(straightupRMS) then begin
+                 rstdevOff = robust_sigma(y[offp])
+              endif else rstdevOff = robust_sigma(Offresid)
+              yerr = fltarr(n_elements(goodp)) + rstdevOff
            endif
-           if n_elements(timebin) EQ 0 then tsizes = fltarr(n_elements(tplot)) + tplot[1]-tplot[0]
-           oploterror,tplot,y-offset,tsizes/2E,yerr,psym=3,hatlength=0,thick=2,$
-                      color=dataColor
-        endif
-        ;;plot the clipped points
-        if keyword_set(colorclip) then begin
-           if throwaways NE [-1] then oplot,tclip1,yclip1,psym=6,color=mycol('blue')
-           if throwaways2 NE [-1] then oplot,tclip2,yclip2,psym=5,color=mycol('blue')
-        endif
-        if keyword_set(makestops) then stop
-        
-        if keyword_set(errorDistb) then begin
-           if keyword_set(psplot) then begin
-              device,/close
-              device,decomposed=0
-              cgPS2PDF,plotnmpre+'.eps',$
-                       delete_ps=deletePS
-              if keyword_set(pngcopy) then begin
-                 spawn,'convert -density 160% '+plotnmpre+'.pdf '+plotnmpre+'.png'
-              endif
-              plotnmpre = 'plots/error_distrib/error_hist_'+wavname[k]
+           
+           if keyword_set(psplot) and (not keyword_set(singleplot) OR k EQ 0)  then begin
+              plotnmpre = 'plots/spec_t_series/tser_'+wavname[k]
               device,encapsulated=1, /helvetica,$
                      filename=plotnmpre+'.eps'
-              device,xsize=PSplotXsize, ysize=PSplotYsize,decomposed=1,/color
-
+              if keyword_set(singleplot) then begin
+                 device,xsize=PSSingleXsize, ysize=PSSingleYsize,decomposed=1,/color
+              endif else device,xsize=PSplotXsize, ysize=PSplotYsize,decomposed=1,/color
            endif
-           binsize=0.25E
-           plothist,nombysigma,xhist,yhist,bin=binsize,$ ;; show error distribution
-                    ytitle='Number of Points',$
-                    xtitle='(Flux - median)/Robust Sigma'
-           xgaussian = findgen(100)/(100E - 1E) * (!x.crange[1] - !x.crange[0])+$
-                       !x.crange[0]
-           totY = total(yhist)*binsize
-           ygaussian = gaussian(xgaussian,[totY/sqrt(2E * !DPI),0,1])
-           oplot,xgaussian,ygaussian,color=mycol('red')
-
-        endif
-
-        if keyword_set(showmcmc) then begin
-           if wavname[k] EQ 'z-prime' then begin
-              change_kernels,kernchoice[0]
-           endif else begin
-              change_kernels,kernchoice[1]
-           endelse
-           nmcmcPars = n_elements(mcmcPars[0,*])
-           mcmcShowP = 350
-           phaseShow = findgen(mcmcshowP)/float(mcmcShowP) * (max(tplot)-min(tplot)) + min(tplot)
-           ;; First find the mean function with expression evaluation
-           meanfunctest = expression_eval(modelExpr,phaseShow,transpose(mcmcPars[k,0:8]))
-           ;oplot,phaseShow,meanfunctest-offset,color=mycol('blue'),thick=2
-           ;; Find the residual vector
-           meanfuncdat = expression_eval(modelExpr,tplot,transpose(mcmcPars[k,0:8]))
-           mcmcResid = y - meanfuncdat
-           ;; Find the inverse covariance matrix using the likelihood
-           ;; function which also needs the inverse covariance matrix
-           likeL = ev_leval([transpose(mcmcPars[k,9:nmcmcPars-1]),0],x=tplot,yin=y,yerr=yerr,Cinv=Cinv)
-           mcmcModel = fltarr(n_elements(phaseShow))
-           for m=0l,mcmcShowP-1l do begin
-              columnvec = cov_kernel(phaseShow[m] - tplot,transpose(mcmcpars[k,9:nmcmcPars-1]))
-              mcmcModel[m] = meanfunctest[m] + columnvec ## Cinv ## transpose(mcmcResid)
-           endfor
-           oplot,phaseShow,mcmcModel-offset,color=mycol('blue'),thick=2
-
-           ;; Calculate a Chi-squared, even if it's not the
-           ;; right thing
-           mcmcModelmatch = fltarr(n_elements(y)) ;; match the # of points (1 model pt per data pt)
-           for m=0l,n_elements(y)-1l do begin
-              columnvec = cov_kernel(tplot[m] - tplot,transpose(mcmcpars[k,9:nmcmcPars-1]))
-              mcmcModelmatch[m] = meanfuncdat[m] + columnvec ## Cinv ## transpose(mcmcResid)
-           endfor
-           pseudoresids = (mcmcModelmatch - y) ;; sort of like the residuals
-           pseudochisquare = total((pseudoresids/yerr)^2)
-           print,'Psuedo Chi-square = ',pseudochisquare
-           if keyword_set(showNommcmc) then oplot,tplot,meanfuncdat-offset,color=mycol('green')
-        endif
-
-        if keyword_set(showKep) then begin
-           ;; Show the Kepler Light Curve
-           np = 1024E
-           kphaseS = min(tplot) + findgen(round(np))/np * $
-                     (max(tplot,/nan)-min(tplot,/nan))
-           keplerF = kepler_func(kphaseS,1E)
-           oplot,kphaseS,keplerF - offset,color=mycol('dgreen'),thick=4
-           if keyword_set(labelKep) then begin
-              kscLabX = (!x.crange[1] - !x.crange[0]) * 0.1 + !x.crange[0]
-              kscLabY = (!y.crange[1] - !y.crange[0]) * 0.5 + !y.crange[0]
-              xyouts,kscLabX,kscLabY,'Kepler 13-Month Avg',color=mycol('dgreen'),$
-                     charsize=0.6
-           endif
-        endif
-
-        if keyword_set(fitcurve) then begin
-           ;; fit the data curve
-           start=double([planetdat.p,planetdat.b_impact,u1parm,u2parm,$
-                         planetdat.a_o_rstar,1.0D,0D,0D,0D,0D,0D,0D])
-
-
-           ;; Here's where you choose the model to fit to the data
-           case 1 of
-              keyword_set(kepdiff): begin
-                 expr = '(kepler_func(X,P[0]+1D) / kepler_func(X,1D)) *  eval_legendre(X,P[5:10])'
-              end
-              keyword_set(slitmod): begin
-                 if keyword_set(individual) then begin
-                    expr = 'vslit_approx(X[0,*] - P[5],P[8],X[2,*],X[5,*])'
-                 endif else begin
-                    expr = 'vslit_approx(X[0,*] - P[5],P[8],X[2,*],X[5,*])/'+$
-                           'vslit_approx(X[1,*] - P[5] - P[6],P[8],X[3,*] * P[7],X[6,*])'
-                 endelse
-                 start[5] = 0.0E ;; start the position as 0
-                 start[7] = 1.0E ;; start the relative FWHM ratio as 1.0
-                 if strmatch(usedate,'*2012*') OR strmatch(usedate,'*2013*') OR $
-                    strmatch(usedate,'*2011*') then begin
-                    H = 20.49/2E  ;; for the Aladin Detector
-                 endif else H = 30.5/2E ;; for the Hawaii II detector
-                 start[8] = H
-                 start[10] = 1E ;; start the offset parameter as 1.0
-                 start = [start,0E] ;; last Legendre parameter should be 0E as a start
-                 case 1 of
-                    keyword_set(secondary): begin
-                       start[0] = 0.002E
-                       expr = expr+' * sec_eclipse(X[4,*]-P[9],P[0],P[1],P[4]) * eval_legendre(X,P[10:12])'
-                    end
-                    keyword_set(kepfit): begin
-                       expr = expr+' * kepler_func(X[4,*],P[0]) * eval_legendre(X,P[10:12])'
-                       start[0] = 1E
-                    end
-                    else: begin
-                       expr = expr+' * quadlc(X[4,*]-P[9],P[0],P[1],P[2],P[3],P[4])* eval_legendre(X,P[10:12])'
-                    end
-                 endcase
-              end
-              keyword_set(differential): begin
-                 if keyword_set(secondary) then begin
-                    expr = 'sec_eclipse(X-P[11],P[0],P[1],P[4]) * eval_legendre(X,P[5:10])'
-                    start[0] = 0.002E
-                 endif else begin
-                    quadlcArg ='X'
-                    for m=0l,4 do begin
-                       quadlcArg=quadlcArg+','+strtrim(start[m],1)
-                    endfor
-                    expr = 'quadlc(X,P[0],P[1],P[2],P[3],P[4])* (P[5] + X * P[6] + X^2 * P[7] + X^3'+$
-                           ' * P[8])/quadlc('+quadlcArg+')'
-                 endelse
-                 
-              end
-              keyword_set(kepfit): begin
-                 expr = 'kepler_func(X-P[11],P[0]) *  eval_legendre(X,P[5:10])'
-;                 expr = 'parameterized_kep(X-P[11],P[0]) *  eval_legendre(X,P[5:10])'
-              end
-              keyword_set(secondary): begin
-                 expr = 'sec_eclipse(X-P[11],P[0],P[1],P[4]) * eval_legendre(X,P[5:10])'
-                 start[0] = 0.002E
-              end
-              else: begin
-                 expr = 'quadlc(X-P[11],P[0],P[1],P[2],P[3],P[4])* eval_legendre(X,P[5:10])'
-              end
-           endcase
-           
-           ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-           ;; Here's the long parameter setting section - fixed, free or limited
-
-           ;; By default all parameters start out as fixed and >=0
-           pi = replicate({fixed:1, limited:[1,0], limits:[0.0E,0.0E]},nparams)
-
-           ;; make sure the Rp/R* parameter is free
-           if not keyword_set(fixrad) then pi[0].fixed = 0 
-
-           ;; Limb Darkening parameter adjustment (3 options)
-           if keyword_set(freelimbquad) then begin
-              ;; if asked to, free the quadratic limb darkening parameter
-              pi[2].fixed = 0
-              pi[3].fixed = 0
-           endif
-           if keyword_set(freelimblin) then pi[2].fixed = 0
-           ;; Let the limb darkening be + or -
-           pi[2].limited = [0,0]
-           pi[3].limited = [0,0]
-
-           ;; Here are a few modifications to the Rp/R* parameter
-           ;; (letting it be <0 for differential Rp/R* fitting)
-           if not keyword_set(kepfit) and $
-              not keyword_set(kepdiff) and $
-              not keyword_set(secondary) then begin
-              pi[0].limited = [1,1] ;; make sure Rp/R* is limited
-              pi[0].limits = [0D,1D] ;; Keep Rp/R* between 0 and 1
-           endif else begin
-              pi[0].limited = [0,0]
-              pi[0].limits = [0D,0D]
-           endelse
-
-           ;; Transit epoch fitting
-           if keyword_set(fitepoch) then begin
-              pi[11].fixed = 0
-              pi[11].limited = [1,1]
-;              pi[11].limits = [-0.05,0.05]
-              pi[11].limits = [-0.1,0.1]
-              start[11] = 0.00
-           endif
-           
-           ;; Details of slit model adjustments (making them free)
-           if keyword_set(slitmod) then begin
-              pi[5:7].fixed=0 ;; free the slit model params
-              pi[5:6].limited = [1,1] ;; limit the slit position from going to far
-              pi[5:6].limits = [-start[8],start[8]] ;; slit half width
-              if keyword_set(individual) then begin
-                 pi[6:7].fixed=1 ;; only look at 1 star at a time
-              endif
-           endif
-
-           ;; Here's where the polynomial terms are adjusted
-           if keyword_set(slitmod) then begin
-              startLeg = 10 ;; first legendre polynomial coefficient
-              lastLeg = 12 ;; last Legendre polynomial in model
-           endif else begin
-              startLeg = 5 ;; first legendre polynomial coefficient
-              lastLeg = 10 ;; last Legendre polynomial in model
-           endelse
-           if n_elements(legOrder) EQ 0 then legOrder =1 ;; the default is a linear baseline
-           assert,lastLeg,'>=',legOrder+startLeg,"More polynomial terms are asked for than allowed by model"
-           if keyword_set(fixoffset) then begin
-              ;; nothing to do b/c the rest of the parameters are already fixed
-           endif else begin
-              endLeg = startLeg + LegOrder ;; final Legendre polynomial
-              pi[startLeg:endLeg].fixed = 0 ;; free them!
-              pi[startLeg:endLeg].limited = [0,0];; no limits
-           endelse
-
-           ;; The freeall and fixall keyword override the rest of those
-           if keyword_set(freeall) then begin
-              pi[*].fixed = 0 ;; free all parameters if asked to
-           endif 
-           if keyword_set(fixall) then begin
-              pi[*].fixed = 1 ;; fix all parameters if asked to
-           endif
-           ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-           ;; Here's where a Levenberg-Marquardt fit is applite to the data
-           if keyword_set(slitmod) then begin
-              result = mpfitexpr(expr,inputX,y,yerr,start,parinfo=pi,perr=punct,/quiet)
-              modelY = expression_eval(expr,inputX,result)
-              modelY1 = modelY
-              modelX = tplot
-           endif else begin
-              if keyword_set(boot) then begin
-                 result = boot_mp(expr,tplot,y,yerr,start,parinfo=pi,perr=punct,/quiet)
+;        plot,tplot,y,psym=2,$
+           custXrange=[-0.1,0.1]
+           if keyword_set(singleplot) then begin
+              if k EQ 0 then begin
+                 ;; Set up everything for the first time plot
+                 myNoerase=0
+                 yptitle= yptitle + ' + Offset'
+                 myXtitle='Orbital Phase'
+                 tickformat=''
+                 myXrange=[min(tplot),max(tplot)+0.25*(max(tplot)-min(tplot))]
+                 ;; If it's Dec 23, make an adjustment to avoid
+                 ;; squishing numbers
+                 if myXrange[0] GT -0.06254 and myXrange[0] LE -0.0625 and $
+                    myXrange[1] GT 0.0954 and myXrange[1] LE 0.09542 then myXrange=[-0.07,0.1]
               endif else begin
-                 result = mpfitexpr(expr,tplot,y,yerr,start,parinfo=pi,perr=punct,/quiet)
+                 ;; Set up for subsequent plots
+                 myNoerase=1
+                 yptitle=''
+                 myXtitle=''
+                 tickformat='(A1)'
               endelse
-              modelPts = 512l
-              ntpoints = n_elements(tplot)
-              modelY = expression_eval(expr,tplot,result)
-              modelX = findgen(modelPts)/(modelPts-1l) * (tplot[ntpoints-1] - min(tplot,/nan)) + min(tplot,/nan)
-              modelY1 = expression_eval(expr,modelX,result)
+              if n_elements(custSep) EQ 0 then begin
+                 if keyword_set(differential) then spacing = 0.08E else begin
+                    spacing=separationA[0]
+                 endelse
+              endif else spacing = custSep
+              ydynam=[1E - spacing * (1+Nwavbins),1+spacing]
+              offset = k * spacing
+              myTitle=''
+           endif else begin
+              myNoErase=0
+              offset = 0
+              myTitle=wavname[k]+' um Flux'
+              tickformat=''
+              myXtitle='Orbital Phase'
            endelse
-           oplot,modelX,modelY1-offset,color=mycol('blue'),thick=2
-
-           ;; save the planet radius and all data
-           plrad[k] = result[0]
-           plrade[k] = punct[0]
-
-           resultarr[*,k] = result
-           resultarrE[*,k] = punct
-           
-           if keyword_set(showNomRad) then begin
-              pi[0].fixed = 1 ;; fix the radius
-              nomRadResult = mpfitexpr(expr,tplot,y,yerr,start,parinfo=pi)
-              modelY2 = expression_eval(expr,modelX,nomRadResult)
-              oplot,modelX,modelY2 - offset,color=mycol('orange'),thick=2
-              al_legend,['Best-Fit Radius','Nominal Radius'],$
-                     linestyle=[0,0],color=mycol(['blue','orange']),$
-                     thick=[2,2],/clear
+           if keyword_set(custTitle) then begin
+              myTitle = custTitle
            endif
-
-           resid = (y - modelY)/meanoff *100E
-
-           if not keyword_set(singleplot) then begin
+           
+           if keyword_set(custyrange) then ydynam = custyrange
+           if (1 - keyword_set(singleplot)) OR k EQ 0 then begin
+              ;; If in regular mode, plot each time, but in singleplot
+              ;; mode, it only should draw axis the first time
+              plot,tplot,y,psym=4,$
+                   xtitle=myXtitle,$
+                   title=myTitle,$
+                   ytitle=yptitle,$
+                   yrange=ydynam,ystyle=1,/nodata,xstyle=1,$
+                   noerase=myNoErase,xthick=2.5,ythick=2.5,$
+                   xtickformat=tickformat,ytickformat=tickformat,$
+                   xrange=myXrange,xmargin=custxmargin,ymargin=custymargin
+           endif
+           if k mod 2 EQ 0 then dataColor=!p.color else dataColor=mycol('red')
+           if not keyword_set(differential) then begin
+              if keyword_set(showclipping) then begin
+                 oplot,tplot,y,psym=5,color=mycol('red') ;; original data
+                 oplot,tplotdivcurves,divbycurve,psym=4  ;; divided by light curve
+                 oplot,tplot,yfit,color=mycol('blue')    ;; fitted line to curve
+              endif else begin
+                 if n_elements(timebin) EQ 0 then begin
+                    oplot,tplot,y-offset,psym=4,color=dataColor
+                 endif else begin
+                    oploterror,tplot,y-offset,tsizes/2E,yerr,psym=3,$
+                               hatlength=0,thick=2,color=dataColor
+                 endelse
+              endelse 
+           endif
+           if keyword_set(individual) then begin
+              oplot,tplot,y2 - offset,psym=4,color=mycol('blue')
+              al_legend,['Planet Host','Reference Star'],$
+                        psym=[4,4],color=mycol(['black','blue']),$
+                        /right,/clear
+           endif
+           if keyword_set(singleplot) and not keyword_set(skipwavl) then begin
+              if valid_num(wavname[k]) then begin
+                 wavelabel = wavname[k]+' um'
+              endif else begin
+                 wavelabel = wavname[k]
+              endelse
+              xyouts,!x.crange[1]-0.1*(!x.crange[1]-!x.crange[0]),$
+                     median(y)-offset,$
+                     [wavelabel],alignment=0.5
+           endif
+           ;; print the stdev for y for off points
+;        print,'Fractional off transit Stdev in F for ',wavname,': ',stddev(y[offp])/mean(y[offp])
+;        print,'Fractional off transit Robust sigma for ',wavname,': ',robust_sigma(y[offp])/median(y[offp])
+           ;; try fitting the off transit to a function first
+           
+           ;; show the transit epochs
+           drawy = [!y.crange[0],!y.crange[1]]
+           oplot,[hstart,hstart],drawy,color=mycol('brown'),linestyle=2
+           oplot,[hend,hend],drawy,color=mycol('brown'),linestyle=2
+           
+           ;; Show the jump point
+           if keyword_set(showjump) then begin
+              tjumpJD = date_conv('2013-08-15T09:39.00','J')
+              tjump = (tjumpJD - tmid)/planetdat.period
+              tjump = tjump mod 1D
+              plots,[tjump,tjump],drawy,color=mycol('red'),thick=2,linestyle=2
+           endif
+           
+           ;; show the off-transit fit for differential measurements (as
+           if keyword_set(differential) then begin
+              if not keyword_set(fitcurve) then begin
+                 ;; long as fits aren't being performed)
+                 
+                 if keyword_set(quadfit) then begin
+                    oplot,tplot,(result[0] + result[1] *tplot + result[2] * tplot^2)-offset,$
+                          thick=2,color=mycol('blue')
+                 endif else begin
+                    oplot,tplot,(fitY[0] + fitY[1] *tplot)-offset,thick=2,color=mycol('blue')
+                 endelse
+              endif
+              if n_elements(timebin) EQ 0 then tsizes = fltarr(n_elements(tplot)) + tplot[1]-tplot[0]
+              oploterror,tplot,y-offset,tsizes/2E,yerr,psym=3,hatlength=0,thick=2,$
+                         color=dataColor
+           endif
+           ;;plot the clipped points
+           if keyword_set(colorclip) then begin
+              if throwaways NE [-1] then oplot,tclip1,yclip1,psym=6,color=mycol('blue')
+              if throwaways2 NE [-1] then oplot,tclip2,yclip2,psym=5,color=mycol('blue')
+           endif
+           if keyword_set(makestops) then stop
+           
+           if keyword_set(errorDistb) then begin
               if keyword_set(psplot) then begin
                  device,/close
                  device,decomposed=0
                  cgPS2PDF,plotnmpre+'.eps',$
                           delete_ps=deletePS
                  if keyword_set(pngcopy) then begin
-                    spawn,'convert -density 160% '+plotnmpre+'.pdf '+plotnmpre+'.png'                 
+                    spawn,'convert -density 160% '+plotnmpre+'.pdf '+plotnmpre+'.png'
                  endif
-                 plotnmpre = 'plots/residual_series/residuals_'+wavname[k]
+                 plotnmpre = 'plots/error_distrib/error_hist_'+wavname[k]
                  device,encapsulated=1, /helvetica,$
                         filename=plotnmpre+'.eps'
                  device,xsize=PSplotXsize, ysize=PSplotYsize,decomposed=1,/color
                  
               endif
+              binsize=0.25E
+              plothist,nombysigma,xhist,yhist,bin=binsize,$ ;; show error distribution
+                       ytitle='Number of Points',$
+                       xtitle='(Flux - median)/Robust Sigma'
+              xgaussian = findgen(100)/(100E - 1E) * (!x.crange[1] - !x.crange[0])+$
+                          !x.crange[0]
+              totY = total(yhist)*binsize
+              ygaussian = gaussian(xgaussian,[totY/sqrt(2E * !DPI),0,1])
+              oplot,xgaussian,ygaussian,color=mycol('red')
               
-              ylowerL = resid[sorty[ceil(5E/100E*float(ylength))]]
-              yUpperL = resid[sorty[floor(95E/100E*float(ylength))]]
-              ydynam = [-1E,1E] * max(abs([ylowerL,yUpperL])) * 4E
-              
-              if n_elements(custresidYrange) NE 0 then ydynam = custresidYrange
-              
-              overplotMarg = [13,14]
-              plot,tplot,resid,yrange=ydynam,$
-                   title='Residuals at '+wavname[k],$
-                   xtitle='Orbital Phase',ytitle='Flux Residual (%)',$
-                   psym=2,ystyle=8+1,xmargin=overplotMarg,/nodata,$
-                   xrange=custXrange
-              if n_elements(timebin) EQ 0 then oplot,tplot,resid,psym=4 else begin
-                 oploterror,tplot,resid,tsizes/2E,yerr/meanoff * 100E,psym=3,hatlength=0,thick=2
-              endelse
-              
-              prevXrange=!x.crange
-              plot,tplot,airmass,xstyle=1+4,xrange=prevXrange,$
-                   /noerase,ystyle=4+16,/nodata,xmargin=overplotMarg
-              oplot,tplot,airmass,color=mycol('blue')
-              if keyword_set(showDiffairmass) then begin
-                 airmassname = 'Differential Airmass'
-              endif else airmassname = 'Airmass'
-              axis,yaxis=1,yrange=!y.crange,ystyle=1,color=mycol('blue'),$
-                   ytitle=airmassname
-;           oploterr,tplot,resid,yerr/meanoff *100E
-              drawy = [!y.crange[0],!y.crange[1]]
-              plots,[hstart,hstart],drawy,color=mycol('blue'),linestyle=2,thick=2.5
-              plots,[hend,hend],drawy,color=mycol('blue'),linestyle=2,thick=2.5
-              print,'RMS Residuals (%) for '+wavname[k],'um',(stddev(y - modelY))/median(y)*100E
            endif
-        endif
-        if not keyword_set(fitcurve) then begin
-           ntplot = n_elements(tplot)
-           modelY = fltarr(ntplot)
-           resid = fltarr(ntplot)
-        endif
-        if keyword_set(showmcmc) then begin
-           if keyword_set(useGPasfit) then begin
-              resid = pseudoresids * 100E
-           endif else resid = mcmcResid * 100E
-           modelY = meanfuncdat
-        endif
-
-        cleanTSerName = 'data/cleaned_tim_ser/timeser_'+wavname[k]+'um_.txt'
-        forprint,tplot,y,yerr,modelY,resid,$
-                 textout=cleanTSerName,$
-                 comment='#Phase  Flux  Fl_err  Model_fl   Residual for '+wavname[k]+'um (%)',$
-                 /silent
-        if n_elements(cleanlist) EQ 0 then begin
-           cleanlist = cleanTSerName
-        endif else cleanlist = [cleanlist,cleanTSerName]
-
-        if keyword_set(psplot) and (not keyword_set(singleplot) OR k EQ Nwavbins-1l)  then begin
-           device, /close
-           device,decomposed=0
-           cgPS2PDF,plotnmpre+'.eps',$
-                    delete_ps=deletePS
-           if keyword_set(pngcopy) then begin
-              if keyword_set(singleplot) then begin
-                 spawn,'convert -density 300% '+plotnmpre+'.pdf '+plotnmpre+'.png'
+           
+           if keyword_set(showmcmc) then begin
+              if wavname[k] EQ 'z-prime' then begin
+                 change_kernels,kernchoice[0]
               endif else begin
-                 spawn,'convert -density 160% '+plotnmpre+'.pdf '+plotnmpre+'.png'
+                 change_kernels,kernchoice[1]
               endelse
+              nmcmcPars = n_elements(mcmcPars[0,*])
+              mcmcShowP = 350
+              phaseShow = findgen(mcmcshowP)/float(mcmcShowP) * (max(tplot)-min(tplot)) + min(tplot)
+              ;; First find the mean function with expression evaluation
+              meanfunctest = expression_eval(modelExpr,phaseShow,transpose(mcmcPars[k,0:8]))
+                                ;oplot,phaseShow,meanfunctest-offset,color=mycol('blue'),thick=2
+              ;; Find the residual vector
+              meanfuncdat = expression_eval(modelExpr,tplot,transpose(mcmcPars[k,0:8]))
+              mcmcResid = y - meanfuncdat
+              ;; Find the inverse covariance matrix using the likelihood
+              ;; function which also needs the inverse covariance matrix
+              likeL = ev_leval([transpose(mcmcPars[k,9:nmcmcPars-1]),0],x=tplot,yin=y,yerr=yerr,Cinv=Cinv)
+              mcmcModel = fltarr(n_elements(phaseShow))
+              for m=0l,mcmcShowP-1l do begin
+                 columnvec = cov_kernel(phaseShow[m] - tplot,transpose(mcmcpars[k,9:nmcmcPars-1]))
+                 mcmcModel[m] = meanfunctest[m] + columnvec ## Cinv ## transpose(mcmcResid)
+              endfor
+              oplot,phaseShow,mcmcModel-offset,color=mycol('blue'),thick=2
+              
+              ;; Calculate a Chi-squared, even if it's not the
+              ;; right thing
+              mcmcModelmatch = fltarr(n_elements(y)) ;; match the # of points (1 model pt per data pt)
+              for m=0l,n_elements(y)-1l do begin
+                 columnvec = cov_kernel(tplot[m] - tplot,transpose(mcmcpars[k,9:nmcmcPars-1]))
+                 mcmcModelmatch[m] = meanfuncdat[m] + columnvec ## Cinv ## transpose(mcmcResid)
+              endfor
+              pseudoresids = (mcmcModelmatch - y) ;; sort of like the residuals
+              pseudochisquare = total((pseudoresids/yerr)^2)
+              print,'Psuedo Chi-square = ',pseudochisquare
+              if keyword_set(showNommcmc) then oplot,tplot,meanfuncdat-offset,color=mycol('green')
+           endif
+           
+           if keyword_set(showKep) then begin
+              ;; Show the Kepler Light Curve
+              np = 1024E
+              kphaseS = min(tplot) + findgen(round(np))/np * $
+                        (max(tplot,/nan)-min(tplot,/nan))
+              keplerF = kepler_func(kphaseS,1E)
+              oplot,kphaseS,keplerF - offset,color=mycol('dgreen'),thick=4
+              if keyword_set(labelKep) then begin
+                 kscLabX = (!x.crange[1] - !x.crange[0]) * 0.1 + !x.crange[0]
+                 kscLabY = (!y.crange[1] - !y.crange[0]) * 0.5 + !y.crange[0]
+                 xyouts,kscLabX,kscLabY,'Kepler 13-Month Avg',color=mycol('dgreen'),$
+                        charsize=0.6
+              endif
+           endif
+           
+           if keyword_set(fitcurve) then begin
+              ;; fit the data curve
+              start=double([planetdat.p,planetdat.b_impact,u1parm,u2parm,$
+                            planetdat.a_o_rstar,1.0D,0D,0D,0D,0D,0D,0D])
+              
+              
+              ;; Here's where you choose the model to fit to the data
+              case 1 of
+                 keyword_set(kepdiff): begin
+                    expr = '(kepler_func(X,P[0]+1D) / kepler_func(X,1D)) *  eval_legendre(X,P[5:10])'
+                 end
+                 keyword_set(slitmod): begin
+                    if keyword_set(individual) then begin
+                       expr = 'vslit_approx(X[0,*] - P[5],P[8],X[2,*],X[5,*])'
+                    endif else begin
+                       expr = 'vslit_approx(X[0,*] - P[5],P[8],X[2,*],X[5,*])/'+$
+                              'vslit_approx(X[1,*] - P[5] - P[6],P[8],X[3,*] * P[7],X[6,*])'
+                    endelse
+                    start[5] = 0.0E ;; start the position as 0
+                    start[7] = 1.0E ;; start the relative FWHM ratio as 1.0
+                    if strmatch(usedate,'*2012*') OR strmatch(usedate,'*2013*') OR $
+                       strmatch(usedate,'*2011*') then begin
+                       H = 20.49/2E     ;; for the Aladin Detector
+                    endif else H = 30.5/2E ;; for the Hawaii II detector
+                    start[8] = H
+                    start[10] = 1E  ;; start the offset parameter as 1.0
+                    start = [start,0E] ;; last Legendre parameter should be 0E as a start
+                    case 1 of
+                       keyword_set(secondary): begin
+                          start[0] = 0.002E
+                          expr = expr+' * sec_eclipse(X[4,*]-P[9],P[0],P[1],P[4]) * eval_legendre(X,P[10:12])'
+                       end
+                       keyword_set(kepfit): begin
+                          expr = expr+' * kepler_func(X[4,*],P[0]) * eval_legendre(X,P[10:12])'
+                          start[0] = 1E
+                       end
+                       else: begin
+                          expr = expr+' * quadlc(X[4,*]-P[9],P[0],P[1],P[2],P[3],P[4])* eval_legendre(X,P[10:12])'
+                       end
+                    endcase
+                 end
+                 keyword_set(differential): begin
+                    if keyword_set(secondary) then begin
+                       expr = 'sec_eclipse(X-P[11],P[0],P[1],P[4]) * eval_legendre(X,P[5:10])'
+                       start[0] = 0.002E
+                    endif else begin
+                       quadlcArg ='X'
+                       for m=0l,4 do begin
+                          quadlcArg=quadlcArg+','+strtrim(start[m],1)
+                       endfor
+                       expr = 'quadlc(X,P[0],P[1],P[2],P[3],P[4])* (P[5] + X * P[6] + X^2 * P[7] + X^3'+$
+                              ' * P[8])/quadlc('+quadlcArg+')'
+                    endelse
+                    
+                 end
+                 keyword_set(kepfit): begin
+                    expr = 'kepler_func(X-P[11],P[0]) *  eval_legendre(X,P[5:10])'
+;                 expr = 'parameterized_kep(X-P[11],P[0]) *  eval_legendre(X,P[5:10])'
+                 end
+                 keyword_set(secondary): begin
+                    expr = 'sec_eclipse(X-P[11],P[0],P[1],P[4]) * eval_legendre(X,P[5:10])'
+                    start[0] = 0.002E
+                 end
+                 else: begin
+                    expr = 'quadlc(X-P[11],P[0],P[1],P[2],P[3],P[4])* eval_legendre(X,P[5:10])'
+                 end
+              endcase
+              
+           ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+              ;; Here's the long parameter setting section - fixed, free or limited
+              
+              ;; By default all parameters start out as fixed and >=0
+              pi = replicate({fixed:1, limited:[1,0], limits:[0.0E,0.0E]},nparams)
+              
+              ;; make sure the Rp/R* parameter is free
+              if not keyword_set(fixrad) then pi[0].fixed = 0 
+              
+              ;; Limb Darkening parameter adjustment (3 options)
+              if keyword_set(freelimbquad) then begin
+                 ;; if asked to, free the quadratic limb darkening parameter
+                 pi[2].fixed = 0
+                 pi[3].fixed = 0
+              endif
+              if keyword_set(freelimblin) then pi[2].fixed = 0
+              ;; Let the limb darkening be + or -
+              pi[2].limited = [0,0]
+              pi[3].limited = [0,0]
+              
+              ;; Here are a few modifications to the Rp/R* parameter
+              ;; (letting it be <0 for differential Rp/R* fitting)
+              if not keyword_set(kepfit) and $
+                 not keyword_set(kepdiff) and $
+                 not keyword_set(secondary) then begin
+                 pi[0].limited = [1,1] ;; make sure Rp/R* is limited
+                 pi[0].limits = [0D,1D] ;; Keep Rp/R* between 0 and 1
+              endif else begin
+                 pi[0].limited = [0,0]
+                 pi[0].limits = [0D,0D]
+              endelse
+              
+              ;; Transit epoch fitting
+              if keyword_set(fitepoch) then begin
+                 pi[11].fixed = 0
+                 pi[11].limited = [1,1]
+;              pi[11].limits = [-0.05,0.05]
+                 pi[11].limits = [-0.1,0.1]
+                 start[11] = 0.00
+              endif
+              
+              ;; Details of slit model adjustments (making them free)
+              if keyword_set(slitmod) then begin
+                 pi[5:7].fixed=0      ;; free the slit model params
+                 pi[5:6].limited = [1,1]            ;; limit the slit position from going to far
+                 pi[5:6].limits = [-start[8],start[8]] ;; slit half width
+                 if keyword_set(individual) then begin
+                    pi[6:7].fixed=1 ;; only look at 1 star at a time
+                 endif
+              endif
+              
+              ;; Here's where the polynomial terms are adjusted
+              if keyword_set(slitmod) then begin
+                 startLeg = 10 ;; first legendre polynomial coefficient
+                 lastLeg = 12  ;; last Legendre polynomial in model
+              endif else begin
+                 startLeg = 5 ;; first legendre polynomial coefficient
+                 lastLeg = 10 ;; last Legendre polynomial in model
+              endelse
+              if n_elements(legOrder) EQ 0 then legOrder =1 ;; the default is a linear baseline
+              assert,lastLeg,'>=',legOrder+startLeg,"More polynomial terms are asked for than allowed by model"
+              if keyword_set(fixoffset) then begin
+                 ;; nothing to do b/c the rest of the parameters are already fixed
+              endif else begin
+                 endLeg = startLeg + LegOrder ;; final Legendre polynomial
+                 pi[startLeg:endLeg].fixed = 0   ;; free them!
+                 pi[startLeg:endLeg].limited = [0,0] ;; no limits
+              endelse
+              
+              ;; The freeall and fixall keyword override the rest of those
+              if keyword_set(freeall) then begin
+                 pi[*].fixed = 0 ;; free all parameters if asked to
+              endif 
+              if keyword_set(fixall) then begin
+                 pi[*].fixed = 1 ;; fix all parameters if asked to
+              endif
+           ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+              
+              ;; Here's where a Levenberg-Marquardt fit is applite to the data
+              if keyword_set(slitmod) then begin
+                 result = mpfitexpr(expr,inputX,y,yerr,start,parinfo=pi,perr=punct,/quiet)
+                 modelY = expression_eval(expr,inputX,result)
+                 modelY1 = modelY
+                 modelX = tplot
+              endif else begin
+                 if keyword_set(boot) then begin
+                    result = boot_mp(expr,tplot,y,yerr,start,parinfo=pi,perr=punct,/quiet)
+                 endif else begin
+                    result = mpfitexpr(expr,tplot,y,yerr,start,parinfo=pi,perr=punct,/quiet)
+                 endelse
+                 modelPts = 512l
+                 ntpoints = n_elements(tplot)
+                 modelY = expression_eval(expr,tplot,result)
+                 modelX = findgen(modelPts)/(modelPts-1l) * (tplot[ntpoints-1] - min(tplot,/nan)) + min(tplot,/nan)
+                 modelY1 = expression_eval(expr,modelX,result)
+              endelse
+              oplot,modelX,modelY1-offset,color=mycol('blue'),thick=2
+              
+              ;; save the planet radius and all data
+              plrad[k] = result[0]
+              plrade[k] = punct[0]
+              
+              resultarr[*,k] = result
+              resultarrE[*,k] = punct
+              
+              if keyword_set(showNomRad) then begin
+                 pi[0].fixed = 1 ;; fix the radius
+                 nomRadResult = mpfitexpr(expr,tplot,y,yerr,start,parinfo=pi)
+                 modelY2 = expression_eval(expr,modelX,nomRadResult)
+                 oplot,modelX,modelY2 - offset,color=mycol('orange'),thick=2
+                 al_legend,['Best-Fit Radius','Nominal Radius'],$
+                           linestyle=[0,0],color=mycol(['blue','orange']),$
+                           thick=[2,2],/clear
+              endif
+              
+              resid = (y - modelY)/meanoff *100E
+              
+              if not keyword_set(singleplot) then begin
+                 if keyword_set(psplot) then begin
+                    device,/close
+                    device,decomposed=0
+                    cgPS2PDF,plotnmpre+'.eps',$
+                             delete_ps=deletePS
+                    if keyword_set(pngcopy) then begin
+                       spawn,'convert -density 160% '+plotnmpre+'.pdf '+plotnmpre+'.png'                 
+                    endif
+                    plotnmpre = 'plots/residual_series/residuals_'+wavname[k]
+                    device,encapsulated=1, /helvetica,$
+                           filename=plotnmpre+'.eps'
+                    device,xsize=PSplotXsize, ysize=PSplotYsize,decomposed=1,/color
+                    
+                 endif
+                 
+                 ylowerL = resid[sorty[ceil(5E/100E*float(ylength))]]
+                 yUpperL = resid[sorty[floor(95E/100E*float(ylength))]]
+                 ydynam = [-1E,1E] * max(abs([ylowerL,yUpperL])) * 4E
+                 
+                 if n_elements(custresidYrange) NE 0 then ydynam = custresidYrange
+                 
+                 overplotMarg = [13,14]
+                 plot,tplot,resid,yrange=ydynam,$
+                      title='Residuals at '+wavname[k],$
+                      xtitle='Orbital Phase',ytitle='Flux Residual (%)',$
+                      psym=2,ystyle=8+1,xmargin=overplotMarg,/nodata,$
+                      xrange=custXrange
+                 if n_elements(timebin) EQ 0 then oplot,tplot,resid,psym=4 else begin
+                    oploterror,tplot,resid,tsizes/2E,yerr/meanoff * 100E,psym=3,hatlength=0,thick=2
+                 endelse
+                 
+                 prevXrange=!x.crange
+                 plot,tplot,airmass,xstyle=1+4,xrange=prevXrange,$
+                      /noerase,ystyle=4+16,/nodata,xmargin=overplotMarg
+                 oplot,tplot,airmass,color=mycol('blue')
+                 if keyword_set(showDiffairmass) then begin
+                    airmassname = 'Differential Airmass'
+                 endif else airmassname = 'Airmass'
+                 axis,yaxis=1,yrange=!y.crange,ystyle=1,color=mycol('blue'),$
+                      ytitle=airmassname
+;           oploterr,tplot,resid,yerr/meanoff *100E
+                 drawy = [!y.crange[0],!y.crange[1]]
+                 plots,[hstart,hstart],drawy,color=mycol('blue'),linestyle=2,thick=2.5
+                 plots,[hend,hend],drawy,color=mycol('blue'),linestyle=2,thick=2.5
+                 print,'RMS Residuals (%) for '+wavname[k],'um',(stddev(y - modelY))/median(y)*100E
+              endif
+           endif
+           if not keyword_set(fitcurve) then begin
+              ntplot = n_elements(tplot)
+              modelY = fltarr(ntplot)
+              resid = fltarr(ntplot)
+           endif
+           if keyword_set(showmcmc) then begin
+              if keyword_set(useGPasfit) then begin
+                 resid = pseudoresids * 100E
+              endif else resid = mcmcResid * 100E
+              modelY = meanfuncdat
+           endif
+           
+           cleanTSerName = 'data/cleaned_tim_ser/timeser_'+wavname[k]+'um_.txt'
+           forprint,tplot,y,yerr,modelY,resid,$
+                    textout=cleanTSerName,$
+                    comment='#Phase  Flux  Fl_err  Model_fl   Residual for '+wavname[k]+'um (%)',$
+                    /silent
+           if n_elements(cleanlist) EQ 0 then begin
+              cleanlist = cleanTSerName
+           endif else cleanlist = [cleanlist,cleanTSerName]
+           
+           if keyword_set(psplot) and (not keyword_set(singleplot) OR k EQ Nwavbins-1l)  then begin
+              device, /close
+              device,decomposed=0
+              cgPS2PDF,plotnmpre+'.eps',$
+                       delete_ps=deletePS
+              if keyword_set(pngcopy) then begin
+                 if keyword_set(singleplot) then begin
+                    spawn,'convert -density 300% '+plotnmpre+'.pdf '+plotnmpre+'.png'
+                 endif else begin
+                    spawn,'convert -density 160% '+plotnmpre+'.pdf '+plotnmpre+'.png'
+                 endelse
+              endif
            endif
         endif
      endif
-
+     
   endfor
   
   ;; save the RMS of off transit fluxu
@@ -1107,20 +1108,20 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
   save,bingrid,fracRMSarr,tsizes,bingridmiddle,binsizes,$
        planetdat,fracPhotonarr,$
        filename='data/rmsdata.sav'
-
+  
   ;; Save the clean list name
   if n_elements(cleanlist) NE 0 then begin
      forprint,/nocomment,cleanlist,textout='data/cleaned_list.txt',format='(A)',/silent
   endif
-
+  
   if keyword_set(fitcurve) then begin
      ev_print_params,wavname,paramnames,resultarr,resultarrE,pi,k,/skipsig
-
+     
      ;; save the radius data
      forprint,bingridmiddle[*],binsizes,plrad,plrade,$
               textout='radius_vs_wavelength/radius_vs_wavl.txt',$
               comment='#Wavelength(um) Binsize (um)  Rp/R*   Rp/R* Error',/silent
-
+     
      depth = plrad^2 * 1E6
      depthErrP = (plrad + plrade)^2 * 1E6 - depth
      depthErrM = depth - (plrad - plrade)^2 * 1E6 

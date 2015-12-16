@@ -39,8 +39,8 @@ for i=0l,ntbin-1l do begin
          restore,'data/specdata.sav'
          bintarr[i] = float(n_elements(lamgrid))
       endif else compile_spec,nwavbins=bintarr[i],/readCurrent,/irafnoise
-      plot_tim_ser
-   endif else plot_tim_ser,timebin=bintarr[i]
+      plot_tim_ser,/noplots
+   endif else plot_tim_ser,timebin=bintarr[i],/noplots
    restore,'data/rmsdata.sav'
    ;; get the wavelength bin starts bingrid
    ;; get the wavelength bin middle bingridmiddle
