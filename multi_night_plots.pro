@@ -5,7 +5,8 @@ pro multi_night_plots,psplot=psplot,$
                       indWav=indWav,photometry=photometry,$
                       differential=differential,$
                       starplots=starplots,indflux=indflux,$
-                      nightsummary=nightsummary,boot=boot,stser=stser
+                      nightsummary=nightsummary,boot=boot,stser=stser,$
+                      binsizephot=binsizephot
 ;; Goes through all nights in order to plot the different things (such
 ;; as specphot images)
 ;; psplot - save a postcript plot for each night
@@ -20,6 +21,7 @@ pro multi_night_plots,psplot=psplot,$
 ;; nightsummary - print out a summary of the nights
 ;; boot - use bootstrap errors
 ;; stser - SpeX time series
+;; binsizephot - show the RMS versus bin size
 
   case 1 of
      keyword_set(stser): begin
@@ -36,6 +38,9 @@ pro multi_night_plots,psplot=psplot,$
      end
      keyword_set(starRatios): begin
         plotprenm = 'plots/individual_spectra/all_indspec_ratio'
+     end
+     keyword_set(binsizephot): begin
+        plotprenm = 'plots/binsize/all_binsize'
      end
      else: plotprenm = 'plots/specphot_images/all_specphots'
   endcase
@@ -90,6 +95,9 @@ for i=0l,nNights-1l do begin
       end
       keyword_set(indflux): begin
          compile_spec,nwavbins=5,/readc,/quickread,/specsh;,custrange=[0.9,1.2]
+      end
+      keyword_set(binsizephot): begin
+         compile_phot,/readc
       end
       else: begin
          compile_spec,/specsh,/readC,custrange=custwavrange,nwavbins=25,/quickread
@@ -177,6 +185,9 @@ for i=0l,nNights-1l do begin
                    format='(A12,4A10)'
          endif
          printf,1,useDate,medSeeing,medExpTime,tingress,tegress,format='(A12,F10.2,3F10.1)'
+      end
+      keyword_set(binsizephot): begin
+         plot_bin_size,/photmode,custyrange=[1E-2,1]
       end
       else: begin
          plot_specphot,usebin=usebin,/removel,custtitle=showdate,$
