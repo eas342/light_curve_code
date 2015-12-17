@@ -187,7 +187,8 @@ for i=0l,nNights-1l do begin
          printf,1,useDate,medSeeing,medExpTime,tingress,tegress,format='(A12,F10.2,3F10.1)'
       end
       keyword_set(binsizephot): begin
-         plot_bin_size,/photmode,custyrange=[1E-2,1]
+         plot_bin_size,/photmode,custyrange=[1E-2,1],custtitle=showdate,$
+                       tSerRange=custSpecPhRange,/nointerp
       end
       else: begin
          plot_specphot,usebin=usebin,/removel,custtitle=showdate,$

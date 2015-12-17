@@ -1,6 +1,7 @@
 pro plot_bin_size,psplot=psplot,scalephoton=scalephoton,$
                   wavlmode=wavlmode,photmode=photmode,$
-                  custyrange=custyrange
+                  custyrange=custyrange,custtitle=custtitle,$
+                  nointerplots=nointerplots,tserRange=tserRange
 ;; plots the rms as a function of bin size
 ;; psplot -- makes eps, pdf and png plots
 ;; scalephoton -- scales the photon errors up to the measured RMS
@@ -8,6 +9,7 @@ pro plot_bin_size,psplot=psplot,scalephoton=scalephoton,$
 ;;             of time
 ;; photmode -- photometry mode only looks at one wavelength
 ;; custyrange -- allows you to set the Y range of the plot
+;; custtitle -- a custom title for RMS vs wavelength plots
 
 if keyword_set(wavlmode) then begin
    bintarr = [5,7,9,12,15,25,30,60,100,0]
@@ -22,6 +24,7 @@ endif else begin
    bintarr = bintarr[allowedbins]
 endelse
 
+if n_elements(custtitle) EQ 0 then custtitle=''
 
 ntbin = n_elements(bintarr)
 
@@ -39,9 +42,10 @@ for i=0l,ntbin-1l do begin
          restore,'data/specdata.sav'
          bintarr[i] = float(n_elements(lamgrid))
       endif else compile_spec,nwavbins=bintarr[i],/readCurrent,/irafnoise
-      plot_tim_ser,/noplots
-   endif else plot_tim_ser,timebin=bintarr[i],/noplots
+      plot_tim_ser,noplots=nointerplots,custxrange=tserRange
+   endif else plot_tim_ser,timebin=bintarr[i],noplots=nointerplots,custxrange=tserRange
    restore,'data/rmsdata.sav'
+
    ;; get the wavelength bin starts bingrid
    ;; get the wavelength bin middle bingridmiddle
    ;; get the wavelength bin sizes binsizes
@@ -59,7 +63,7 @@ for i=0l,ntbin-1l do begin
    if not keyword_set(wavl) then begin
       bintsizeArr[i] = tsizes[0]
    endif
-   print,i,' of ',ntbin,' done'
+   if i mod 10 EQ 0 then print,i,' of ',ntbin,' done'
 endfor
 
 if keyword_set(wavlmode) then begin
@@ -99,6 +103,7 @@ endif else myYrange=custyrange
 plot,bintdescrip,rmstbinfun[*,0]*100E,$
      xtitle=myXtitle,$
      ytitle='Out of Transit RMS (%)',$;/xlog,$
+     title=custtitle,$
      yrange=myYrange,ystyle=1,/ylog
 oplot,bintdescrip,photonfun[*,0]*100E,linestyle=2
 
