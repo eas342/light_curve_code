@@ -522,8 +522,7 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
         tplot = tmiddle
 
         y = ybin
-
-        fracPhotonarr[k] = yerrOut[0] / ybin[0]
+        fracPhotonarr[k] = median(yerrOut) / median(ybin)
 ;        yerr = yerrOut
         yerr = stdevArr
         airmass = airbin
@@ -625,8 +624,7 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
                  device,xsize=PSSingleXsize, ysize=PSSingleYsize,decomposed=1,/color
               endif else device,xsize=PSplotXsize, ysize=PSplotYsize,decomposed=1,/color
            endif
-;        plot,tplot,y,psym=2,$
-           custXrange=[-0.1,0.1]
+
            if keyword_set(singleplot) then begin
               if k EQ 0 then begin
                  ;; Set up everything for the first time plot
