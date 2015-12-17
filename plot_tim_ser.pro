@@ -604,10 +604,12 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
            Offresid = y[offp] - (fitY[0] + fitY[1]*tplot[offp])
         endelse
         fracRMSarr[k] = robust_sigma(Offresid)/median(y[offp])
-        print,'Frac lin corr robust sigma for ',wavname[k],': ',fracRMSarr[k]
+
         ;; Show the off transit fit
 ;        oplot,tplot,fity[0] + fity[1]*tplot,color=mycol('red')
         if not keyword_set(noplots) then begin
+           print,'Frac lin corr robust sigma for ',wavname[k],': ',fracRMSarr[k]
+
            if keyword_set(offtranserr) then begin
               
               if keyword_set(straightupRMS) then begin
