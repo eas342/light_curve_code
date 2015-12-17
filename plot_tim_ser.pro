@@ -129,18 +129,18 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
 
   ;; get the transit times
   readcol,'transit_info/transit_epoch.txt',epoch,tepoch,format='(A,D)',$
-          skipline=1
+          skipline=1,/silent
 
   ;; get the planet info
   readcol,'transit_info/planet_info.txt',info,data,format='(A,D)',$
-          skipline=1
+          skipline=1,/silent
   planetdat = create_struct('null','')
   for l=0l,n_elements(info)-1l do begin
      planetdat = create_struct(planetdat,info[l],data[l])
   endfor
 
   ;; Get the (plot spacing) separation between different time series for a given planet
-  readcol,'param_input/time_series_sep.txt',separationA,format='(F)',skipline=1
+  readcol,'param_input/time_series_sep.txt',separationA,format='(F)',skipline=1,/silent
 
 
   if keyword_set(showmcmc) then begin
