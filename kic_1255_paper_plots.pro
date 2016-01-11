@@ -181,6 +181,10 @@ case type of
       plot_rad_vs_wavl,/depthk,custyrange=[-0.5,0.5]
       kic1255_mult
    end
+   'rms_bin_size': begin
+      spawn,'cp file_lists/multi_night_9night.txt file_lists/multi_night.txt'
+      multi_night_plots,/binsizephot,/fixr,/psplot
+   end
    else: message,'Input not found.',/cont
 endcase
 
