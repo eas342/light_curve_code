@@ -27,7 +27,7 @@ pro state_parameters,reInitialize=reInitialize,psplot=psplot,$
 
 
   paramnames = ["Airmass","FWHM (px)","Relative Position (px)","Individual Flux",$
-                "Spectral Shift (~px)","Voigt a","Slit Model","Voigt sigV"]
+                "Spectral Shift (~px)"];,"Voigt a","Slit Model","Voigt sigV"]
   nparams = n_elements(paramnames)
 
   !p.multi=[0,1,nparams+1]
