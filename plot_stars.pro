@@ -275,7 +275,7 @@ pro plot_stars,psplot=psplot,tryclean=tryclean,saveclean=saveclean,$
                        'Planet Host (Img '+strtrim(choose2,1)+')',$
                        'Ref Star (Img '+strtrim(choose1,1)+')',$
                        'Ref Star (Img '+strtrim(choose2,1)+')']
-           legend,legNames,$
+           al_legend,legNames,$
                   color=[!p.color,mycol(['red','blue','dgreen'])],/right,$
                   linestyle=[0,0,3,3],charsize=0.45
         end
@@ -342,6 +342,5 @@ pro plot_stars,psplot=psplot,tryclean=tryclean,saveclean=saveclean,$
      !x.thick = 1.0
      !y.thick = 1.0
  endif
-
 
 end
