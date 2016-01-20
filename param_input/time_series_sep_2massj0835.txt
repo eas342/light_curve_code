@@ -1,0 +1,2 @@
+# Time Series Separation for KIC 1255
+0.04

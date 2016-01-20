@@ -1,0 +1,4 @@
+# UT Times from 2015-12-31T09:00:00.00 to 
+First_Contact	2457387.875
+Fourth_Cont	2457387.875
+Tmid		2457387.875
