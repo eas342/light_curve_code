@@ -397,18 +397,6 @@ ReadNarr = replicate(ReadN,Ngpts,Nap,Nfile)
 ;ErrGrid = nansqrt( FowFac * flgrid + FowFac * backgrid + readnarr^2 * npix)
 
 
-;; Star Shift, the default is to move the reference star by -1 pixel
-if n_elements(starshift) EQ 0 then begin
-   ;; the readCurrent keyword is designed to read newer data so the default star
-   ;; shift is 0 for the new data
-   if keyword_set(readCurrent) then starshift=0 else begin
-      starshift = -1
-   endelse
-endif
-xygrid = fltarr(Ngpts,nfile)
-xygrid[*,*] = flgrid[*,1,*] ;; adjust the reference star
-shiftedGrid = shift_interp(xygrid,starshift)
-flgrid[*,1,*] = shiftedGrid
 
 ;; Shift arrays
 if keyword_set(specshift) or keyword_set(saveShifts) then begin
@@ -465,6 +453,20 @@ if keyword_set(specshift) or keyword_set(saveShifts) then begin
    endif
 
 endif
+
+;; Star Shift, the default is to move the reference star by -1 pixel
+if n_elements(starshift) EQ 0 then begin
+   ;; the readCurrent keyword is designed to read newer data so the default star
+   ;; shift is 0 for the new data
+   if keyword_set(readCurrent) then starshift=0 else begin
+      starshift = -1
+   endelse
+endif
+xygrid = fltarr(Ngpts,nfile)
+xygrid[*,*] = flgrid[*,1,*] ;; adjust the reference star
+shiftedGrid = shift_interp(xygrid,starshift)
+flgrid[*,1,*] = shiftedGrid
+
 
 if keyword_set(trycorrect) then begin
    flgrid[*,0,*] = median(flgrid[*,0,*]) * 3E + flgrid[*,0,*]
