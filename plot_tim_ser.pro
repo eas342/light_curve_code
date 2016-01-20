@@ -18,7 +18,7 @@ pro plot_tim_ser,fitcurve=fitcurve,fitpoly=fitpoly,usepoly=usepoly,makestops=mak
                  presentation=presentation,slitmod=slitmod,fixprof=fixprof,psmooth=psmooth,$
                  custxrange=custxrange,noplots=noplots,custTitle=custTitle,tmedian=tmedian,$
                  custxmargin=custxmargin,custymargin=custymargin,labelKep=labelKep,boot=boot,$
-                 skipwavl=skipwavl
+                 skipwavl=skipwavl,sinfit=sinfit
 ;; plots the binned data as a time series and can also fit the Rp/R* changes
 ;; apPlot -- this optional keyword allows one to choose the aperture
 ;;           to plot
@@ -182,18 +182,28 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
   plrad = fltarr(nbin)*!values.f_nan
   plrade = fltarr(nbin)*!values.f_nan
 
-  ;; Prepare to save all the planet transit data as a function of wavelength
-  if keyword_set(slitmod) then begin
-     paramnames = ['Rp/R*','b_impact','u1','u2','a/R*','c_0','c_2',$
-                   'B','H','Phase Offset','legendre0','legendre1','legendre2']
-     paramfiles = ['rad'  ,'b_impact','u1','u2','a',   'c_0','c_2',$
-                   'B','H','phase_offset','legendre0','legendre1','legendre2']
-  endif else begin
-     paramnames = ['Rp/R*','b_impact','u1','u2','a/R*','legendre0','legendre1','legendre2','legendre3',$
-                   'legendre4','legendre5','Phase Offset']
-     paramfiles = ['rad'  ,'b_impact','u1','u2','a','legendre0','legendre1','legendre2','legendre3',$
-                   'legendre4','legendre5','phase_offset']
-  endelse
+  ;; Prepare to save all the planet transit data as a function of
+  ;; wavelength
+  case 1 of
+     keyword_set(slitmod): begin
+        paramnames = ['Rp/R*','b_impact','u1','u2','a/R*','c_0','c_2',$
+                      'B','H','Phase Offset','legendre0','legendre1','legendre2']
+        paramfiles = ['rad'  ,'b_impact','u1','u2','a',   'c_0','c_2',$
+                      'B','H','phase_offset','legendre0','legendre1','legendre2']
+     end
+     keyword_set(sinfit): begin
+        paramnames = ['Amp','period','phaseoffset','blank03','blank04',$
+                      'blank05','blank06','blank07','legendre0','legendre1','legendre2']
+        paramfiles = ['mmp','period','blank02','blank03','blank04',$
+                      'blank05','blank06','blank07','legendre0','legendre1','legendre2']
+     end
+     else: begin
+        paramnames = ['Rp/R*','b_impact','u1','u2','a/R*','legendre0','legendre1','legendre2','legendre3',$
+                      'legendre4','legendre5','Phase Offset']
+        paramfiles = ['rad'  ,'b_impact','u1','u2','a','legendre0','legendre1','legendre2','legendre3',$
+                      'legendre4','legendre5','phase_offset']
+     end
+  endcase
   nparams = n_elements(paramnames)
   resultarr = fltarr(nparams,nbin)*!values.f_nan
   resultarrE = resultarr
@@ -514,8 +524,6 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
                                median=tmedian)
            endif
         endif
-
-
 
         airbin = avg_series(tplot,airmass,fltarr(n_elements(airmass)),timeGrid,tsizes,$
                             weighted=0,/silent,median=tmedian)
@@ -838,6 +846,16 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
               
               ;; Here's where you choose the model to fit to the data
               case 1 of
+                 keyword_set(sinfit): begin
+                    expr = 'P[0] * sin((X * 6.2831853D / P[1]) + P[2]) +  eval_legendre(X,P[5:10])'
+                    start = fltarr(11)
+                    start[0] = 0.002
+                    start[1] = 0.15E
+                    start[2] = 3.1
+                    start[3:4] = 0E
+                    start[5] = 1E
+                    start[6:10] = 0E
+                 end
                  keyword_set(kepdiff): begin
                     expr = '(kepler_func(X,P[0]+1D) / kepler_func(X,1D)) *  eval_legendre(X,P[5:10])'
                  end
@@ -929,7 +947,8 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
                  pi[0].limited = [0,0]
                  pi[0].limits = [0D,0D]
               endelse
-              
+
+
               ;; Transit epoch fitting
               if keyword_set(fitepoch) then begin
                  pi[11].fixed = 0
@@ -949,6 +968,18 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
                  endif
               endif
               
+              if keyword_set(sinfit) then begin
+                 pi[0:2].fixed =0  ;; allow amplitude, phase and period be free
+                 pi[3:4].fixed =1 ;; make sure unused parameters are free
+                 ;;pi[5:10] will be handled below by the legendre
+                 ;;stuff
+                 pi[0].limited = [1,0]
+                 pi[0].limits = [0,0] ;; ensure amplitude is positive
+                 pi[1].limited = [1,0]
+                 pi[1].limits = [1E-4,0] ;; ensure you don't divide by zero for period
+                 pi[2].limits = [0,0]
+              endif
+
               ;; Here's where the polynomial terms are adjusted
               if keyword_set(slitmod) then begin
                  startLeg = 10 ;; first legendre polynomial coefficient
@@ -995,7 +1026,7 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
                  modelY1 = expression_eval(expr,modelX,result)
               endelse
               oplot,modelX,modelY1-offset,color=mycol('blue'),thick=2
-              
+
               ;; save the planet radius and all data
               plrad[k] = result[0]
               plrade[k] = punct[0]
