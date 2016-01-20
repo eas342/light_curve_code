@@ -101,7 +101,7 @@ function find_shifts,inArray,cutEnds=cutEnds,stopAndshow=stopAndshow,$
         stop
      endif
 
-     if j GE 350 and keyword_set(stopAndshow) then begin
+     if j mod 20 EQ 0 and keyword_set(stopAndshow) then begin
         !p.multi = [0,1,2]
         plot,lagArray,crossCor,ystyle=16,$
              xtitle='Shift (px)',ytitle='Cross Cor',psym=2
@@ -113,7 +113,7 @@ function find_shifts,inArray,cutEnds=cutEnds,stopAndshow=stopAndshow,$
                        startparams,/quiet)
         oplot,lagarray,expression_eval(fitExpr,lagarray,result),color=mycol('blue')
         oplot,result[[2,2]],!y.crange,color=mycol('red')
-        legend,['Cross Correlation','Best-Fit Polynomial','Best fit sinc + Gaussian',$
+        al_legend,['Cross Correlation','Best-Fit Polynomial','Best fit sinc + Gaussian',$
                 'Polynomial Peak','Gaussian + Sinc Peak'],$
                linestyle=[0,0,0,0,0],psym=[1,0,0,0,0],color=mycol(['white','green','blue','yellow','red'])
 
@@ -125,7 +125,7 @@ function find_shifts,inArray,cutEnds=cutEnds,stopAndshow=stopAndshow,$
         oplot,x,medspec*0.97,color=mycol('green')
         oplot,x,outArray[*,j],color=mycol('red')
         oplot,x,shift_interp(inArray[*,j],shiftArr[j]),color=mycol('yellow')
-        legend,['Original','Median Spec','W/ Polynomial Peak','W/ Sinc Peak'],$
+        al_legend,['Original','Median Spec','W/ Polynomial Peak','W/ Sinc Peak'],$
                color=mycol(['white','green','red','yellow']),$
                linestyle=[0,0,0,0],/right
 
