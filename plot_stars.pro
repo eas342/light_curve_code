@@ -50,7 +50,12 @@ pro plot_stars,psplot=psplot,tryclean=tryclean,saveclean=saveclean,$
      !p.thick = 3.0
      !x.thick = 3.0
      !y.thick = 3.0
-  endif
+     mycharsize = 0.7
+     mysmallcharsize = 0.45
+  endif else begin
+     mycharsize = 1
+     mysmallcharsize = 1
+  endelse
 
 
   ;; get the compiled spectroscopic data
@@ -258,11 +263,11 @@ pro plot_stars,psplot=psplot,tryclean=tryclean,saveclean=saveclean,$
      xrefText = 0.65E * xsize+!x.crange[0]
      yrefText = 0.7E * ysize + !y.crange[0]
      xyouts,0.4E * xsize+!x.crange[0],0.85E * ysize + !y.crange[0],$
-            'Planet Host',color=!p.color,charsize=0.7
+            'Planet Host',color=!p.color,charsize=mycharsize
      xyouts,xrefText,yrefText,$
-            'Reference Star',color=mycol('blue'),charsize=0.7
+            'Reference Star',color=mycol('blue'),charsize=mycharsize
      xyouts,0.07E * xsize+!x.crange[0],0.2E * ysize + !y.crange[0],$
-            name3,color=mycol('red'),charsize=0.7
+            name3,color=mycol('red'),charsize=mycharsize
      midpt = n_elements(lamgrid)/2
      dataperYpix = (!y.crange[1] - !y.crange[0]) /((!y.window[1] - !y.window[0]) * !d.y_vsize)
      ybump = !D.Y_CH_SIZE * 0.5E * dataperYpix * 0.7E
@@ -277,12 +282,12 @@ pro plot_stars,psplot=psplot,tryclean=tryclean,saveclean=saveclean,$
                        'Ref Star (Img '+strtrim(choose2,1)+')']
            al_legend,legNames,$
                   color=[!p.color,mycol(['red','blue','dgreen'])],/right,$
-                  linestyle=[0,0,3,3],charsize=0.45
+                  linestyle=[0,0,3,3],charsize=mysmallcharsize
         end
         else: begin
            al_legend,['Planet Host','Reference Star',name3],$
                   color=[!p.color,mycol(['blue','red'])],/right,linestyle=[0,3,4],$
-                  charsize=0.7
+                  charsize=mycharsize
         end
      endcase
   endelse
