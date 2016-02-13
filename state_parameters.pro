@@ -27,7 +27,7 @@ pro state_parameters,reInitialize=reInitialize,psplot=psplot,$
 
 
   paramnames = ["Airmass","FWHM (px)","Relative Position (px)","Individual Flux",$
-                "Spectral Shift (~px)"];,"Voigt a","Slit Model","Voigt sigV"]
+                "Spectral Shift (~px)","Voigt a","Slit Model","Slit Diff Model"];,"Voigt sigV"]
   nparams = n_elements(paramnames)
 
   !p.multi=[0,1,nparams+1]
@@ -105,23 +105,19 @@ pro state_parameters,reInitialize=reInitialize,psplot=psplot,$
            shorthand = 'voitSig'
         end
         "Slit Model": begin
-           d1 = double(transpose(specShiftArr[0,*])) +1E
-           d2 = double(transpose(specShiftArr[1,*])) +1E
-           if strmatch(usedate,'*2012*') OR strmatch(usedate,'*2013*') then begin
-              H = 20.49/2E              
-           endif else H = 30.5/2E
-           sigma1 = widths[*,0]
-           sigma2 = widths[*,1]
-           vt1 = voigts[*,apkey[0]]
-           vt2 = voigts[*,apkey[1]]
-           trans1 = vslit_approx(d1,H,sigma1,median(vt1))
-           trans2 = vslit_approx(d2,H,sigma2,median(vt2))
-
+           calc_slitloss,specshiftArr,usedate,widths,voigts,apkey,trans1,trans2
 ;           trans1 = vslit_approx(d1,H,median(sigma1),median(vt1))
            y = trans1
-           y2 = trans2
+           y2 = trans2 
            showY2 = 1
            shorthand = 'slitmodel'
+        end
+        "Slit Diff Model": begin
+           calc_slitloss,specshiftArr,usedate,widths,voigts,apkey,trans1,trans2
+           y = trans1 / trans2
+           showY2 = 0
+           shorthand = 'slitdiffmodel'
+           
         end
         else: y = tplot * 0E
      endcase

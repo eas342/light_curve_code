@@ -31,6 +31,9 @@ pro get_profile_widths,showplot=showplot,jan04corot1=jan04corot1,$
      thinline = 1
   endelse
 
+  fititerations = 3 ;; fit for outlier rejection (of CR hits & Thorium hits)
+  sigmacut = 15 ;; sigma cutting when fitting profiles
+
   readcol,'file_lists/current_speclist.txt',fileL,format='(A)',/silent,$
           stringskip='#'
   ;; also get the speclist name
@@ -242,9 +245,32 @@ pro get_profile_widths,showplot=showplot,jan04corot1=jan04corot1,$
                               (indices GE endx   and indices LT endx + HW))
                  yerr = robust_sigma(b[outp]) + fltarr(endx-startx+1)
 
-                 result = mpfitexpr(expr,subarrayX,subarrayY,yerr,start,parinfo=pi,perr=perr,/quiet)
-                 yfit = expression_eval(expr,subarrayX,result)
-                 resid = yfit - b[startx:endx]
+                 goodp = where(finite(subarrayY),ngood,complement=badp)
+                 !p.multi = [0,1,fititerations]
+                 for k=0l,fititerations-1l do begin
+                    if ngood GT n_elements(start) then begin
+                       result = mpfitexpr(expr,subarrayX[goodp],subarrayY[goodp],yerr[goodp],start,$
+                                          parinfo=pi,perr=perr,/quiet)
+                       yfit = expression_eval(expr,subarrayX,result)
+                       resid = yfit - b[startx:endx]
+
+                       if keyword_set(showrejplots) then begin
+                          plot,subarrayX[goodp],subarrayY[goodp],psym=4
+                          oplot,subarrayX,yfit,color=mycol('blue')
+                          if n_elements(badp) GT 1 then begin
+                             oplot,subarrayX[badp],subarrayY[badp],psym=4,color=mycol('red')
+                          endif
+                          stop
+                       endif
+
+                       
+                       goodp = where(abs(resid) Lt sigmacut * median(yerr),ngood,complement=badp)
+                    endif else begin
+                       message,'Not enough points accepted. Returning starting parameters.',/cont
+                       yfit = subarrayX * 0E
+                       result = start
+                    endelse
+                 endfor
 
 ;                 result = gaussfit(subarrayX,subarrayY,A,nterms=5)
 ;                 Widths[j,i] = A[2]
@@ -270,7 +296,8 @@ pro get_profile_widths,showplot=showplot,jan04corot1=jan04corot1,$
                     zresid = resid
                  endif else begin
                     plot,indices,b,xtitle='Y position (px)',$
-                         ytitle='Flux'
+                         ytitle='Flux',/nodata
+                    oplot,indices,b
                     oplot,subarrayX,yfit,color=mycol('blue'),thick=thickline
                     oplot,zsubarrayX,zyfit,color=mycol('blue'),thick=thickline
                     
@@ -285,8 +312,10 @@ pro get_profile_widths,showplot=showplot,jan04corot1=jan04corot1,$
                                string(perr[0],format=('(F6.2)'))],$
                               /right
 ;                         'a = '+string(result[
+                    if j GE 1 then stop
                     plot,indices,b,xtitle='Y position (px)',$
                          ytitle='Residual',yrange=threshold(resid),/nodata
+
                     oplot,subarrayX,resid
                     oplot,zsubarrayX,zresid
                     for i=0l,nparams-1l do begin
@@ -302,7 +331,6 @@ pro get_profile_widths,showplot=showplot,jan04corot1=jan04corot1,$
 ;                                               SubarrayX,thick=2,color=mycol('blue')
                     ;; stop
 ;                    oplot,zsubarrayX,zresult,color=mycol('lblue'),thick=thickline
-                    if j GE 50 then stop
                  endelse
               endif
            endfor
