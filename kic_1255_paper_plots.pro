@@ -136,6 +136,9 @@ case type of
       spawn,'cp file_lists/multi_night_9night.txt file_lists/multi_night.txt'
       multi_night_plots,/phot,/fixR,/psplot
    end
+   '9spex': begin
+      multi_night_plots,/stser,/psplot,/fixr
+   end
    'difftime': begin
       spawn,'cp file_lists/multi_night_6night.txt file_lists/multi_night.txt'
       compile_multi_night,mnwavbins=5,/diff
