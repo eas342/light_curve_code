@@ -131,7 +131,7 @@ for i=0l,nNights-1l do begin
       keyword_set(stser): begin
          if i EQ 3 - 1 then skipwavl=0 else skipwavl=1
          plot_tim_ser,timebin=40,/lind,/offtranserr,secondary=secondary,skipwavl=skipwavl,$
-                      custXrange=custSpecPhRange,/singlep,/skipreset;t,/diff,custsep=0.025
+                      custXrange=custSpecPhRange,/singlep,/skipreset,custtitle=showdate
       end
       keyword_set(indflux): begin
          plot_tim_ser,/ind,custtitle=showdate,secondary=secondary,$
@@ -181,10 +181,15 @@ for i=0l,nNights-1l do begin
 
          if i EQ 0 then begin
             openw,1,'data/night_summary.txt'
-            printf,1,'Date','FWHM (arcsec)','T_exp','T_ingress','T_egress',$
-                   format='(A12,4A10)'
+            printf,1,'Date','FWHM','T_exp','T_ingress','T_egress',$
+                   'Airmass Range',$
+                   format='(A12,4A10,A15)'
          endif
-         printf,1,useDate,medSeeing,medExpTime,tingress,tegress,format='(A12,F10.2,3F10.1)'
+         lastair = airmass[n_elements(airmass)-1l]
+         airstring = string(airmass[0],min(airmass),lastair,format='(F4.2,"-",F4.2,"-",F4.2)')
+         printf,1,useDate,medSeeing,medExpTime,tingress,tegress,$
+                airstring,$
+                format='(A12,F10.2,3F10.1,A15)'
       end
       keyword_set(binsizephot): begin
          plot_bin_size,/photmode,custyrange=[1E-2,1],custtitle=showdate,$
