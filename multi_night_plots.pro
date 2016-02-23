@@ -97,7 +97,9 @@ for i=0l,nNights-1l do begin
          compile_spec,nwavbins=5,/readc,/quickread,/specsh;,custrange=[0.9,1.2]
       end
       keyword_set(binsizephot): begin
-         compile_phot,/readc
+         if strmatch(usedate,'*2014aug18*') then begin
+            compile_phot,/readc,/both
+         endif else compile_phot,/readC
       end
       else: begin
          compile_spec,/specsh,/readC,custrange=custwavrange,nwavbins=25,/quickread
@@ -194,8 +196,12 @@ for i=0l,nNights-1l do begin
                 format='(A12,F10.2,3F10.1,A15,A10)'
       end
       keyword_set(binsizephot): begin
+         if i EQ 0 then photleg=1 else photleg=0
          plot_bin_size,/photmode,custyrange=[1E-2,1],custtitle=showdate,$
-                       tSerRange=custSpecPhRange,/nointerp
+                       tSerRange=custSpecPhRange,/nointerp,photleg=photleg,/smallleg
+         if strmatch(usedate,'*2014aug18*') then begin
+            plot_bin_size,/photmode,/nointerp,photind=1,/overplotmode,showname='H band'
+         endif
       end
       else: begin
          plot_specphot,usebin=usebin,/removel,custtitle=showdate,$

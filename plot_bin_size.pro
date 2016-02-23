@@ -1,7 +1,9 @@
 pro plot_bin_size,psplot=psplot,scalephoton=scalephoton,$
                   wavlmode=wavlmode,photmode=photmode,$
                   custyrange=custyrange,custtitle=custtitle,$
-                  nointerplots=nointerplots,tserRange=tserRange
+                  nointerplots=nointerplots,tserRange=tserRange,$
+                  overplotmode=overplotmode,photind=photind,$
+                  showname=showname,photleg=photleg,smallleg=smallleg
 ;; plots the rms as a function of bin size
 ;; psplot -- makes eps, pdf and png plots
 ;; scalephoton -- scales the photon errors up to the measured RMS
@@ -10,6 +12,13 @@ pro plot_bin_size,psplot=psplot,scalephoton=scalephoton,$
 ;; photmode -- photometry mode only looks at one wavelength
 ;; custyrange -- allows you to set the Y range of the plot
 ;; custtitle -- a custom title for RMS vs wavelength plots
+;; nointerplots - doesn't show the tim series plots. useful
+;;                when trying to make multi-night plots of bin size vs time
+;; overplotmode - overplot-only mode, does not re-create the plot
+;; photind - if specified, the index for photometry, default is 0
+;; showname - an optional name to show in overplot mode
+;; photleg - if specified, show a simple legend for photometry
+;; smallleg - shrink legend so it isn't so big in ps plot
 
 if keyword_set(wavlmode) then begin
    bintarr = [5,7,9,12,15,25,30,60,100,0]
@@ -52,7 +61,10 @@ for i=0l,ntbin-1l do begin
    ;; the rms of off transit flux fracRMSarr
    ;; the time bin sizes tsizes
    ;; the photon noise fracPhotonarr
-   if keyword_set(photmode) then wavInd = [0] else begin
+   if keyword_set(photmode) then begin
+      if n_elements(photind) EQ 0 then photind=0
+      wavInd = [photind]
+   endif else begin
       tabinv,bingridmiddle,selectwav,wavInd
       wavInd = round(wavInd)
    endelse
@@ -100,12 +112,21 @@ if n_elements(custyrange) EQ 0 then begin
    if keyword_set(wavlmode) then myYrange= [2E-2,5E] else myYrange=[1E-3,2E]
 endif else myYrange=custyrange
 
-plot,bintdescrip,rmstbinfun[*,0]*100E,$
-     xtitle=myXtitle,$
-     ytitle='Out of Transit RMS (%)',$;/xlog,$
-     title=custtitle,$
-     yrange=myYrange,ystyle=1,/ylog
-oplot,bintdescrip,photonfun[*,0]*100E,linestyle=2
+if keyword_set(overplotmode) then begin
+   showcol = mycol('red')
+   if n_elements(showname) EQ 0 then showname=''
+   oplot,bintdescrip,rmstbinfun[*,0]*100E,color=showcol
+   xyouts,median(bintdescrip),median(rmstbinfun[*,0]*100E) * 2E,showname,color=showcol
+endif else begin
+   plot,bintdescrip,rmstbinfun[*,0]*100E,$
+        xtitle=myXtitle,$
+        ytitle='Out of Transit RMS (%)',$ ;/xlog,$
+        title=custtitle,$
+        yrange=myYrange,ystyle=1,/ylog
+   showcol = !p.color
+endelse
+
+oplot,bintdescrip,photonfun[*,0]*100E,linestyle=2,color=showcol
 
 if keyword_set(wavlmode) then begin
    wavbinnames = 'Near '+$
@@ -127,7 +148,14 @@ if not keyword_set(photmode) then begin
    legend,'Std Dev '+wavbinnames,color=mycol(['black','red','blue']),linestyle=[0,0,0],/right
    legend,color=mycol(['black','red','blue']),replicate(photonName,3)+wavbinnames,$
           linestyle=replicate(2,3),/bottom,/left
-endif
+endif else begin
+   if keyword_set(photleg) then begin
+      if keyword_set(smallleg) then begin
+         legcharsize=0.5
+      endif else legcharsize=1.0
+      al_legend,['Measured Noise','Photon + read noise'],linestyle=[0,2],charsize=legcharsize
+   endif
+endelse
 
 if keyword_set(psplot) then begin
    device, /close
