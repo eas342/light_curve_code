@@ -330,6 +330,10 @@ endfor
 
 if utgrid[0] LT 2400000D then utgrid = utgrid + 2400000.5D
 
+;; Find the sun altitude at all positions
+sunpos,utgrid,sunRADeg,sunDecDeg
+eq2hor,sunRADeg,sunDecDeg,utgrid,altsun,azsun,obsname=obscode[0]
+
 ;; For the out-of-transit KIC 1255, we can move the time to see what
 ;; out-of-transit data looks like when fit with transit models
 if keyword_set(pretendTransit) then utgrid = utgrid - 0.30D
@@ -685,7 +689,7 @@ save,flgrid,lamgrid,bingrid,binfl,binflE,backdiv,$
      ErrGrid,SNR,Divspec,DivspecE,backgrid,$
      Nwavbins,binsizes,binind,binindE,filen,$
      airmass,altitude,header,apkey,binback,binbackE,$
-     focus,$
+     focus,altsun,$
      filename='data/specdata.sav'
 
 file_copy,'data/specdata.sav',specDataCompressed,/overwrite

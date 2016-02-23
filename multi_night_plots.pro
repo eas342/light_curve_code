@@ -182,14 +182,16 @@ for i=0l,nNights-1l do begin
          if i EQ 0 then begin
             openw,1,'data/night_summary.txt'
             printf,1,'Date','FWHM','T_exp','T_ingress','T_egress',$
-                   'Airmass Range',$
-                   format='(A12,4A10,A15)'
+                   'Airmass Range','Sun Alt',$
+                   format='(A12,4A10,A15,A10)'
          endif
          lastair = airmass[n_elements(airmass)-1l]
          airstring = string(airmass[0],min(airmass),lastair,format='(F4.2,"-",F4.2,"-",F4.2)')
+         sunstring = string(altsun[0],altsun[n_elements(altsun)-1l],$
+                            format='(I3," - ",I3)')
          printf,1,useDate,medSeeing,medExpTime,tingress,tegress,$
-                airstring,$
-                format='(A12,F10.2,3F10.1,A15)'
+                airstring,sunstring,$
+                format='(A12,F10.2,3F10.1,A15,A10)'
       end
       keyword_set(binsizephot): begin
          plot_bin_size,/photmode,custyrange=[1E-2,1],custtitle=showdate,$
