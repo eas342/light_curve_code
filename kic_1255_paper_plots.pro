@@ -155,7 +155,7 @@ case type of
    end
    'absSpec': begin
       spawn,'cp file_lists/multi_night_6night.txt file_lists/multi_night.txt'
-;      compile_multi_night,mnwavbins=5
+      compile_multi_night,mnwavbins=5
       plot_tim_ser,timebin=40,/singlep,custxrange=[-0.2,0.13],$
                    custsep=0.01,/fitcurve,/kepdiff,/offtranserr,/lind
       avg_radii,preset='param_input/rad_choices_6_absolute.txt',totsets=6
