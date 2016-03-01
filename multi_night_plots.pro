@@ -6,7 +6,7 @@ pro multi_night_plots,psplot=psplot,$
                       differential=differential,$
                       starplots=starplots,indflux=indflux,$
                       nightsummary=nightsummary,boot=boot,stser=stser,$
-                      binsizephot=binsizephot
+                      binsizephot=binsizephot,showbjd=showbjd
 ;; Goes through all nights in order to plot the different things (such
 ;; as specphot images)
 ;; psplot - save a postcript plot for each night
@@ -22,6 +22,7 @@ pro multi_night_plots,psplot=psplot,$
 ;; boot - use bootstrap errors
 ;; stser - SpeX time series
 ;; binsizephot - show the RMS versus bin size
+;; showbjd - passed to time series plots to show the BJD time
 
   case 1 of
      keyword_set(stser): begin
@@ -126,7 +127,7 @@ for i=0l,nNights-1l do begin
          plot_tim_ser,timebin=40,/lind,/offtranserr,secondary=secondary,$
                       custXrange=custSpecPhRange,/showkep,custtitle=showdate,$
                       custyrange=[0.983,1.0045],/singlep,/skipreset,custsep=0.0075,$
-                      labelKep=labelKep
+                      labelKep=labelKep,showbjd=showbjd,custymargin=[4,7]
          ;; use the same variable as custom specphot range
          
       end

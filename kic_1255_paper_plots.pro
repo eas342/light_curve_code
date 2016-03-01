@@ -134,7 +134,7 @@ case type of
    end
    '9moris': begin
       spawn,'cp file_lists/multi_night_9night.txt file_lists/multi_night.txt'
-      multi_night_plots,/phot,/fixR,/psplot
+      multi_night_plots,/phot,/fixR,/psplot,/showbjd
    end
    '9spex': begin
       multi_night_plots,/stser,/psplot,/fixr

@@ -18,7 +18,7 @@ pro plot_tim_ser,fitcurve=fitcurve,fitpoly=fitpoly,usepoly=usepoly,makestops=mak
                  presentation=presentation,slitmod=slitmod,fixprof=fixprof,psmooth=psmooth,$
                  custxrange=custxrange,noplots=noplots,custTitle=custTitle,tmedian=tmedian,$
                  custxmargin=custxmargin,custymargin=custymargin,labelKep=labelKep,boot=boot,$
-                 skipwavl=skipwavl,sinfit=sinfit
+                 skipwavl=skipwavl,sinfit=sinfit,showBJD=showBJD
 ;; plots the binned data as a time series and can also fit the Rp/R* changes
 ;; apPlot -- this optional keyword allows one to choose the aperture
 ;;           to plot
@@ -105,6 +105,7 @@ pro plot_tim_ser,fitcurve=fitcurve,fitpoly=fitpoly,usepoly=usepoly,makestops=mak
 ;; labelKep - label the Kepler average light curve
 ;; boot - find bootstrap errors instead of mpfit
 ;; skipwavl - skip the wavelength label
+;; showBJD - show the BJD at the top X axis
 
 ;sigrejcrit = 6D  ;; sigma rejection criterion
 sigrejcrit = 5D  ;; sigma rejection criterion
@@ -402,9 +403,12 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
         endif
         tplot = tplot[goodp]
         airmass = airmass[goodp]
+        thisUT = utgrid[goodp]
         if keyword_set(slitmod) then inputX = inputX[*,goodp]
         offp = where(tplot LT hstart OR tplot GT hend)
-     endif
+     endif else begin
+        thisUT = utgrid
+     endelse
      stdoff = stddev(y[offp])
 
      if keyword_set(slitmod) then begin
@@ -432,6 +436,7 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
                  y = y[goodp]
                  yerr = yerr[goodp]
                  tplot = tplot[goodp]
+                 thisUT = thisUT[goodp]
                  if keyword_set(individual) then begin
                     y2 = y2[goodp]
                     y2err = y2err[goodp]
@@ -472,6 +477,7 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
               endif
               tplot = tplot[goodp]
               airmass = airmass[goodp]
+              thisUT = thisUT[goodp]
               if keyword_set(slitmod) then inputX = inputX[*,goodp]
 
               ;; fit result to a robust line
@@ -501,6 +507,7 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
                  endif
                  tplot = tplot[goodp]
                  airmass = airmass[goodp]
+                 thisUT = thisUT[goodp]
                  if keyword_set(slitmod) then inputX = inputX[*,goodp]
                  offp = where(tplot LT hstart OR tplot GT hend)
               endif
@@ -527,6 +534,8 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
 
         airbin = avg_series(tplot,airmass,fltarr(n_elements(airmass)),timeGrid,tsizes,$
                             weighted=0,/silent,median=tmedian)
+        utbin = avg_series(tplot,thisUT,fltarr(n_elements(thisUT)),timeGrid,tsizes,$
+                           weighted=0,/silent,median=tmedian)
         tplot = tmiddle
 
         y = ybin
@@ -534,6 +543,7 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
 ;        yerr = yerrOut
         yerr = stdevArr
         airmass = airbin
+        thisUT = utbin
         offp = where(tplot LT hstart OR tplot GT hend)
 
         ;; For any binned flux or error that are NAN, remove
@@ -547,6 +557,7 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
            endif
            tplot = tplot[goodp]
            airmass = airmass[goodp]
+           thisUT = utgrid[goodp]
            if keyword_set(slitmod) then inputX = inputX[*,goodp]           
            offp = where(tplot LT hstart OR tplot GT hend)
         endif
@@ -677,14 +688,42 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
            if (1 - keyword_set(singleplot)) OR k EQ 0 then begin
               ;; If in regular mode, plot each time, but in singleplot
               ;; mode, it only should draw axis the first time
+              if keyword_set(showBJD) then begin
+                 myXstyle = 8 + 1
+;                 myPposition = [0.05,0.05,0.95,0.9]
+                 moveTitle = myTitle
+                 myTitle = ''
+              endif else begin
+                 myXstyle = 1
+              endelse
               plot,tplot,y,psym=4,$
                    xtitle=myXtitle,$
                    title=myTitle,$
                    ytitle=yptitle,$
-                   yrange=ydynam,ystyle=1,/nodata,xstyle=1,$
+                   yrange=ydynam,ystyle=1,/nodata,xstyle=myXstyle,$
                    noerase=myNoErase,xthick=2.5,ythick=2.5,$
                    xtickformat=tickformat,ytickformat=tickformat,$
                    xrange=myXrange,xmargin=custxmargin,ymargin=custymargin
+               if keyword_set(showBJD) then begin
+                 refval = ev_round(min(utgrid),0.1)
+                 if min(utgrid - refval) LT -0.03 then refval = refval - 0.1D
+;                 showUTrel = thisUT - refval
+                 allphase = (utgrid - tmid)/ planetdat.period mod 1.0D
+                 allphase = fold_phase(allphase,secondary=secondary)
+                 UTlinfit = poly_fit(allphase,utgrid - refval,1)
+;                 UTlinfit = poly_fit(tplot,thisUT - refval,1)
+                 UTrelLimits = poly(!x.crange,transpose(UTlinfit))
+                 axis,xaxis=1,xrange=UTrelLimits,xtitle='BJD - '+string(refval,format='(F9.1)')
+                 Xtitlepos = mean(!x.crange)
+                 Ytitlepos = max(!y.crange) + 0.17E * (max(!y.crange) - min(!y.crange))
+                 xyouts,Xtitlepos,Ytitlepos,moveTitle,alignment=0.5,charsize=0.7
+                 print,'Range of utgrid = '
+                 print,min(utgrid),format='(F16.5)'
+                 print,max(utgrid),format='(F16.5)'
+                 print,'Range used = '
+                 print,UTrelLimits + refval,format='(F16.5)'
+                 stop
+              endif
            endif
            if k mod 2 EQ 0 then dataColor=!p.color else dataColor=mycol('red')
            if not keyword_set(differential) then begin
