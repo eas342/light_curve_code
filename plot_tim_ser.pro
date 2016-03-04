@@ -705,7 +705,7 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
                    xtickformat=tickformat,ytickformat=tickformat,$
                    xrange=myXrange,xmargin=custxmargin,ymargin=custymargin
                if keyword_set(showBJD) then begin
-                 refval = ev_round(min(utgrid),0.1)
+                 refval = double(ev_round(min(utgrid),0.1D))
                  if min(utgrid - refval) LT -0.03 then refval = refval - 0.1D
 ;                 showUTrel = thisUT - refval
                  allphase = (utgrid - tmid)/ planetdat.period mod 1.0D
@@ -713,7 +713,8 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
                  UTlinfit = poly_fit(allphase,utgrid - refval,1)
 ;                 UTlinfit = poly_fit(tplot,thisUT - refval,1)
                  UTrelLimits = poly(!x.crange,transpose(UTlinfit))
-                 axis,xaxis=1,xrange=UTrelLimits,xtitle='BJD - '+string(refval,format='(F9.1)')
+                 axis,xaxis=1,xrange=UTrelLimits,xtitle='BJD - '+string(refval,format='(F9.1)'),$
+                      xstyle=1
                  Xtitlepos = mean(!x.crange)
                  Ytitlepos = max(!y.crange) + 0.17E * (max(!y.crange) - min(!y.crange))
                  xyouts,Xtitlepos,Ytitlepos,moveTitle,alignment=0.5,charsize=0.7
@@ -722,7 +723,6 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
                  print,max(utgrid),format='(F16.5)'
                  print,'Range used = '
                  print,UTrelLimits + refval,format='(F16.5)'
-                 stop
               endif
            endif
            if k mod 2 EQ 0 then dataColor=!p.color else dataColor=mycol('red')
