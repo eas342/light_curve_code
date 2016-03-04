@@ -147,7 +147,8 @@ case type of
                    deletePS=0,/psplot
    end
    'bigmoris': begin
-      spawn,'cp file_lists/multi_night_6night.txt file_lists/multi_night.txt'
+      ;spawn,'cp file_lists/multi_night_6night.txt file_lists/multi_night.txt'
+      spawn,'cp file_lists/multi_night_high_moris_nights.txt file_lists/multi_night.txt'
       compile_multi_night,mnwavbins=5,/diff
       plot_tim_ser,timebin=40,/singlep,custxrange=[-0.2,0.13],$
                    custsep=0.01,/fitcurve,/kepdiff,/offtranserr,/lind,/diff,$
