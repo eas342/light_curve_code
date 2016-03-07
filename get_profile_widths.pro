@@ -304,15 +304,18 @@ pro get_profile_widths,showplot=showplot,jan04corot1=jan04corot1,$
                     al_legend,['Measured','Model'],linestyle=[0,0],$
                               color=[!p.color,mycol('blue')],$
                               thick=[thinline,thickline]
-                    al_legend,[cgGreek('sigma')+' = '+$
-                               string(result[2],format='(F6.2)')+' +/- '+$
-                               string(perr[2],format='(F6.2)'),$
-                               'a = '+$
-                               string(result[0],format='(F6.2)')+' +/- '+$
-                               string(perr[0],format=('(F6.2)'))],$
-                              /right
+                    fmt1 = '(F6.2)'
+                    for apind=0,1l do begin
+                       sigmaline = cgGreek('sigma')+'-'+strtrim(apind+1,2)+' = '+string(widths[j,apind],format=fmt1)+' +/- '+$
+                                   string(widths[j,apind],format=fmt1)
+                       aline = 'a-'+strtrim(apind+1,2)+' = '+string(voigts[j,apind],format=fmt1)+' +/- '+$
+                               string(voigtsE[j,apind],format=fmt1)
+                       if apind EQ 0 then legtext = [sigmaline,aline] else begin
+                          legtext = [legtext,sigmaline,aline]
+                       endelse
+                    endfor
+                    al_legend,legtext,/right
 ;                         'a = '+string(result[
-                    if j GE 1 then stop
                     plot,indices,b,xtitle='Y position (px)',$
                          ytitle='Residual',yrange=threshold(resid),/nodata
 
@@ -323,6 +326,7 @@ pro get_profile_widths,showplot=showplot,jan04corot1=jan04corot1,$
                              strtrim(result[i],1),' +/- ',$
                              strtrim(perr[i],1)
                     endfor
+                    if j GE 1 then stop
                     !p.multi = 0
 
 ;                    oplot,subarrayX,result,color=mycol('blue'),thick=thickline
