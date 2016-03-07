@@ -748,11 +748,11 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
            endif
            if keyword_set(singleplot) and not keyword_set(skipwavl) then begin
               if valid_num(wavname[k]) then begin
-                 wavelabel = wavname[k]+' um'
+                 wavelabel = wavname[k]+' '+cgGreek('mu')+'m'
               endif else begin
                  wavelabel = wavname[k]
               endelse
-              xyouts,!x.crange[1]-0.1*(!x.crange[1]-!x.crange[0]),$
+              xyouts,!x.crange[1]-0.03*(!x.crange[1]-!x.crange[0]),$
                      median(y)-offset,$
                      [wavelabel],alignment=0.5
            endif
