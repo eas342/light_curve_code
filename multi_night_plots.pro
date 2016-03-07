@@ -132,6 +132,7 @@ for i=0l,nNights-1l do begin
          
       end
       keyword_set(stser): begin
+         if showdate EQ '2014 Sep03' then showdate = showdate +' (Control)'
          if i EQ 3 - 1 then skipwavl=0 else skipwavl=1
          plot_tim_ser,timebin=40,/lind,/offtranserr,secondary=secondary,skipwavl=skipwavl,$
                       custXrange=custSpecPhRange,/singlep,/skipreset,custtitle=showdate
