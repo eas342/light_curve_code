@@ -1,0 +1,4 @@
+LEGNM| RADF
+String| String
+Full Wavelengths, Avg|	radius_vs_wavelength/avg_rp_rs.txt
+Chopped Wavelengths, Avg|	radius_vs_wavelength/z_diff_avg_rp_rs.txt
