@@ -6,7 +6,8 @@ pro multi_night_plots,psplot=psplot,$
                       differential=differential,$
                       starplots=starplots,indflux=indflux,$
                       nightsummary=nightsummary,boot=boot,stser=stser,$
-                      binsizephot=binsizephot,showbjd=showbjd
+                      binsizephot=binsizephot,showbjd=showbjd,$
+                      diff2experiment=diff2experiment
 ;; Goes through all nights in order to plot the different things (such
 ;; as specphot images)
 ;; psplot - save a postcript plot for each night
@@ -166,6 +167,14 @@ for i=0l,nNights-1l do begin
          if keyword_set(boot) then addDescrip='boot_' else addDescrip=''
          spawn,'cp radius_vs_wavelength/radius_vs_wavl.txt '+$
                'radius_vs_wavelength/'+addDescrip+'diff_spec_'+usedate+'.txt'
+      end
+      keyword_set(diff2experiment): begin
+         compile_spec,nwavbins=4,/readc,/specsh,custrange=[0.82,2.0]
+         plot_tim_ser,timebin=40,/singlep,custxrange=[-0.2,0.13],$
+                      custsep=0.01,/fitcurve,/kepdiff,/offtranserr,/lind,/diff,legord=1,boot=boot,$
+                      /skipreset
+         spawn,'cp radius_vs_wavelength/radius_vs_wavl.txt '+$
+               'radius_vs_wavelength/z_diff_spec_experiment_'+usedate+'.txt'
       end
       keyword_set(nightsummary): begin
          get_profile_widths,/useSaved
