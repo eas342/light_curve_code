@@ -360,7 +360,7 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
      endif else file2 = choose_file(searchDir='radius_vs_wavelength',filetype='.txt')
      undefine,radscatter
      if strmatch(first_line(file2),'*Scatter Err*') then begin
-        readcol,file2,wavl2,wavl2size,rad2,rade2,radscatter,skipline=1,format='(F,F,F,F)'
+        readcol,file2,wavl2,wavl2size,rad2,rade2,radscatter2,skipline=1,format='(F,F,F,F)'
      endif else begin
         readcol,file2,wavl2,wavl2size,rad2,rade2,skipline=1,format='(F,F,F)'
      endelse
@@ -382,8 +382,8 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
         oploterror,wavl2[1:nwavs-1l],rad2[1:nwavs-1l] * multiplier,wavlwidth2[1:nwavs-1],rade2[1:nwavs-1] * multiplier,$
                    psym=8,thick=2,color=colorchoices[i-1l]
      endif else begin
-        if n_elements(radscatter) NE 0 then begin
-           oploterror,wavl,rad2 * multiplier,wavlwidth2,radscatter * multiplier,psym=8,thick=2,$
+        if n_elements(radscatter2) NE 0 then begin
+           oploterror,wavl2,rad2 * multiplier,wavlwidth2,radscatter2 * multiplier,psym=8,thick=2,$
                       linestyle=1,errstyle=1,hatlength=!D.X_VSIZE / 50E,color=colorchoices[i-1l]
         endif
         oploterror,wavl2,rad2 * multiplier,wavlwidth2,rade2 * multiplier,psym=8,thick=2,color=colorchoices[i-1l]
