@@ -18,7 +18,7 @@ pro plot_tim_ser,fitcurve=fitcurve,fitpoly=fitpoly,usepoly=usepoly,makestops=mak
                  presentation=presentation,slitmod=slitmod,fixprof=fixprof,psmooth=psmooth,$
                  custxrange=custxrange,noplots=noplots,custTitle=custTitle,tmedian=tmedian,$
                  custxmargin=custxmargin,custymargin=custymargin,labelKep=labelKep,boot=boot,$
-                 skipwavl=skipwavl,sinfit=sinfit,showBJD=showBJD
+                 skipwavl=skipwavl,sinfit=sinfit,showBJD=showBJD,wavelabelcsize=wavelabelcsize
 ;; plots the binned data as a time series and can also fit the Rp/R* changes
 ;; apPlot -- this optional keyword allows one to choose the aperture
 ;;           to plot
@@ -106,6 +106,7 @@ pro plot_tim_ser,fitcurve=fitcurve,fitpoly=fitpoly,usepoly=usepoly,makestops=mak
 ;; boot - find bootstrap errors instead of mpfit
 ;; skipwavl - skip the wavelength label
 ;; showBJD - show the BJD at the top X axis
+;; wavelabelcsize - custom wavelength label character size
 
 ;sigrejcrit = 6D  ;; sigma rejection criterion
 sigrejcrit = 5D  ;; sigma rejection criterion
@@ -752,9 +753,18 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
               endif else begin
                  wavelabel = wavname[k]
               endelse
-              xyouts,!x.crange[1]-0.03*(!x.crange[1]-!x.crange[0]),$
-                     median(y)-offset,$
-                     [wavelabel],alignment=0.5
+              if n_elements(wavelabelcsize) EQ 0 then begin
+                 wavelabelcharS = 1.0
+                 wavelabelcol = !p.color
+              endif else begin
+                 wavelabelcharS = wavelabelcsize
+                 wavelabelcol = dataColor
+              endelse
+              wavelabelposx = !x.crange[1]-0.1*(!x.crange[1]-!x.crange[0])
+              wavelabelposy = median(y)-offset
+              xyouts,wavelabelposx,wavelabelposy,$
+                     charsize=wavelabelcsize,$
+                     [wavelabel],alignment=0.5,color=wavelabelcol
            endif
            ;; print the stdev for y for off points
 ;        print,'Fractional off transit Stdev in F for ',wavname,': ',stddev(y[offp])/mean(y[offp])
