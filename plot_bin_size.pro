@@ -153,7 +153,8 @@ endif else begin
       if keyword_set(smallleg) then begin
          legcharsize=0.5
       endif else legcharsize=1.0
-      al_legend,['Measured Noise','Photon + read noise'],linestyle=[0,2],charsize=legcharsize
+      al_legend,['Measured Noise','Photon + read noise'],linestyle=[0,2],charsize=legcharsize,$
+                number=3
    endif
 endelse
 
