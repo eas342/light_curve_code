@@ -137,6 +137,7 @@ case type of
       multi_night_plots,/phot,/fixR,/psplot,/showbjd
    end
    '9spex': begin
+      spawn,'cp file_lists/multi_night_9night.txt file_lists/multi_night.txt'
       multi_night_plots,/stser,/psplot,/fixr,custwavrange=[0.82,2.4]
    end
    'difftime': begin
