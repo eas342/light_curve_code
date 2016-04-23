@@ -896,11 +896,11 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
               ;; Here's where you choose the model to fit to the data
               case 1 of
                  keyword_set(sinfit): begin
-                    expr = 'P[0] * sin((X * 6.2831853D / P[1]) + P[2]) +  eval_legendre(X,P[5:10])'
+                    expr = 'P[0] * sin((X - P[2]) * 6.2831853D / P[1]) +  eval_legendre(X,P[5:10])'
                     start = fltarr(11)
                     start[0] = 0.002
                     start[1] = 0.15E
-                    start[2] = 3.1
+                    start[2] = 0.1
                     start[3:4] = 0E
                     start[5] = 1E
                     start[6:10] = 0E
