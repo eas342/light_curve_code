@@ -7,7 +7,8 @@ pro plot_stars,psplot=psplot,tryclean=tryclean,saveclean=saveclean,$
                showback=showback,directText=directText,custXmargin=custXmargin,$
                custYmargin=custYmargin,skipXtitle=skipXtitle,$
                choose2=choose2,digfilter=digfilter,biggerImage=biggerImage,$
-               rmean=rmean,custtitle=custtitle,nobacknorm=nobacknorm
+               rmean=rmean,custtitle=custtitle,nobacknorm=nobacknorm,$
+               uniformPxGrid=uniformPxGrid
 ;; Plots the reference star and planet host
 ;; spectrum
 ;; psplot -- makes a postscript plot of the RMS spectrum
@@ -36,6 +37,8 @@ pro plot_stars,psplot=psplot,tryclean=tryclean,saveclean=saveclean,$
 ;; biggerImage -- makes a bigger plot image (not so dense)
 ;; rmean - robust mean instead of median
 ;; custtitlte - custom plot title
+;; uniformPxGrid - make the wavelengh plot a uniform spacing in pixel
+;;                 space (as flux is measured on the detector)
 
   ;; set the plot
   if keyword_set(psplot) then begin
@@ -179,6 +182,19 @@ pro plot_stars,psplot=psplot,tryclean=tryclean,saveclean=saveclean,$
      if custxrange[1] GT max(lamgrid) then custXrange[1] = max(lamgrid)
      myXstyle=1
   endelse
+  
+  ;; If trying to match the specphot images, make the wavelength space
+  ;; such that the pixel spacing is unifrom. You'll need to
+  ;; make the X axis (wavelength axis) have non-evenly
+  ;; spaced points to display this work correctly (or previously resample onto a
+  ;; uniform wavelength grid)
+  if keyword_set(uniformPxGrid) then begin
+     tabinv,lamgrid,custXrange,indexEffXrange
+     Wspacing = (custXrange[1] - custXrange[0])/float(indexEffXrange[1] - indexEffXrange[0])
+     newLamgrid = (findgen(nwavs) - indexEffXrange[0]) *  Wspacing + $
+                  custXrange[0]
+     lamgrid = newLamgrid
+  endif
 
   if n_elements(custYrange) NE 0 then myYrange = custYrange
   if n_elements(custXmargin) EQ 0 then custXmargin = [10,4]

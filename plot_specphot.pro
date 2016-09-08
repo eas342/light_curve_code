@@ -7,7 +7,7 @@ pro plot_specphot,divbymodel=divbymodel,usebin=usebin,removelin=removelin,$
                   secondary=secondary,domedian=domedian,ymedian=ymedian,$
                   xmedian=xmedian,$
                   useclean=useclean,showMod=showMod,custtitle=custtitle,$
-                  thickmarkers=thickmarkers
+                  thickmarkers=thickmarkers,uniformWGrid=uniformWgrid
 ;; Makes an image of the spectrophotometry to get a visual sense of
 ;; the transit
 ;; divbymodel -- divide the image by the nominal transit model
@@ -31,6 +31,9 @@ pro plot_specphot,divbymodel=divbymodel,usebin=usebin,removelin=removelin,$
 ;; showMod - in useclean mode, show the KIC 1255 transit model
 ;; custtitle - to be displayed as the title
 ;; thickmarkers - make egress/ingress markers thickmarkers X thicker
+;; uniformWgrid - interpolate fluxes or ratios onto a uniform
+;;                wavelength grid (so the X axis correclty corresponds
+;;                to wavelength)
 
   ;; get the time info
 
@@ -113,6 +116,18 @@ pro plot_specphot,divbymodel=divbymodel,usebin=usebin,removelin=removelin,$
      xypic = xydivspec / replicatedspec
      ;; Normalize by median spectrum
   endelse
+
+  ;; Interpolate onto a uniform wavelength grid
+  if keyword_set(uniformWGrid) then begin
+     nSpec = n_elements(xypic[0,*])
+     newXYpic = fltarr(nwavs,nSpec)
+     uniformWav = findgen(nwavs) * (lamgrid[nwavs-1] - lamgrid[0])/float(nwavs-1l) + lamgrid[0]
+     for i=0l,nSpec-1l do begin
+        newXYpic[*,i] = interpol(xypic[*,i],lamgrid,uniformWav)
+     endfor
+     lamgrid = uniformWav
+     xypic = newXYpic
+  endif
 
   ;; Take a subset of the image using the X range
   if not keyword_set(usebin) and not keyword_set(useclean) then begin
