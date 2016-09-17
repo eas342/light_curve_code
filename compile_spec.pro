@@ -11,7 +11,7 @@ pro compile_spec,extraction2=extraction2,sum=sum,nwavbins=nwavbins,$
                  wavWeights=wavWeights,indbin=indbin,wavpixel=wavpixel,flipstars=flipstars,$
                  spatialRatio=spatialRatio,pretendTransit=pretendTransit,$
                  specKey=specKey,normalize=normalize,inject=inject,$
-                 quickread=quickread
+                 quickread=quickread,masterspecInd=masterspecInd
 ;; Compiles the spectra into a few simple arrays to look at the spectrophotometry
 ;; extraction2 -- uses whatever spectra are in the data directory
 ;; sum -- uses the variance weighted (optimal) extraction by
@@ -64,7 +64,10 @@ pro compile_spec,extraction2=extraction2,sum=sum,nwavbins=nwavbins,$
 ;; normalize - normalize all flux ratios to be 1
 ;; quickread - re-read the FITS spectral images. Otherwise it uses a
 ;;          saved version
-
+;; masterspecInd - specify an index of a master spectrum. If you set
+;;                 specshift as well, it will cross-correlate with
+;;                 this master spectrum. Otherwise, it uses a median
+;;                 of the spectra of the first target
 ;Nwavbins = 35 ;; number of wavelength bins
 ;Nwavbins = 9 ;; number of wavelength bins
 ;Nwavbins = 20 ;; number of wavelength bins
@@ -414,7 +417,11 @@ if keyword_set(specshift) or keyword_set(saveShifts) then begin
    endif
 
    specShiftArr = fltarr(Nap,nfile)
-   masterspec = median(flgrid[*,0,*],dimension=3)
+   if keyword_set(masterspecInd) then begin
+      masterspec = flgrid[*,0,masterspecInd]
+   endif else begin
+      masterspec = median(flgrid[*,0,*],dimension=3)
+   endelse
    for i=0l,Nap-1l do begin
       xyspec = fltarr(Ngpts,nfile)
       xyspec[*,*] = flgrid[*,i,*]
