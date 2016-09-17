@@ -13,7 +13,7 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
                      showAlonso=showalonso,differential=differential,$
                      custxmargin=custxmargin,showmie=showmie,$
                      kepthick=kepthick,noconnect=noconnect,$
-                     preset=preset
+                     preset=preset,amplitude=amplitude
 ;;psplot -- saves a postscript plot
 ;;showstarspec -- shows a star spectrum on the same plot
 ;;nbins -- number of points bo bin in Rp/R*
@@ -51,6 +51,7 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
 ;; showmie - show representative models for MIE scattering
 ;; kepthick - thickness of Kepler dashed line
 ;; noconnect - don't connect the spectral points
+;; amplitude -- for plotting sine fit amplitude as a function of wavelength
 
   if keyword_set(showstar) then !x.margin = [9,9] else begin
      if keyword_set(custxmargin) then !x.margin=custxmargin else !x.margin=[10,3]
@@ -177,6 +178,10 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
         ;; change the default ranges
         if n_elements(custYrange) EQ 0 then custYrange = [-3,9] * multiplier
         if n_elements(custXrange) EQ 0 then custxrange=[0.5,2.5]
+     end
+     keyword_set(amplitude): begin
+        myYtitle='Amplitude (%)'
+        multiplier = 100E
      end
      keyword_set(secondary): begin
         myYtitle='Secondary Eclipse Depth'
