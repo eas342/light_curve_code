@@ -1,7 +1,7 @@
 pro double_specphot,psplot=psplot,noremovelin=noremovelin,$
                     custxrange=custxrange,useclean=useclean,$
                     showmod=showmod,skipInitialize=skipInitialize,$
-                    uniformPxGrid=uniformPxgrid
+                    uniformPxGrid=uniformPxgrid,targetStarName=targetStarName
 ;; Puts a plot of the stars spectra directly on top of the specphot
 ;; plot
 ;; psplot - saves a postscript plot
@@ -32,7 +32,8 @@ if n_elements(custxrange) EQ 0 then custXrange=[0.95,2.4]
   !p.multi = [0,1,2]
   !p.position = [0.2,0.75,0.75,0.95]
   plot_stars,/normall,/showback,/directText,custXmargin=[9,12],/skipXTitle,$
-             custYmargin=[0,0],custxrange=custxrange,uniformPxGrid=uniformPxGrid
+             custYmargin=[0,0],custxrange=custxrange,uniformPxGrid=uniformPxGrid,$
+             targetStarName=targetStarName
   !p.position = [0.2,0.1,0.75,0.748]
   plot_specphot,removelin=myRemovelin,/skipInitialize,custymargin=[4,4],$
                 custxrange=custxrange,useclean=useclean,showmod=showmod,$

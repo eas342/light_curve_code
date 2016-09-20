@@ -8,7 +8,7 @@ pro plot_stars,psplot=psplot,tryclean=tryclean,saveclean=saveclean,$
                custYmargin=custYmargin,skipXtitle=skipXtitle,$
                choose2=choose2,digfilter=digfilter,biggerImage=biggerImage,$
                rmean=rmean,custtitle=custtitle,nobacknorm=nobacknorm,$
-               uniformPxGrid=uniformPxGrid
+               uniformPxGrid=uniformPxGrid,targetStarName=targetStarName
 ;; Plots the reference star and planet host
 ;; spectrum
 ;; psplot -- makes a postscript plot of the RMS spectrum
@@ -271,6 +271,7 @@ pro plot_stars,psplot=psplot,tryclean=tryclean,saveclean=saveclean,$
      else: name3 = 'G0 V Template'
   endcase
 
+  if n_elements(targetStarName) EQ 0 then targetStarName='Planet Host'
 ;  legend,['Host Star',reftext,name3],$
 ;         color=mycol(['black','blue','red']),/right,linestyle=[0,3,4]
   if keyword_set(directText) then begin
@@ -279,7 +280,7 @@ pro plot_stars,psplot=psplot,tryclean=tryclean,saveclean=saveclean,$
      xrefText = 0.65E * xsize+!x.crange[0]
      yrefText = 0.7E * ysize + !y.crange[0]
      xyouts,0.4E * xsize+!x.crange[0],0.85E * ysize + !y.crange[0],$
-            'Planet Host',color=!p.color,charsize=mycharsize
+            targetStarName,color=!p.color,charsize=mycharsize
      xyouts,xrefText,yrefText,$
             'Reference Star',color=mycol('blue'),charsize=mycharsize
      xyouts,0.07E * xsize+!x.crange[0],0.2E * ysize + !y.crange[0],$
@@ -292,8 +293,8 @@ pro plot_stars,psplot=psplot,tryclean=tryclean,saveclean=saveclean,$
      case 1 of 
         keyword_set(noLegend): print,''
         keyword_set(choose2): begin
-           legNames = ['Planet Host (Img '+strtrim(choose1,1)+')',$
-                       'Planet Host (Img '+strtrim(choose2,1)+')',$
+           legNames = [targetStarName+' (Img '+strtrim(choose1,1)+')',$
+                       targetStarName+' (Img '+strtrim(choose2,1)+')',$
                        'Ref Star (Img '+strtrim(choose1,1)+')',$
                        'Ref Star (Img '+strtrim(choose2,1)+')']
            al_legend,legNames,$
