@@ -1,0 +1,5 @@
+# Telluric features to fit, wavel (um), width
+1.130	   0.05	   
+1.376	   0.07
+1.859	   0.06
+2.007	   0.04
