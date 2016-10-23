@@ -1,0 +1,7 @@
+# 2MASS 1821 (Brown Dwarf). So I'm just putting in filler values
+p		0.1
+a_o_Rstar	5
+b_impact	0.0
+Period	   	1.0
+TargStarNum	1
+RefStarNum	0

@@ -1,2 +1,2 @@
-# Time Series Separation for KIC 1255
+# Time Series Separation for 2Mass J0835
 0.04

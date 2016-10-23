@@ -1,0 +1,4 @@
+# UT Times from 2016-06-25T23:23:13.00 to 
+First_Contact	2457565.474
+Fourth_Cont	2457565.474
+Tmid		2457565.474
