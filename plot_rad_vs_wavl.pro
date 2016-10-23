@@ -13,7 +13,8 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
                      showAlonso=showalonso,differential=differential,$
                      custxmargin=custxmargin,showmie=showmie,$
                      kepthick=kepthick,noconnect=noconnect,$
-                     preset=preset,amplitude=amplitude
+                     preset=preset,amplitude=amplitude,$
+                     shadeTelluric=shadeTelluric
 ;;psplot -- saves a postscript plot
 ;;showstarspec -- shows a star spectrum on the same plot
 ;;nbins -- number of points bo bin in Rp/R*
@@ -52,6 +53,7 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
 ;; kepthick - thickness of Kepler dashed line
 ;; noconnect - don't connect the spectral points
 ;; amplitude -- for plotting sine fit amplitude as a function of wavelength
+;; shadeTelluric - shade the telluric bands
 
   if keyword_set(showstar) then !x.margin = [9,9] else begin
      if keyword_set(custxmargin) then !x.margin=custxmargin else !x.margin=[10,3]
@@ -206,6 +208,13 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
        ytitle=myYtitle,$
        ystyle=ytempstyle,xstyle=1,xrange=custxrange,$
        yrange=custYrange,/nodata,charsize=custcharS
+
+  if keyword_set(shadeTelluric) then begin
+     polyfill,[1.32,1.5,1.5,1.32],$
+              [!y.crange[0],!y.crange[0],!y.crange[1],!y.crange[1]],color=mycol('salmon')
+     polyfill,[1.78,1.95,1.95,1.78],$
+              [!y.crange[0],!y.crange[0],!y.crange[1],!y.crange[1]],color=mycol('salmon')
+  endif
 
   if keyword_set(phot) then begin
      oploterror,[wavl[0]],[rad[0]] * multiplier,[0],[rade[0]] * multiplier,thick=4,$
