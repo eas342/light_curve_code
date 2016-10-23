@@ -196,7 +196,7 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
      keyword_set(sinfit): begin
         paramnames = ['Amp','period','phaseoffset','blank03','blank04',$
                       'blank05','blank06','blank07','legendre0','legendre1','legendre2']
-        paramfiles = ['mmp','period','blank02','blank03','blank04',$
+        paramfiles = ['mmp','period','phase_offset','blank03','blank04',$
                       'blank05','blank06','blank07','legendre0','legendre1','legendre2']
      end
      else: begin
@@ -899,8 +899,8 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
                     expr = 'P[0] * sin((X - P[2]) * 6.2831853D / P[1]) +  eval_legendre(X,P[5:10])'
                     start = fltarr(11)
                     start[0] = 0.002
-                    start[1] = 0.15E
-                    start[2] = 0.1
+                    start[1] = 0.175E
+                    start[2] = -0.133E
                     start[3:4] = 0E
                     start[5] = 1E
                     start[6:10] = 0E
@@ -1019,14 +1019,18 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
               
               if keyword_set(sinfit) then begin
                  pi[0:2].fixed =0  ;; allow amplitude, phase and period be free
-                 pi[3:4].fixed =1 ;; make sure unused parameters are free
+                 pi[3:4].fixed =1 ;; make sure unused parameters are fixed
                  ;;pi[5:10] will be handled below by the legendre
                  ;;stuff
-                 pi[0].limited = [1,0]
+                 pi[0].limited = [0,0]
+;                 pi[0].limited = [1,0]
                  pi[0].limits = [0,0] ;; ensure amplitude is positive
-                 pi[1].limited = [1,0]
-                 pi[1].limits = [1E-4,0] ;; ensure you don't divide by zero for period
-                 pi[2].limits = [0,0]
+                 pi[1].fixed = 1
+;                 pi[1].limited = [1,1]
+;                 pi[1].limits = [0.16,0.19]
+;                 pi[1].limits = [1E-4,0] ;; ensure you don't divide by zero for period
+                 pi[2].limited = [1,1]
+                 pi[2].limits = [-0.15,-0.12]
               endif
 
               ;; Here's where the polynomial terms are adjusted
