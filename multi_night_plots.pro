@@ -196,16 +196,17 @@ for i=0l,nNights-1l do begin
          if i EQ 0 then begin
             openw,1,'data/night_summary.txt'
             printf,1,'Date','FWHM','T_exp','T_ingress','T_egress',$
-                   'Airmass Range','Sun Alt',$
-                   format='(A12,4A10,A15,A10)'
+                   'Airmass Range','Sun Alt','Total Time',$
+                   format='(A12,4A10,A15,A10,A10)'
          endif
          lastair = airmass[n_elements(airmass)-1l]
          airstring = string(airmass[0],min(airmass),lastair,format='(F4.2,"-",F4.2,"-",F4.2)')
          sunstring = string(altsun[0],altsun[n_elements(altsun)-1l],$
                             format='(I3," - ",I3)')
+         totTime = (utgrid[n_elements(utgrid)-1l] - utgrid[0])*24E
          printf,1,useDate,medSeeing,medExpTime,tingress,tegress,$
-                airstring,sunstring,$
-                format='(A12,F10.2,3F10.1,A15,A10)'
+                airstring,sunstring,totTime,$
+                format='(A12,F10.2,3F10.1,A15,A10,F10.2)'
       end
       keyword_set(binsizephot): begin
          if i EQ 0 then photleg=1 else photleg=0
