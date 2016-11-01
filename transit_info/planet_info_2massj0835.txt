@@ -1,4 +1,4 @@
-# KIC 12557548, p, a_R* and b_impact are just guesses, Period from Saul Rappaport in e-mail showing full Kepler time series
+# 2MASS 0835 (Brown Dwarf). So I'm just putting in filler values
 p		0.1
 a_o_Rstar	5
 b_impact	0.0
