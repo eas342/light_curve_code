@@ -14,7 +14,7 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
                      custxmargin=custxmargin,showmie=showmie,$
                      kepthick=kepthick,noconnect=noconnect,$
                      preset=preset,amplitude=amplitude,$
-                     shadeTelluric=shadeTelluric
+                     shadeTelluric=shadeTelluric,showYang=showYang
 ;;psplot -- saves a postscript plot
 ;;showstarspec -- shows a star spectrum on the same plot
 ;;nbins -- number of points bo bin in Rp/R*
@@ -336,6 +336,18 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
      al_legend,modNm,/right,/top,$
                linestyle=modStyles,color=modCol,charsize=legsize,$
                thick=modThick
+  endif
+  
+  if keyword_set(showYang) then begin
+     ;; Show the 2MASS J1821 variability spectrum from Yang et al. 2015
+     readcol,'data/spectra/fratio_yang2016.csv',YangWavel,YangFratio,$
+             format='(F,F)'
+     YangAmp = (YangFratio - 1.)/(YangFratio + 1.)
+     oplot,YangWavel,multiplier * YangAmp,thick=2
+     if keyword_set(psplot) then YangLSize = 0.5 else YangLSize = 1.0
+     xyouts,mean(YangWavel),mean(multiplier * YangAmp) * 1.2,'WFC3 amp',$
+            charsize=YangLSize
+            
   endif
   
   if keyword_set(kepMORIS) then begin
