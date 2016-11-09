@@ -14,7 +14,8 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
                      custxmargin=custxmargin,showmie=showmie,$
                      kepthick=kepthick,noconnect=noconnect,$
                      preset=preset,amplitude=amplitude,$
-                     shadeTelluric=shadeTelluric,showYang=showYang
+                     shadeTelluric=shadeTelluric,showYang=showYang,$
+                     planckratio=planckratio
 ;;psplot -- saves a postscript plot
 ;;showstarspec -- shows a star spectrum on the same plot
 ;;nbins -- number of points bo bin in Rp/R*
@@ -54,6 +55,7 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
 ;; noconnect - don't connect the spectral points
 ;; amplitude -- for plotting sine fit amplitude as a function of wavelength
 ;; shadeTelluric - shade the telluric bands
+;; planckratio - show the planck Ratio fit for a starspot model
 
   if keyword_set(showstar) then !x.margin = [9,9] else begin
      if keyword_set(custxmargin) then !x.margin=custxmargin else !x.margin=[10,3]
@@ -338,6 +340,28 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
                thick=modThick
   endif
   
+  if keyword_set(planckratio) then begin
+     if keyword_set(psplot) then legSize=0.7 else legsize=1
+     xModel = findgen(1024)/1023E * (2.5-0.8) + 0.8
+     hiT = 1600 ;; K, fixed temperature
+     expr = 'planck_ratio(X,'+strtrim(hiT,1)+',P[0]) * P[1]'
+     start = [1400,1.0]
+     result = mpfitexpr(expr,wavl,rad,rade,start,/quiet)
+     yModel = expression_eval(expr,xModel,result)
+     oplot,xModel,yModel * multiplier,color=mycol('red')
+     if keyword_set(psplot) then legSize=0.7 else legsize=1
+     al_legend,['B('+strtrim(hiT,1)+' K)/B('+string(result[0],format='(F7.0)')+$
+                ' K) x '+ string(result[1],format='(F7.4)')],$
+               linestyle=0,color=mycol('red'),charsize=legsize,$
+               /right
+     yFitModel = expression_eval(expr,wavl,result)
+     chisQ = total((rad - yFitModel)^2/rade^2)
+     dof = float(n_elements(rad) - 2)
+     chisQN = chisQ / dof
+     print,'T-ratio model, reduced chi-squared= ',chisQN
+
+  endif
+
   if keyword_set(showYang) then begin
      ;; Show the 2MASS J1821 variability spectrum from Yang et al. 2015
      readcol,'data/spectra/fratio_yang2016.csv',YangWavel,YangFratio,$
