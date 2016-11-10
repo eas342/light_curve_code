@@ -15,7 +15,7 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
                      kepthick=kepthick,noconnect=noconnect,$
                      preset=preset,amplitude=amplitude,$
                      shadeTelluric=shadeTelluric,showYang=showYang,$
-                     planckratio=planckratio
+                     twoTreg=twoTreg
 ;;psplot -- saves a postscript plot
 ;;showstarspec -- shows a star spectrum on the same plot
 ;;nbins -- number of points bo bin in Rp/R*
@@ -55,7 +55,7 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
 ;; noconnect - don't connect the spectral points
 ;; amplitude -- for plotting sine fit amplitude as a function of wavelength
 ;; shadeTelluric - shade the telluric bands
-;; planckratio - show the planck Ratio fit for a starspot model
+;; twoTreg - show the planck Ratio fit for a starspot model
 
   if keyword_set(showstar) then !x.margin = [9,9] else begin
      if keyword_set(custxmargin) then !x.margin=custxmargin else !x.margin=[10,3]
@@ -340,23 +340,48 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
                thick=modThick
   endif
   
-  if keyword_set(planckratio) then begin
+  if keyword_set(twoTreg) then begin
      if keyword_set(psplot) then legSize=0.7 else legsize=1
      xModel = findgen(1024)/1023E * (2.5-0.8) + 0.8
-     hiT = 1600 ;; K, fixed temperature
-     expr = 'planck_ratio(X,'+strtrim(hiT,1)+',P[0]) * P[1]'
-     start = [1400,1.0]
-     result = mpfitexpr(expr,wavl,rad,rade,start,/quiet)
-     yModel = expression_eval(expr,xModel,result)
-     oplot,xModel,yModel * multiplier,color=mycol('red')
+     hiT = 1600 ;; K, fixed temperature, higher temperature
+     hiTs = strtrim(hiT,1)
+     expr = '(P[0] - P[1]) * (planck_ratio(X,'+hitS+',P[2],/nonorm) - 1E)/'+$
+            '((P[0] + P[1]) * planck_ratio(X,'+hiTS+',P[2],/nonorm) + 2E - P[0] - P[1])'
+     nparams = 3
+     pi = replicate({fixed:0, limited:[1,0], limits:[0.0E,0.0E]},nparams)
+     showCols = mycol(['red','magenta'])
+     for j=0l,2l-1 do begin
+        pi[0].limited = [1,1]
+        pi[0].limits = [0,1]
+        pi[1].limited = [1,1]
+        pi[1].limits = [0,1]
+        pi[2].limited = [1,1]
+        if j EQ 0l then pi[2].limits = [1200,hiT] else begin
+           pi[2].limits = [200,hiT]
+        endelse
+        start = [0.05,0.04,1400]
+        result = mpfitexpr(expr,wavl,rad,rade,start,parinfo=pi,/quiet)
+        yModel = expression_eval(expr,xModel,result)
+        oplot,xModel,yModel * multiplier,color=showCols[j]
+
+        tLine = 'T1 = '+strtrim(hiT,1)+' K, T2 = '+string(result[2],format='(F7.0)')+' K'
+        alphaLine = cgGreek('alpha')+'1 = '+string(result[0],format='(F7.4)') + ', '+$
+                    cgGreek('alpha')+ '2 = '+string(result[1],format='(F7.4)')
+        if j EQ 0l then begin
+           legendLabel = [tLine,alphaLine]
+        endif else begin
+           legendLabel = [legendLabel,tLine,alphaLine]
+        endelse
+     endfor
+     
      if keyword_set(psplot) then legSize=0.7 else legsize=1
-     al_legend,['B('+strtrim(hiT,1)+' K)/B('+string(result[0],format='(F7.0)')+$
-                ' K) x '+ string(result[1],format='(F7.4)')],$
-               linestyle=0,color=mycol('red'),charsize=legsize,$
+     colFull = [showCols[0],showCols[0],showCols[1],showCols[1]]
+     al_legend,legendLabel,$
+               linestyle=[0,-1,0,-1],color=colFull,charsize=legsize,$
                /right
      yFitModel = expression_eval(expr,wavl,result)
      chisQ = total((rad - yFitModel)^2/rade^2)
-     dof = float(n_elements(rad) - 2)
+     dof = float(n_elements(rad) - nparams)
      chisQN = chisQ / dof
      print,'T-ratio model, reduced chi-squared= ',chisQN
 
