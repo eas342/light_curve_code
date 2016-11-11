@@ -341,30 +341,48 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
   endif
   
   if keyword_set(twoTreg) then begin
-     if keyword_set(psplot) then legSize=0.7 else legsize=1
      xModel = findgen(1024)/1023E * (2.5-0.8) + 0.8
      hiT = 1600 ;; K, fixed temperature, higher temperature
      hiTs = strtrim(hiT,1)
-     expr = '(P[0] - P[1]) * (planck_ratio(X,'+hitS+',P[2],/nonorm) - 1E)/'+$
-            '((P[0] + P[1]) * planck_ratio(X,'+hiTS+',P[2],/nonorm) + 2E - P[0] - P[1])'
-     nparams = 3
-     pi = replicate({fixed:0, limited:[1,0], limits:[0.0E,0.0E]},nparams)
-     showCols = mycol(['red','magenta'])
-     for j=0l,2l-1 do begin
-        pi[0].limited = [1,1]
+     expr = '(P[0] - P[1]) * (planck_ratio(X,P[2],P[3],/nonorm) - 1E)/'+$
+            '((P[0] + P[1]) * planck_ratio(X,P[2],P[3],/nonorm) + 2E - P[0] - P[1])'
+     nparams = 4
+     showCols = mycol(['red','magenta','orange'])
+     for j=0l,3l-1 do begin
+        pi = replicate({fixed:0, limited:[1,0], limits:[0.0E,0.0E]},nparams)
+        ;; alpha 1 and alpha 2 must be between 0 and 1 to have
+        ;; physical area
+        pi[0].limited = [1,1] ;; alpha  1
         pi[0].limits = [0,1]
-        pi[1].limited = [1,1]
-        pi[1].limits = [0,1]
-        pi[2].limited = [1,1]
-        if j EQ 0l then pi[2].limits = [1200,hiT] else begin
-           pi[2].limits = [200,hiT]
-        endelse
-        start = [0.05,0.04,1400]
+        pi[1] = pi[0] ;; alpha 2
+        case j of
+           0: begin
+              ;; Two face model, with one temp fixed
+              pi[0].fixed = 1
+              pi[1].fixed = 1
+              pi[2].fixed = 1
+              start = [1.0,0.0,hiT,hiT - 5E]
+           end
+           1: begin
+              ;; force it to have T near Teff
+              pi[3].limited = [1,0]
+              pi[3].limits = [1300,0]
+              pi[2].limited = [1,1]
+              pi[2].limits = [1300,2500]
+              ;pi[2].limits = [1500,1700]
+              start = [0.001,0.0,2000,1600]
+
+           end
+           2: begin
+              ;; All parameters free
+              pi[3].limits = [200,hiT + 1000]
+              start = [0.004,0.0027,1000E,800E]
+           end
+        endcase
         result = mpfitexpr(expr,wavl,rad,rade,start,parinfo=pi,/quiet)
         yModel = expression_eval(expr,xModel,result)
         oplot,xModel,yModel * multiplier,color=showCols[j]
-
-        tLine = 'T1 = '+strtrim(hiT,1)+' K, T2 = '+string(result[2],format='(F7.0)')+' K'
+        tLine = 'T1 = '+string(result[2],format='(F7.0)')+' K, T2 = '+string(result[3],format='(F7.0)')+' K'
         alphaLine = cgGreek('alpha')+'1 = '+string(result[0],format='(F7.4)') + ', '+$
                     cgGreek('alpha')+ '2 = '+string(result[1],format='(F7.4)')
         if j EQ 0l then begin
@@ -372,18 +390,23 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
         endif else begin
            legendLabel = [legendLabel,tLine,alphaLine]
         endelse
+        yFitModel = expression_eval(expr,wavl,result)
+        chisQ = total((rad - yFitModel)^2/rade^2)
+        dof = float(n_elements(rad) - nparams + total(pi.fixed))
+        chisQN = chisQ / dof
+        print,'T-ratio model, reduced chi-squared= ',chisQN
+        ;; Find the effective temperature
+        Teff = ((result[0] +result[1]) * result[2]^4 + (2E - result[0] - result[1]) * result[3]^4)^(0.25)
+        print,'Teff = ',Teff
+        print,'alpha1 = ',result[0],', alpha2= ',result[1]
      endfor
      
-     if keyword_set(psplot) then legSize=0.7 else legsize=1
-     colFull = [showCols[0],showCols[0],showCols[1],showCols[1]]
+     if keyword_set(psplot) then legSize=0.6 else legsize=1
+     colFull = [showCols[0],showCols[0],showCols[1],showCols[1],$
+               showCols[2],showCols[2]]
      al_legend,legendLabel,$
-               linestyle=[0,-1,0,-1],color=colFull,charsize=legsize,$
+               linestyle=[0,-1,0,-1,0,-1],color=colFull,charsize=legsize,$
                /right
-     yFitModel = expression_eval(expr,wavl,result)
-     chisQ = total((rad - yFitModel)^2/rade^2)
-     dof = float(n_elements(rad) - nparams)
-     chisQN = chisQ / dof
-     print,'T-ratio model, reduced chi-squared= ',chisQN
 
   endif
 
@@ -394,7 +417,7 @@ pro plot_rad_vs_wavl,psplot=psplot,showstarspec=showstarspec,$
      YangAmp = (YangFratio - 1.)/(YangFratio + 1.)
      oplot,YangWavel,multiplier * YangAmp,thick=2
      if keyword_set(psplot) then YangLSize = 0.5 else YangLSize = 1.0
-     xyouts,mean(YangWavel),mean(multiplier * YangAmp) * 1.2,'WFC3 amp',$
+     xyouts,mean(YangWavel),mean(multiplier * YangAmp) * 1.05,'WFC3 amp',$
             charsize=YangLSize
             
   endif
