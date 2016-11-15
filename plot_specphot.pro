@@ -7,7 +7,8 @@ pro plot_specphot,divbymodel=divbymodel,usebin=usebin,removelin=removelin,$
                   secondary=secondary,domedian=domedian,ymedian=ymedian,$
                   xmedian=xmedian,$
                   useclean=useclean,showMod=showMod,custtitle=custtitle,$
-                  thickmarkers=thickmarkers,uniformWGrid=uniformWgrid
+                  thickmarkers=thickmarkers,uniformWGrid=uniformWgrid,$
+                  jd=jd
 ;; Makes an image of the spectrophotometry to get a visual sense of
 ;; the transit
 ;; divbymodel -- divide the image by the nominal transit model
@@ -34,6 +35,8 @@ pro plot_specphot,divbymodel=divbymodel,usebin=usebin,removelin=removelin,$
 ;; uniformWgrid - interpolate fluxes or ratios onto a uniform
 ;;                wavelength grid (so the X axis correclty corresponds
 ;;                to wavelength)
+;; jd - show Julian Date instead of 'Orbital Phase' - makes more sense
+;;      for BD observations
 
   ;; get the time info
 
@@ -42,6 +45,15 @@ pro plot_specphot,divbymodel=divbymodel,usebin=usebin,removelin=removelin,$
   endif
   restore,'data/timedata.sav'
   restore,'data/specdata.sav'
+
+  if keyword_set(jd) then begin
+     medTime = median(utgrid)
+     refTime = double(round(medTime))
+     tplot = utgrid - refTime
+     timeName = 'JD - '+string(refTime,format='(I8)')
+  endif else begin
+     timeName = 'Orbital Phase'
+  endelse
 
   ntime = n_elements(tplot)
 
@@ -270,7 +282,7 @@ pro plot_specphot,divbymodel=divbymodel,usebin=usebin,removelin=removelin,$
             yrange=custyrange,$
             imgyrange=[min(newtplot),max(newtplot)],$
             xtitle='Wavelength (um)',$
-            ytitle='Orbital Phase',$
+            ytitle=timeName,$
             charsize=1,title=custtitle,$
             xmargin=custXmargin,ymargin=custYmargin
 
