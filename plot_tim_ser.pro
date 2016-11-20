@@ -18,7 +18,8 @@ pro plot_tim_ser,fitcurve=fitcurve,fitpoly=fitpoly,usepoly=usepoly,makestops=mak
                  presentation=presentation,slitmod=slitmod,fixprof=fixprof,psmooth=psmooth,$
                  custxrange=custxrange,noplots=noplots,custTitle=custTitle,tmedian=tmedian,$
                  custxmargin=custxmargin,custymargin=custymargin,labelKep=labelKep,boot=boot,$
-                 skipwavl=skipwavl,sinfit=sinfit,showBJD=showBJD,wavelabelcsize=wavelabelcsize
+                 skipwavl=skipwavl,sinfit=sinfit,showBJD=showBJD,wavelabelcsize=wavelabelcsize,$
+                 jd=jd
 ;; plots the binned data as a time series and can also fit the Rp/R* changes
 ;; apPlot -- this optional keyword allows one to choose the aperture
 ;;           to plot
@@ -107,6 +108,7 @@ pro plot_tim_ser,fitcurve=fitcurve,fitpoly=fitpoly,usepoly=usepoly,makestops=mak
 ;; skipwavl - skip the wavelength label
 ;; showBJD - show the BJD at the top X axis
 ;; wavelabelcsize - custom wavelength label character size
+;; jd - show the time in JD - reference instead of orbital phase
 
 ;sigrejcrit = 6D  ;; sigma rejection criterion
 sigrejcrit = 5D  ;; sigma rejection criterion
@@ -322,10 +324,15 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
   endif
 
   for k=0l,nbin-1l do begin
-     ;; Reset the x axis (orbital phase, in case it was modified below)
-     tplot = (utgrid - tmid)/planetdat.period     
-     ;; fold back to 0
-     tplot = fold_phase(tplot,secondary=secondary)
+     if keyword_set(jd) then begin
+        tplot = make_tplot(utgrid,timeName=timeName)
+     endif else begin
+        ;; Reset the x axis (orbital phase, in case it was modified below)
+        tplot = (utgrid - tmid)/planetdat.period     
+        ;; fold back to 0
+        tplot = fold_phase(tplot,secondary=secondary)
+        timeName = 'Orbital Phase'
+     endelse
      airmass = airmassOrig
      ;; Same reset applies to inputX
      if keyword_set(slitmod) then begin
@@ -652,7 +659,7 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
                  ;; Set up everything for the first time plot
                  myNoerase=0
                  yptitle= yptitle + ' + Offset'
-                 myXtitle='Orbital Phase'
+                 myXtitle=timeName
                  tickformat=''
                  myXrange=[min(tplot),max(tplot)+0.25*(max(tplot)-min(tplot))]
                  ;; If it's Dec 23, make an adjustment to avoid

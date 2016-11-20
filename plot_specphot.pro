@@ -47,10 +47,7 @@ pro plot_specphot,divbymodel=divbymodel,usebin=usebin,removelin=removelin,$
   restore,'data/specdata.sav'
 
   if keyword_set(jd) then begin
-     medTime = median(utgrid)
-     refTime = double(round(medTime))
-     tplot = utgrid - refTime
-     timeName = 'JD - '+string(refTime,format='(I8)')
+     tplot = make_tplot(utgrid,timeName=timeName)
   endif else begin
      timeName = 'Orbital Phase'
   endelse
