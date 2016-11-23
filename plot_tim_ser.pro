@@ -217,14 +217,19 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
   fracPhotonarr = fltarr(nbin)
 
   ;; orbital phase
-  tplot = (utgrid - tmid)/planetdat.period
+  if keyword_set(jd) then begin
+     tplot = make_tplot(utgrid,timeName=timeName)
+  endif else begin
+     tplot = (utgrid - tmid)/planetdat.period
+     ;; add or subtract integers to phase so that's it's sort of centered
+     ;; at 0
+     tplot = fold_phase(tplot,secondary=secondary)
+  endelse
+  
   if keyword_set(showDiffairmass) then begin
      airmassOrig = (1D / sin(!DPI / 180D * altitude[*,0]) - 1D / sin(!DPI / 180D * altitude[*,1]))
   endif else airmassOrig = airmass
 
-  ;; add or subtract integers to phase so that's it's sort of centered
-  ;; at 0
-  tplot = fold_phase(tplot,secondary=secondary)
 
   if keyword_set(custxrange) then begin
      lookP = where(tplot GT custxrange[0] and tplot LT custxrange[1])
