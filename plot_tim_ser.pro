@@ -1175,7 +1175,7 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
            cleanTSerName = 'data/cleaned_tim_ser/timeser_'+wavname[k]+'um_.txt'
            forprint,tplot,y,yerr,modelY,resid,$
                     textout=cleanTSerName,$
-                    comment='#Phase  Flux  Fl_err  Model_fl   Residual for '+wavname[k]+'um (%)',$
+                    comment='#'+timeName+' Flux  Fl_err  Model_fl   Residual for '+wavname[k]+'um (%)',$
                     /silent
            if n_elements(cleanlist) EQ 0 then begin
               cleanlist = cleanTSerName
