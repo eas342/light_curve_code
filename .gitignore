@@ -48,3 +48,4 @@ file_lists/old/*
 param_input/specphot_range.txt
 param_input/time_series_sep.txt
 data/state_parameters/full_parameters/*.csv
+data/airmass.txt

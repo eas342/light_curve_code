@@ -1199,6 +1199,18 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
      
   endfor
   
+  ;; Save the airmas table
+  if keyword_set(jd) then begin
+     tplot = make_tplot(utgrid,timeName=timeName)
+  endif else begin
+     tplot = (utgrid - tmid)/planetdat.period
+     ;; add or subtract integers to phase so that's it's sort of centered
+     ;; at 0
+     tplot = fold_phase(tplot,secondary=secondary)
+  endelse
+
+  forprint,tplot,airmass,textout='data/airmass.txt',comment='# '+timeName+'  Airmass',/silent
+
   ;; save the RMS of off transit fluxu
   ;; If there's no wavelength binning
   if n_elements(timebin) EQ 0 then tsizes = [0]
