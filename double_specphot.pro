@@ -2,7 +2,7 @@ pro double_specphot,psplot=psplot,noremovelin=noremovelin,$
                     custxrange=custxrange,useclean=useclean,$
                     showmod=showmod,skipInitialize=skipInitialize,$
                     uniformPxGrid=uniformPxgrid,targetStarName=targetStarName,$
-                    jd=jd
+                    jd=jd,hr=hr
 ;; Puts a plot of the stars spectra directly on top of the specphot
 ;; plot
 ;; psplot - saves a postscript plot
@@ -11,6 +11,8 @@ pro double_specphot,psplot=psplot,noremovelin=noremovelin,$
 ;; useclean - passed onto plot_specphot
 ;; showmod - passed onto plot_specphot
 ;; uniformPxgrid - force a uniform pixel grid (or a distorted wavelength grid)
+;; jd - pass this to plot_specphot to show time in JD
+;; hr - pass this to plot_specphot to show time in hr (with JD)
 
 if keyword_set(noremovelin) then begin
    myRemovelin = 0
@@ -38,7 +40,7 @@ if n_elements(custxrange) EQ 0 then custXrange=[0.95,2.4]
   !p.position = [0.2,0.1,0.75,0.748]
   plot_specphot,removelin=myRemovelin,/skipInitialize,custymargin=[4,4],$
                 custxrange=custxrange,useclean=useclean,showmod=showmod,$
-                uniformWgrid=1,jd=jd
+                uniformWgrid=1,jd=jd,hr=hr
   !p.position = [0,0,0,0]
   !p.multi = 0
 

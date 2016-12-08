@@ -8,7 +8,7 @@ pro plot_specphot,divbymodel=divbymodel,usebin=usebin,removelin=removelin,$
                   xmedian=xmedian,$
                   useclean=useclean,showMod=showMod,custtitle=custtitle,$
                   thickmarkers=thickmarkers,uniformWGrid=uniformWgrid,$
-                  jd=jd
+                  jd=jd,hr=hr
 ;; Makes an image of the spectrophotometry to get a visual sense of
 ;; the transit
 ;; divbymodel -- divide the image by the nominal transit model
@@ -37,6 +37,7 @@ pro plot_specphot,divbymodel=divbymodel,usebin=usebin,removelin=removelin,$
 ;;                to wavelength)
 ;; jd - show Julian Date instead of 'Orbital Phase' - makes more sense
 ;;      for BD observations
+;; hr - show the time offset in hours (use with JD keyword)
 
   ;; get the time info
 
@@ -47,7 +48,7 @@ pro plot_specphot,divbymodel=divbymodel,usebin=usebin,removelin=removelin,$
   restore,'data/specdata.sav'
 
   if keyword_set(jd) then begin
-     tplot = make_tplot(utgrid,timeName=timeName)
+     tplot = make_tplot(utgrid,timeName=timeName,hr=hr)
   endif else begin
      timeName = 'Orbital Phase'
   endelse

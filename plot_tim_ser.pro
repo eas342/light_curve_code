@@ -19,7 +19,7 @@ pro plot_tim_ser,fitcurve=fitcurve,fitpoly=fitpoly,usepoly=usepoly,makestops=mak
                  custxrange=custxrange,noplots=noplots,custTitle=custTitle,tmedian=tmedian,$
                  custxmargin=custxmargin,custymargin=custymargin,labelKep=labelKep,boot=boot,$
                  skipwavl=skipwavl,sinfit=sinfit,showBJD=showBJD,wavelabelcsize=wavelabelcsize,$
-                 jd=jd
+                 jd=jd,hr=hr
 ;; plots the binned data as a time series and can also fit the Rp/R* changes
 ;; apPlot -- this optional keyword allows one to choose the aperture
 ;;           to plot
@@ -109,6 +109,7 @@ pro plot_tim_ser,fitcurve=fitcurve,fitpoly=fitpoly,usepoly=usepoly,makestops=mak
 ;; showBJD - show the BJD at the top X axis
 ;; wavelabelcsize - custom wavelength label character size
 ;; jd - show the time in JD - reference instead of orbital phase
+;; hr - show the time in hours (use with JD)
 
 ;sigrejcrit = 6D  ;; sigma rejection criterion
 sigrejcrit = 5D  ;; sigma rejection criterion
@@ -218,7 +219,7 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
 
   ;; orbital phase
   if keyword_set(jd) then begin
-     tplot = make_tplot(utgrid,timeName=timeName)
+     tplot = make_tplot(utgrid,timeName=timeName,hr=hr)
   endif else begin
      tplot = (utgrid - tmid)/planetdat.period
      ;; add or subtract integers to phase so that's it's sort of centered
@@ -330,7 +331,7 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
 
   for k=0l,nbin-1l do begin
      if keyword_set(jd) then begin
-        tplot = make_tplot(utgrid,timeName=timeName)
+        tplot = make_tplot(utgrid,timeName=timeName,hr=hr)
      endif else begin
         ;; Reset the x axis (orbital phase, in case it was modified below)
         tplot = (utgrid - tmid)/planetdat.period     
@@ -1201,7 +1202,7 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
   
   ;; Save the airmas table
   if keyword_set(jd) then begin
-     tplot = make_tplot(utgrid,timeName=timeName)
+     tplot = make_tplot(utgrid,timeName=timeName,hr=hr)
   endif else begin
      tplot = (utgrid - tmid)/planetdat.period
      ;; add or subtract integers to phase so that's it's sort of centered
