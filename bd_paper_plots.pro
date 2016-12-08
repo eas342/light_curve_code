@@ -18,13 +18,13 @@ case type of
    'tser0835': begin
       change_planets,pname='2massj0835'
       choose_speclist,fchoice='file_lists/2mass_j0835_es_red_01.txt'
-      compile_spec,/readc,/specsh,nwavbins=15,custrange=[0.87,2.38]
+      compile_spec,/readc,/specsh,nwavbins=25,custrange=[0.87,2.38]
       plot_tim_ser,/singlep,/jd,/lind,psplot=psplot
    end
    'tser1821': begin
       change_planets,pname='2massj1821'
       choose_speclist,fchoice='file_lists/2mass_1821_es_red01.txt'
-      compile_spec,/readc,/specsh,nwavbins=15,custrange=[0.87,2.38]
+      compile_spec,/readc,/specsh,nwavbins=25,custrange=[0.87,2.38]
       plot_tim_ser,/singlep,/jd,/lind,psplot=psplot
    end
    else: begin
