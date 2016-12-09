@@ -8,7 +8,8 @@ pro plot_stars,psplot=psplot,tryclean=tryclean,saveclean=saveclean,$
                custYmargin=custYmargin,skipXtitle=skipXtitle,$
                choose2=choose2,digfilter=digfilter,biggerImage=biggerImage,$
                rmean=rmean,custtitle=custtitle,nobacknorm=nobacknorm,$
-               uniformPxGrid=uniformPxGrid,targetStarName=targetStarName
+               uniformPxGrid=uniformPxGrid,targetStarName=targetStarName,$
+               mycharsize=mycharsize
 ;; Plots the reference star and planet host
 ;; spectrum
 ;; psplot -- makes a postscript plot of the RMS spectrum
@@ -53,10 +54,10 @@ pro plot_stars,psplot=psplot,tryclean=tryclean,saveclean=saveclean,$
      !p.thick = 3.0
      !x.thick = 3.0
      !y.thick = 3.0
-     mycharsize = 0.7
+     if n_elements(mycharsize) EQ 0 then mycharsize = 0.7
      mysmallcharsize = 0.45
   endif else begin
-     mycharsize = 1
+     if n_elements(mycharsize) EQ 0 then mycharsize = 1
      mysmallcharsize = 1
   endelse
 
@@ -235,7 +236,7 @@ pro plot_stars,psplot=psplot,tryclean=tryclean,saveclean=saveclean,$
        ytitle=myYtitle,$
        yrange=myYrange,xrange=custXrange,xstyle=myXstyle,$
        xmargin=custXmargin,xtickformat=myXtickformat,$
-       title=custtitle
+       title=custtitle,ystyle=1
 ;,xrange=[5600,6600],xstyle=1
 ;,ystyle=16;,xrange=[1.15,1.35]
 ;,xrange=[1.45,1.75]
@@ -283,7 +284,7 @@ pro plot_stars,psplot=psplot,tryclean=tryclean,saveclean=saveclean,$
             targetStarName,color=!p.color,charsize=mycharsize
      xyouts,xrefText,yrefText,$
             'Reference Star',color=mycol('blue'),charsize=mycharsize
-     xyouts,0.07E * xsize+!x.crange[0],0.2E * ysize + !y.crange[0],$
+     xyouts,0.07E * xsize+!x.crange[0],0.1E * ysize + !y.crange[0],$
             name3,color=mycol('red'),charsize=mycharsize
      midpt = n_elements(lamgrid)/2
      dataperYpix = (!y.crange[1] - !y.crange[0]) /((!y.window[1] - !y.window[0]) * !d.y_vsize)

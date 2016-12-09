@@ -2,7 +2,8 @@ pro double_specphot,psplot=psplot,noremovelin=noremovelin,$
                     custxrange=custxrange,useclean=useclean,$
                     showmod=showmod,skipInitialize=skipInitialize,$
                     uniformPxGrid=uniformPxgrid,targetStarName=targetStarName,$
-                    jd=jd,hr=hr
+                    jd=jd,hr=hr,custfrange=custfrange,$
+                    specLabelCharSize=specLabelCharSize
 ;; Puts a plot of the stars spectra directly on top of the specphot
 ;; plot
 ;; psplot - saves a postscript plot
@@ -13,6 +14,7 @@ pro double_specphot,psplot=psplot,noremovelin=noremovelin,$
 ;; uniformPxgrid - force a uniform pixel grid (or a distorted wavelength grid)
 ;; jd - pass this to plot_specphot to show time in JD
 ;; hr - pass this to plot_specphot to show time in hr (with JD)
+;; custfrange - make a custom flux range in the plot_stars
 
 if keyword_set(noremovelin) then begin
    myRemovelin = 0
@@ -36,7 +38,8 @@ if n_elements(custxrange) EQ 0 then custXrange=[0.95,2.4]
   !p.position = [0.2,0.75,0.75,0.95]
   plot_stars,/normall,/showback,/directText,custXmargin=[9,12],/skipXTitle,$
              custYmargin=[0,0],custxrange=custxrange,uniformPxGrid=uniformPxGrid,$
-             targetStarName=targetStarName
+             targetStarName=targetStarName,custyrange=custfrange,$
+             mycharsize=specLabelCharSize
   !p.position = [0.2,0.1,0.75,0.748]
   plot_specphot,removelin=myRemovelin,/skipInitialize,custymargin=[4,4],$
                 custxrange=custxrange,useclean=useclean,showmod=showmod,$
