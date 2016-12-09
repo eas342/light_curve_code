@@ -14,12 +14,12 @@ pro plot_tim_ser,fitcurve=fitcurve,fitpoly=fitpoly,usepoly=usepoly,makestops=mak
                  showjump=showjump,kepfit=kepfit,skipReset=skipReset,custSep=custSep,$
                  showNomMCMC=showNomMCMC,useGPasfit=useGPasfit,kepdiff=kepdiff,$
                  custyrange=custyrange,tryAlt=tryAlt,trycorrect=trycorrect,$
-                 secondary=secondary,$
+                 secondary=secondary,tallplot=tallplot,$
                  presentation=presentation,slitmod=slitmod,fixprof=fixprof,psmooth=psmooth,$
                  custxrange=custxrange,noplots=noplots,custTitle=custTitle,tmedian=tmedian,$
                  custxmargin=custxmargin,custymargin=custymargin,labelKep=labelKep,boot=boot,$
                  skipwavl=skipwavl,sinfit=sinfit,showBJD=showBJD,wavelabelcsize=wavelabelcsize,$
-                 jd=jd,hr=hr
+                 jd=jd,hr=hr,littleCirc=littleCirc
 ;; plots the binned data as a time series and can also fit the Rp/R* changes
 ;; apPlot -- this optional keyword allows one to choose the aperture
 ;;           to plot
@@ -95,6 +95,7 @@ pro plot_tim_ser,fitcurve=fitcurve,fitpoly=fitpoly,usepoly=usepoly,makestops=mak
 ;; trycorrect - try a corrected time series where a model using the state
 ;;              parameters was fit to the data and then divided out
 ;; secondary -- designed for secondary eclipse
+;; tallplot - make a tall plot for many wavelength bins
 ;; presentation -- makes things bigger for a power point presentation
 ;; slitmod - Use a slit loss model
 ;; fixpro - fix the profile of the stars in the slit loss model
@@ -110,6 +111,7 @@ pro plot_tim_ser,fitcurve=fitcurve,fitpoly=fitpoly,usepoly=usepoly,makestops=mak
 ;; wavelabelcsize - custom wavelength label character size
 ;; jd - show the time in JD - reference instead of orbital phase
 ;; hr - show the time in hours (use with JD)
+;; littleCirc - show little circles instead of diamonds
 
 ;sigrejcrit = 6D  ;; sigma rejection criterion
 sigrejcrit = 5D  ;; sigma rejection criterion
@@ -147,6 +149,14 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
   ;; Get the (plot spacing) separation between different time series for a given planet
   readcol,'param_input/time_series_sep.txt',separationA,format='(F)',skipline=1,/silent
 
+  if keyword_set(littleCirc) then begin
+     plotsym,0
+     myPsym=8
+     mySymSize=0.4
+  endif else begin
+     myPsym=4
+     mySymSize=1.0
+  endelse
 
   if keyword_set(showmcmc) then begin
      ;; Read the MCMC parameters
@@ -164,17 +174,26 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
              instrumentkernRef,kernchoice
   endif
 
-  if keyword_set(presentation) then begin
-     PSplotXSize = 9
-     PSplotYSize = 6
-     PSSingleXsize = 9
-     PSSingleYsize = 6
-  endif else begin
-     PSplotXSize = 14
-     PSplotYSize = 10
-     PSSingleXsize = 12
-     PSSingleYsize = 9
-  endelse
+  case 1 of
+     keyword_set(presentation): begin
+        PSplotXSize = 9
+        PSplotYSize = 6
+        PSSingleXsize = 9
+        PSSingleYsize = 6
+     end
+     keyword_set(tallplot): begin
+        PSplotXSize = 9
+        PSplotYSize = 20
+        PSSingleXsize = 12
+        PSSingleYsize = 20
+     end
+     else: begin
+        PSplotXSize = 14
+        PSplotYSize = 10
+        PSSingleXsize = 12
+        PSSingleYsize = 9
+     end
+  endcase
 
   u1parm = 0.0E         
   u2parm = 0.0E
@@ -747,7 +766,7 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
                  oplot,tplot,yfit,color=mycol('blue')    ;; fitted line to curve
               endif else begin
                  if n_elements(timebin) EQ 0 then begin
-                    oplot,tplot,y-offset,psym=4,color=dataColor
+                    oplot,tplot,y-offset,psym=myPsym,symsize=mySymSize,color=dataColor
                  endif else begin
                     oploterror,tplot,y-offset,tsizes/2E,yerr,psym=3,$
                                hatlength=0,thick=2,color=dataColor

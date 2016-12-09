@@ -21,13 +21,15 @@ case type of
       change_planets,pname='2massj0835'
       choose_speclist,fchoice='file_lists/2mass_j0835_es_red_01.txt'
       compile_spec,/readc,/specsh,nwavbins=25,custrange=[0.87,2.38]
-      plot_tim_ser,/singlep,/jd,/lind,psplot=psplot
+      plot_tim_ser,/singlep,/jd,/lind,psplot=psplot,$
+                   /tallplot,/littleCirc,/hr
    end
    'tser1821': begin
       change_planets,pname='2massj1821'
       choose_speclist,fchoice='file_lists/2mass_1821_es_red01.txt'
       compile_spec,/readc,/specsh,nwavbins=25,custrange=[0.87,2.38]
-      plot_tim_ser,/singlep,/jd,/lind,psplot=psplot
+      plot_tim_ser,/singlep,/jd,/lind,psplot=psplot,$
+                   /tallplot,/littleCirc,/hr
    end
    else: begin
       print,'Unknown BD paper plot'
