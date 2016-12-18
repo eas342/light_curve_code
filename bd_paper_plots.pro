@@ -31,6 +31,15 @@ case type of
       plot_tim_ser,/singlep,/jd,/lind,psplot=psplot,$
                    /tallplot,/littleCirc,/hr
    end
+   'makeSpec1821': begin
+      change_planets,pname='2massj1821'
+      choose_speclist,fchoice='file_lists/2mass_1821_es_red01.txt'
+      compile_spec,/readc,/specsh,nwavbins=25,custrange=[0.87,2.38]
+      plot_tim_ser,/singlep,/jd,/lind,/tallplot,/littleCirc,/fitcurve,$
+         /offtranserr,/sinfit
+      plot_rad_vs_wavl,/amp,custxrange=[0.8,2.5],custyrange=[-0.1,1.5],$
+         /shade,psplot=psplot
+   end
    else: begin
       print,'Unknown BD paper plot'
    end
