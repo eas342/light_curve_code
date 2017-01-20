@@ -2,7 +2,7 @@ pro compile_spec,extraction2=extraction2,sum=sum,nwavbins=nwavbins,$
                  dec23=dec23,dec29=dec29,nyquist=nyquist,extremeRange=extremeRange,$
                  maskwater=maskwater,custRange=custRange,widewatermask=widewatermask,$
                  cleanbyeye=cleanbyeye,specshift=specshift,sameshift=sameshift,$
-                 starshift=starshift,$
+                 starshift=starshift,manualshift=manualshift,compareManual=compareManual,$
                  custmask=custmask,molecbin=molecbin,trycurved=trycurved,$
                  matchgrid=matchgrid,readCurrent=readCurrent,skipBJD=skipBJD,$
                  masktelluric=masktelluric,showall=showall,irafnoise=irafnoise,$
@@ -33,7 +33,10 @@ pro compile_spec,extraction2=extraction2,sum=sum,nwavbins=nwavbins,$
 ;; specshift -- use the shifting procedure where each specturm is
 ;;                shifted w/ cross-correlation
 ;; sameshift -- force both stars to have the same wavelength shifts applied
-;; starshift -- allows integer shifts of the host star vs reference star
+;; starshift -- allows integer shifts of the host star vs reference
+;;              star
+;; manualshift -- uses manual shifts from a file
+;; compareManual - compare the manual and automatic shifts
 ;; custmask -- creates a custom max over a specified wavelength rage
 ;;             such as [1.45,1.55]
 ;; molecbin -- bins the spectra for a given molecule instead of a grid
@@ -406,7 +409,7 @@ ReadNarr = replicate(ReadN,Ngpts,Nap,Nfile)
 
 
 ;; Shift arrays
-if keyword_set(specshift) or keyword_set(saveShifts) then begin
+if keyword_set(specshift) or keyword_set(saveShifts) or keyword_set(manualshift) then begin
    ;; Align the stars within their bins
 
    if keyword_set(trystraight) then begin
@@ -455,6 +458,39 @@ if keyword_set(specshift) or keyword_set(saveShifts) then begin
          endfor
       endfor
    endif
+
+   if keyword_set(manualshift) then begin
+      ;; Doing manual shift
+      manualDirs = ['manual_reference','manual_self']
+      for manualType=0l,2l-1l do begin
+         manualName = 'data/shift_data/'+manualDirs[manualType]+'/manual_shift'+$
+                      specfileListNamePrefix+'.txt'
+         if file_exists(manualName) then begin
+            readcol,manualName,shiftFileName,shiftAmount,format='(A,F)'
+         endif else begin
+            print,"Unable to find manual shift file!"
+         endelse
+         if manualType EQ 0 then begin
+            referenceShift = shiftAmount
+         endif else selfShift = shiftAmount
+      endfor
+
+      if keyword_set(compareManual) then begin
+         !p.multi = [0,1,2]
+         plot,specshiftarr[0,*]
+         oplot,selfShift,color=mycol('yellow')
+         al_legend,['Automatic','Manual'],color=[!p.color,mycol('yellow')],linestyle=0
+         plot,specshiftarr[1,*]
+         oplot,referenceShift+selfshift,color=mycol('yellow')
+         stop
+         !p.multi=0
+      endif
+
+      for j=0l,nfile-1l do begin
+         flgrid[*,1,j] = shift_interp(flgrid[*,1,j],referenceShift[j] + selfShift[j])
+         flgrid[*,0,j] = shift_interp(flgrid[*,0,j],selfShift[j])
+      endfor
+   end
 
    ;; Save the shift arr
    if keyword_set(saveShifts) then begin
