@@ -12,8 +12,14 @@ CASE uval of
     'RIGHT': data.npix[data.index] = data.npix[data.index] + data.interval
     'DONE': begin
        restore,'data/used_date.sav'
-       forprint,data.filen,data.npix,textout='data/shift_data/manual/manual_shift'+specfileListNamePrefix+'.txt',$
-                format='(A,F)',comment='#Filename                      Shift'
+       doComment='#Filename                      Shift'
+       if keyword_set(data.selfref) then begin
+          doComment = doComment+' Reference index= '+strtrim(data.selfind)
+       endif
+       forprint,data.filen,data.npix,$
+                textout='data/shift_data/'+data.mandirectory+'/manual_shift'+$
+                specfileListNamePrefix+'.txt',$
+                format='(A,F)',comment=doComment
 
        WIDGET_CONTROL, ev.TOP, /DESTROY
        es_cmd_focus
@@ -21,14 +27,16 @@ CASE uval of
     end
 ENDCASE
 
-manual_shift,data.npix[data.index],nindex=data.index,interval=data.interval
+manual_shift,data.npix[data.index],nindex=data.index,interval=data.interval,$
+             selfref=data.selfref,selfind=data.selfind
 
 widget_control, ev.top, set_uvalue = data ;; save the data structure
 
 END
 
-pro gui_shift
+pro gui_shift,selfref=selfref,selfind=selfind
 ;; Use the keyboard to shift spectra manually
+;; passes variables to manual_shift
 
   base = WIDGET_BASE(/ROW) ;; base to store groups of buttons
 
@@ -44,22 +52,35 @@ pro gui_shift
   saveW = WIDGET_BUTTON(menuW, VALUE='Save', UVALUE='SAVE',accelerator='Ctrl+S')
 
   ;; Sets up the data structure
+  print,'Re-compiling with no shifting applied'
+  compile_spec,/readc,specsh=0
   restore,'data/specdata.sav'
   nfile = n_elements(utgrid)
 
   ;; Check for a previous saved manual shift array
   restore,'data/used_date.sav'
-  previousName = 'data/shift_data/manual/manual_shift'+specfileListNamePrefix+'.txt'
+  if keyword_set(selfref) then begin
+     manualDirectory = 'manual_self'
+     if n_elements(selfind) EQ 0 then selfind = round(nfile/2)+1l
+  endif else begin
+     manualDirectory = 'manual_reference'
+     selfref=0
+     selfind=0
+  endelse
+  previousName = 'data/shift_data/'+manualDirectory+'/manual_shift'+specfileListNamePrefix+'.txt'
   if file_exists(previousName) then begin
      readcol,previousName,fileName,initialShift,format='(A,F)'
   endif else begin
-     initialShift = fltarr(nfile) -1.7E
+     initialShift = fltarr(nfile)
   endelse
 
   data = create_struct('NFILE',nfile,'INDEX',0,'INTERVAL',1E,$
-                       'NPIX',initialShift,'FILEN',filen)
+                       'NPIX',initialShift,'FILEN',filen,$
+                       'MANDIRECTORY',manualDirectory,$
+                       'SELFREF',selfref,'SELFIND',selfind)
   
-  manual_shift,data.npix[data.index],nindex=data.index,interval=data.interval
+  manual_shift,data.npix[data.index],nindex=data.index,interval=data.interval,$
+               selfref=selfref,selfind=selfind
 
   WIDGET_CONTROL, base, /REALIZE
   widget_control, base, set_uvalue = data
