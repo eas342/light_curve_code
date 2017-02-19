@@ -48,6 +48,11 @@ case 1 of
       plot_rad_vs_wavl,/amp,custxrange=[0.8,2.5],custyrange=[-0.1,1.5],$
          /shade,psplot=psplot
    end
+   strmatch(type,'airmassCheck*'): begin
+      compile_spec,/readc,nwavbins=1,custrange=[1.35,1.41],$
+                   specsh=specShift,manualshift=manualShift
+      plot_tim_ser,/jd,/singlep,/hr,/littleCirc,/fitcurve,/offtranserr,/sinfit,psplot=psplot
+   end
    else: begin
       print,'Unknown BD paper plot'
       return
