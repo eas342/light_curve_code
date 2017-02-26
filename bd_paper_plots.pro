@@ -40,6 +40,14 @@ case 1 of
       plot_tim_ser,/singlep,/jd,/lind,psplot=psplot,$
                    /tallplot,/littleCirc,/hr
    end
+   strmatch(type,'saveclean*'): begin
+      ;; Saves cleaned time series. Doesn't apply linear de-trending
+      ;; I then pass this data to tser_tools for emcee fitting
+      compile_spec,/readc,nwavbins=25,custrange=[0.87,2.38],$
+                   manualshift=1
+      plot_tim_ser,/singlep,/jd,$
+                   /tallplot,/littleCirc,/hr
+   end
    strmatch(type,'makeSpec*'): begin
       compile_spec,/readc,nwavbins=25,custrange=[0.87,2.38],$
                    specsh=specShift,manualshift=manualShift
