@@ -49,3 +49,4 @@ param_input/specphot_range.txt
 param_input/time_series_sep.txt
 data/state_parameters/full_parameters/*.csv
 data/airmass.txt
+param_input/full_planet_info.xlsx
