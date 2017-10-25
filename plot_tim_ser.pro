@@ -931,7 +931,7 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
                     expr = 'P[0] * sin((X - P[2]) * 6.2831853D / P[1]) +  eval_legendre(X,P[5:10])'
                     start = fltarr(11)
                     start[0] = 0.002
-                    start[1] = 0.175E
+                    start[1] = 2E;0.175E
                     start[2] = -0.133E;-0.045E
                     start[3:4] = 0E
                     start[5] = 1E
@@ -1054,15 +1054,18 @@ if n_elements(deletePS) EQ 0 then deletePS = 1
                  pi[3:4].fixed =1 ;; make sure unused parameters are fixed
                  ;;pi[5:10] will be handled below by the legendre
                  ;;stuff
-                 pi[0].limited = [1,0]
-;                 pi[0].limited = [1,0]
-                 pi[0].limits = [0,0] ;; ensure amplitude is positive
-                 pi[1].fixed = 1
+                 ;pi[0].limited = [1,0]
+                 pi[0].limited = [0,0]
+                 ;pi[0].limits = [0,0] ;; ensure amplitude is positive
+                 ;pi[1].fixed = 1
 ;                 pi[1].limited = [1,1]
 ;                 pi[1].limits = [0.16,0.19]
 ;                 pi[1].limits = [1E-4,0] ;; ensure you don't divide by zero for period
                  ;pi[2].limited = [1,1]
-                 pi[2].limits = [-0.15,-0.12]
+                 pi[1].limited = [1,1]
+                 pi[1].limits = [0.5,15]
+                 pi[2].limited = [0,0]
+                 ;pi[2].limits = [-0.15,-0.12]
                  ;pi[2].limits = [0,0.2]
               endif
 
