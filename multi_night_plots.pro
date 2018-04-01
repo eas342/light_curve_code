@@ -7,7 +7,8 @@ pro multi_night_plots,psplot=psplot,$
                       starplots=starplots,indflux=indflux,$
                       nightsummary=nightsummary,boot=boot,stser=stser,$
                       binsizephot=binsizephot,showbjd=showbjd,$
-                      diff2experiment=diff2experiment
+                      diff2experiment=diff2experiment,$
+                      nwavbins=nwavbins,jd=jd
 ;; Goes through all nights in order to plot the different things (such
 ;; as specphot images)
 ;; psplot - save a postcript plot for each night
@@ -24,6 +25,7 @@ pro multi_night_plots,psplot=psplot,$
 ;; stser - SpeX time series
 ;; binsizephot - show the RMS versus bin size
 ;; showbjd - passed to time series plots to show the BJD time
+;; nwavbins - number of wave bins to use
 
   case 1 of
      keyword_set(stser): begin
@@ -61,14 +63,20 @@ pro multi_night_plots,psplot=psplot,$
 if keyword_set(indWav) then usebin=0 else usebin=1
 
 ;; get the list of speclists
-  readcol,'file_lists/multi_night.txt',listFile,format='(A)',comment='#'
+  readcol,'file_lists/multi_night.txt',listFile,listName,format='(A,A)',comment='#'
 
 nNights = n_elements(listFile)
 
-!p.multi = [0,3,3]
+if nNights GT 6 then begin
+   !p.multi = [0,3,3]
+endif else begin
+   !p.multi = [0,3,2]
+endelse
 if keyword_set(photometry) then begin
    !x.omargin=[0,0]
 endif else !x.omargin = [0,20]
+
+if n_elements(nwavbins) EQ 0 then nwavbins=5
 
 for i=0l,nNights-1l do begin
    choose_speclist,fchoice=listFile[i]
@@ -89,7 +97,7 @@ for i=0l,nNights-1l do begin
          endif else compile_phot,/readC
       end
       keyword_set(stser): begin
-         compile_spec,/readC,nwavbins=5,custrange=custwavrange,/specsh
+         compile_spec,/readC,nwavbins=nwavbins,custrange=custwavrange,/specsh
       end
       keyword_set(statep): begin
          get_profile_widths,/esX
@@ -135,9 +143,12 @@ for i=0l,nNights-1l do begin
       keyword_set(stser): begin
          if showdate EQ '2014 Sep03' then showdate = showdate +' (Control)'
          if i EQ 3 - 1 then skipwavl=0 else skipwavl=1
+         
+         if listName[i] EQ 'none' then showTitle = showdate else showTitle = listName[i]
+         
          plot_tim_ser,timebin=40,/lind,/offtranserr,secondary=secondary,skipwavl=skipwavl,$
-                      custXrange=custSpecPhRange,/singlep,/skipreset,custtitle=showdate,$
-                      wavelabelcsize=0.4
+                      custXrange=custSpecPhRange,/singlep,/skipreset,custtitle=showTitle,$
+                      wavelabelcsize=0.4,jd=jd
       end
       keyword_set(indflux): begin
          plot_tim_ser,/ind,custtitle=showdate,secondary=secondary,$
