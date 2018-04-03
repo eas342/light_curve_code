@@ -12,3 +12,5 @@ You need to create an environmental variable `$ASTRO_DATA` and where you will pu
 ## Troubleshooting:
 
  - If you have a problem running `get_profile_widths`, it's probably the type of files in the file lists. You may want to run `get_profile_widths,/esXtract` to use the `_es_ms.fits` files.
+ - To run the `state_parameters.pro`, you need to run `compile_spec,/readc,/specsh,/savesh` at least once to save the spectral shifts.
+ 
