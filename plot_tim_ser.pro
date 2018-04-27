@@ -26,7 +26,6 @@ pro plot_tim_ser,fitcurve=fitcurve,fitpoly=fitpoly,usepoly=usepoly,makestops=mak
 ;; fitcurve -- this fitting procedure ueses
 ;;            planet transit information to fit Rp/R* as a
 ;;            function of wavelength
-;; fitkep -- fit the KIC 1255 light curve using Kepler curves
 ;; fitpoly -- this fits a polynomial to the data to take out long term
 ;;           trends
 ;; usepoly -- this uses the polynomial fit from other sources
